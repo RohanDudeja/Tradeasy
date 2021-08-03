@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type UsersTADetails struct {
+type TradingAccount struct {
 	gorm.Model
 	Userid       string    `json:"userid,omitempty" gorm:"foreign_key:Userid"`
 	Id           int       `gorm:"primary_key" json:"id,omitempty"`
@@ -19,6 +19,6 @@ type UsersTADetails struct {
 	DeletedAt    time.Time `json:"deleted_at"`
 }
 
-func (u *UsersTradingAccDetails) TableName() string{
-	return "users_ta_details"
+func (u *TradingAccount) TableName() string{
+	return "trading_account"
 }
