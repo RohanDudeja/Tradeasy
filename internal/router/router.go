@@ -1,11 +1,11 @@
-package routes
+package router
 
 import (
 	"Tradeasy/internal/controller"
 	"github.com/gin-gonic/gin"
 )
 
-func SetUpOrderRouter() *gin.Engine  {
+func SetUpRouter() *gin.Engine  {
 	r:=gin.Default()
 	trade:=r.Group("/pending_orders")
 	{
