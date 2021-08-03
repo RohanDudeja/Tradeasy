@@ -1,5 +1,4 @@
 # JetBrains project folders.
-.idea/
 # VSCode project folder
 .vscode/*
 # Desktop Services Store - Mac.
@@ -17,7 +16,6 @@ mock/
 # Dont ignore any .gitkeep files, please.
 !*.gitkeep
 .tmp
-tmp
 # Generated protobuf files.
 rpc
 # Generated or local configuration files.
