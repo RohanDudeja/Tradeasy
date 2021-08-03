@@ -1,9 +1,10 @@
 # JetBrains project folders.
-.idea/
 # VSCode project folder
+.idea/
 .vscode/*
 # Desktop Services Store - Mac.
 .DS_Store
+**/.DS_Store
 # Vendor modules.
 vendor/*
 proto
@@ -17,7 +18,6 @@ mock/
 # Dont ignore any .gitkeep files, please.
 !*.gitkeep
 .tmp
-tmp
 # Generated protobuf files.
 rpc
 # Generated or local configuration files.
@@ -26,3 +26,5 @@ config/dev.*
 # deployments/docker-compose.dev.yml
 # telepresence log file
 telepresence.log
+
+
