@@ -1,14 +1,14 @@
 package services
 
 import (
-	"Tradeasy/internal/model/transaction_engine"
+	"Tradeasy/internal/model"
 )
 
-func BuyOrder(p *transaction_engine.PendingOrders)  (err error){
+func BuyOrder(p *model.PendingOrders)  (err error){
 	return err
 }
 
-func SellOrder(p *transaction_engine.PendingOrders)  (err error){
+func SellOrder(p *model.PendingOrders)  (err error){
 	return err
 }
 
