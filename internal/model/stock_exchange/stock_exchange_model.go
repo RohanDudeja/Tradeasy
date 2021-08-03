@@ -1,0 +1,22 @@
+package stock_exchange
+
+import (
+	"gorm.io/gorm"
+)
+
+// Stocks ... schema for stocks data in stock exchange
+type Stocks struct {
+	gorm.Model
+	StockTickerSymbol     string    `gorm:"primary_key;column:stock_ticker_symbol" json:"stock_ticker_symbol,omitempty"`
+	StockName             string    `json:"stock_name,omitempty" gorm:"column:stock_name"`
+	LTP                   int       `json:"ltp,omitempty" gorm:"column:ltp"`
+	OpenPrice             int       `json:"open_price,omitempty" gorm:"column:open_price"`
+	HighPrice             int       `json:"high_price,omitempty" gorm:"column:high_price"`
+	LowPrice              int       `json:"low_price,omitempty" gorm:"column:low_price"`
+	PreviousDayClose      int       `json:"previous_day_close,omitempty" gorm:"column:previous_day_close"`
+	PercentageChange      int       `json:"percentage_change,omitempty" gorm:"column:percentage_change"`
+}
+
+func (s *Stocks) TableName() string{
+	return "stocks"
+}
