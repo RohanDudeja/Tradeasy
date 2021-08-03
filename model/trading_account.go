@@ -8,15 +8,12 @@ import (
 
 type TradingAccount struct {
 	gorm.Model
-	Userid       string    `json:"userid,omitempty" gorm:"foreign_key:Userid"`
-	Id           int       `gorm:"primary_key" json:"id,omitempty"`
-	PanCardNo    string    `json:"panCardNo,omitempty"`
-	BankAccNo    string    `json:"bank_acc_no,omitempty"`
-	TradingAccId string    `json:"trading_acc_id,omitempty"`
-	Balance      big.Int   `json:"balance,omitempty"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	DeletedAt    time.Time `json:"deleted_at"`
+	Userid       string  `json:"userid,omitempty" gorm:"foreign_key:Userid"`
+	Id           int     `gorm:"primary_key" json:"id,omitempty"`
+	PanCardNo    string  `gorm:"pan_card_no" json:"panCardNo,omitempty"`
+	BankAccNo    string  `gorm:"bank_acc_no" json:"bank_acc_no,omitempty"`
+	TradingAccId string  `gorm:"trading_acc_no" json:"trading_acc_id,omitempty"`
+	Balance      big.Int `gorm:"balance" json:"balance,omitempty"`
 }
 
 func (u *TradingAccount) TableName() string {
