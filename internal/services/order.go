@@ -5,7 +5,6 @@ import (
 )
 
 func BuyOrder(p *transaction_engine.PendingOrders)  (err error){
-
 	return err
 }
 

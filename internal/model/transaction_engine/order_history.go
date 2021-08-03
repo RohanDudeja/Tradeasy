@@ -3,12 +3,10 @@ package transaction_engine
 import "github.com/golang/protobuf/ptypes/timestamp"
 
 type OrderHistory struct {
-	Userid        string              `json:"userid" gorm:"column:userid"`
-	User          Users               `gorm:"foreign_key:Userid"`
-	OrderId       string              `gorm:"column:order_id" json:"order_id"`
-	PendingOrders PendingOrders       `gorm:"foreign_key:OrderId"`
+	Userid        string              `json:"userid" gorm:"foreign_key; column:userid"`
+	OrderId       string              `gorm:"foreign_key; column:order_id" json:"order_id"`
 	Id            int                 `gorm:"primaryKey; column:id" json:"id"`
-	StockName     string              `json:"stock_name" gorm:"column:stock_name""`
+	StockName     string              `json:"stock_name" gorm:"column:stock_name"`
 	Quantity      int                 `json:"quantity" gorm:"column:quantity"`
 	BuyPrice      int                 `json:"buy_price" gorm:"column:buy_price"`
 	SellPrice     int                 `json:"sell_price" gorm:"column:sell_price"`

@@ -6,8 +6,8 @@ import (
 )
 
 type StocksFeed struct {
-	Id        big.Int             `gorm:"primary_key;column:id" json:"id""`
-	StockName string              `json:"stock_name"`
+	Id        big.Int             `gorm:"primary_key;column:id" json:"id"`
+	StockName string              `json:"stock_name" gorm:"column:stock_name"`
 	LTP       int                 `json:"ltp" gorm:"column:ltp"`
 	Open      int                 `json:"open" gorm:"column:open"`
 	High      int                 `json:"high" gorm:"column:high"`
