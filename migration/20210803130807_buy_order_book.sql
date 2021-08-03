@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS BUY_ORDER_BOOK(
+CREATE TABLE IF NOT EXISTS buy_order_book(
     order_id varchar not null primary key,
     stock_ticker_symbol varchar,
     order_quantity int,
@@ -14,5 +14,5 @@ CREATE TABLE IF NOT EXISTS BUY_ORDER_BOOK(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE BUY_ORDER_BOOK;
+DROP TABLE buy_order_book;
 -- +goose StatementEnd

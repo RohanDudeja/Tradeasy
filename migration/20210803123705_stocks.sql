@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS STOCKS(
-    id int not null unique,
+CREATE TABLE IF NOT EXISTS stocks(
+    id int not null unique AUTO_INCREMENT,
     stock_name varchar,
     open_price int,
     stock_ticker_symbol varchar primary key,
@@ -18,5 +18,5 @@ CREATE TABLE IF NOT EXISTS STOCKS(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE STOCKS;
+DROP TABLE stocks;
 -- +goose StatementEnd
