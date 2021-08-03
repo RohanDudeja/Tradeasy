@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"Tradeasy/internal/model/Transaction_engine"
+	"Tradeasy/internal/model/transaction_engine"
 	"Tradeasy/internal/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -12,7 +12,7 @@ func AbortMsg(code int, err error, c *gin.Context) {
 	c.Abort()
 }
 func BuyOrder(c *gin.Context)  {
-	var p Transaction_engine.PendingOrders
+	var p transaction_engine.PendingOrders
 	id := c.Params.ByName("Userid")
 	c.BindJSON(&p)
 	p.OrderType="Buy"
@@ -28,7 +28,7 @@ func BuyOrder(c *gin.Context)  {
 }
 
 func SellOrder(c *gin.Context)  {
-	var p Transaction_engine.PendingOrders
+	var p transaction_engine.PendingOrders
 	id := c.Params.ByName("Userid")
 	c.BindJSON(&p)
 	p.OrderType="Sell"

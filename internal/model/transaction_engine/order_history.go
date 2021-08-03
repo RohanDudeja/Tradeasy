@@ -1,9 +1,9 @@
-package Transaction_engine
+package transaction_engine
 
 import "github.com/golang/protobuf/ptypes/timestamp"
 
 type OrderHistory struct {
-	Userid        string              `json:"userid"`
+	Userid        string              `json:"userid" gorm:"column:userid"`
 	User          Users               `gorm:"foreign_key:Userid"`
 	OrderId       string              `gorm:"column:order_id" json:"order_id"`
 	PendingOrders PendingOrders       `gorm:"foreign_key:OrderId"`
