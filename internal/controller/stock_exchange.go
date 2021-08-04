@@ -9,7 +9,14 @@ import (
 
 func ExecuteBuyOrder(c *gin.Context) {
 	var buyReq stock_exchange.OrderRequest
-	c.BindJSON(&buyReq)
+
+	if err := c.BindJSON(&buyReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
 	msg, err := stock_exchange.BuyOrder(buyReq)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -20,7 +27,14 @@ func ExecuteBuyOrder(c *gin.Context) {
 }
 func ExecuteSellOrder(c *gin.Context) {
 	var sellReq stock_exchange.OrderRequest
-	c.BindJSON(&sellReq)
+
+	if err := c.BindJSON(&sellReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusBadRequest,
+		})
+		return
+	}
 	msg, err := stock_exchange.SellOrder(sellReq)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -49,5 +63,15 @@ func DeleteSellOrder(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, msg)
 	}
+}
 
+func ViewMarketDepth(c *gin.Context) {
+	stockName := c.Params.ByName("stock_name")
+	msg, err := stock_exchange.ViewMarketDepth(stockName)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
+	} else {
+		c.JSON(http.StatusOK, msg)
+	}
 }

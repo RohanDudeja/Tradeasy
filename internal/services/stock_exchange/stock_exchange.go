@@ -15,3 +15,7 @@ func DeleteBuyOrder(OrderId string) (delRes DeleteResponse, err error) {
 func DeleteSellOrder(OrderId string) (delRes DeleteResponse, err error) {
 	return delRes, err
 }
+
+func ViewMarketDepth(stockName string) (vdRes ViewDepthResponse, err error) {
+	return vdRes, err
+}

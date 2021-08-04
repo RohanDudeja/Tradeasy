@@ -23,3 +23,9 @@ type OrderResponse struct {
 type DeleteResponse struct {
 	Message string `json:"message"`
 }
+
+type ViewDepthResponse struct {
+	BuyOrders  []string //top 5 buy order details
+	SellOrders []string
+	Message    string
+}
