@@ -2,16 +2,16 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS payments
 (
-    ID INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    UserId VARCHAR(255) NOT NULL,
-    RazorpayLinkId VARCHAR(255),
-    RazorpayLink  VARCHAR(255),
-    Amount INT NOT NULL,
-    PaymentsType  VARCHAR(10) NOT NULL,
-    CurrentBalance INT NOT NULL,
-    CreatedAt TIMESTAMP NOT NULL,
-    UpdatedAt TIMESTAMP NOT NULL,
-    DeletedAt TIMESTAMP DEFAULT NULL
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    razorpay_link_id VARCHAR(255),
+    razorpay_link  VARCHAR(255),
+    amount INT NOT NULL,
+    payments_type  VARCHAR(10) NOT NULL,
+    current_balance INT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP DEFAULT NULL
 );
 -- +goose StatementEnd
 
