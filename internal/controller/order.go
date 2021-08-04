@@ -20,7 +20,7 @@ func BuyOrder(c *gin.Context)  {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	}else {
-		c.JSON(http.StatusOK,p)
+		c.JSON(http.StatusOK,&p)
 	}
 }
 
@@ -37,7 +37,7 @@ func SellOrder(c *gin.Context)  {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	}else {
-		c.JSON(http.StatusOK,p)
+		c.JSON(http.StatusOK,&p)
 	}
 }
 
