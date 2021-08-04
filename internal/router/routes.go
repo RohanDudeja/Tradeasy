@@ -23,5 +23,12 @@ func SetUpRouter() *gin.Engine  {
 	//	users.POST("/forgot", controller.ForgetPassword)
 	//	users.PATCH("/verify", controller.VerificationForPasswordChange)
 	//}
+	//watchlist := r.Group("/user_watchlist")
+	//{
+	//	watchlist.POST("", controller.CreateWatchlist)
+	//	watchlist.POST("/:watchlist_id/add", controller.AddStockEntry)
+	//	watchlist.DELETE("/:watchlist_id", controller.DeleteStockEntry)
+	//	watchlist.PATCH("/sort", controller.SortWatchlist)
+	//}
 	return r
 }
