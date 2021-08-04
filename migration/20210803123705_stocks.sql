@@ -10,9 +10,9 @@ CREATE TABLE IF NOT EXISTS stocks(
     low_price int not null,
     previous_day_close int not null,
     percentage_change int not null,
-    created_at timestamp default current_timestamp,
-    updated_at timestamp default current_timestamp,
-    deleted_at timestamp
+    created_at timestamp  not null,
+    updated_at timestamp  not null,
+    deleted_at timestamp default null
 );
 -- +goose StatementEnd
 
