@@ -6,8 +6,8 @@ import (
 
 // BuyOrderBook ... schema for order book that stores buy orders
 type BuyOrderBook struct {
-	ID                uint      `json:"id" gorm:"primary_key; column:id"`
-	OrderID           string    `json:"order_id,omitempty" gorm:"foreign_key;column:order_id"`
+	ID                int       `json:"id" gorm:"primary_key; column:id"`
+	OrderID           string    `json:"order_id,omitempty" gorm:"column:order_id"`
 	StockTickerSymbol string    `json:"stock_ticker_symbol,omitempty" gorm:"column:stock_ticker_symbol"`
 	OrderQuantity     int       `json:"order_quantity,omitempty" gorm:"column:order_quantity"`
 	OrderStatus       string    `json:"order_status,omitempty" gorm:"column:order_status"`
