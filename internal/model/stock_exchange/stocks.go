@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 // Stocks ... schema for stocks data in stock exchange
 type Stocks struct {
