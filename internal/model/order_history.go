@@ -5,9 +5,9 @@ import (
 )
 
 type OrderHistory struct {
-	UserId        string    `gorm:"foreign_key; column:user_id" json:"user_id" `
-	OrderId       string    `gorm:"foreign_key; column:order_id" json:"order_id"`
-	Id            int       `gorm:"primaryKey; column:id" json:"id"`
+	UserId        string    `gorm:"column:user_id" json:"user_id" `
+	OrderId       string    `gorm:"column:order_id" json:"order_id"`
+	Id            int       `gorm:"primary_key; column:id" json:"id"`
 	StockName     string    `gorm:"column:stock_name" json:"stock_name"`
 	Quantity      int       `gorm:"column:quantity" json:"quantity" `
 	BuyPrice      int       `gorm:"column:buy_price" json:"buy_price" `

@@ -1,19 +1,18 @@
 package controller
 
 import (
-	"Tradeasy/internal/services"
+	"Tradeasy/internal/services/Order"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func BuyOrder(c *gin.Context) {
-	var breq services.BuyRequest
-	var bres services.BuyResponse
+	var BReq Order.BuyRequest
 	id := c.Params.ByName("Userid")
-	c.BindJSON(&breq)
-	breq.UserId = id
-	err := services.BuyOrder(&breq, &bres)
+	c.BindJSON(&BReq)
+	BReq.UserId = id
+	err, bres := Order.BuyOrder(BReq)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -24,13 +23,12 @@ func BuyOrder(c *gin.Context) {
 }
 
 func SellOrder(c *gin.Context) {
-	var sreq services.SellRequest
-	var sres services.SellResponse
+	var SReq Order.SellRequest
 	id := c.Params.ByName("Userid")
-	c.BindJSON(&sreq)
-	sreq.UserId = id
+	c.BindJSON(&SReq)
+	SReq.UserId = id
 
-	err := services.SellOrder(&sreq, &sres)
+	err, sres := Order.SellOrder(SReq)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -41,9 +39,8 @@ func SellOrder(c *gin.Context) {
 }
 
 func CancelOrder(c *gin.Context) {
-	var cres services.CancelResponse
 	id := c.Params.ByName("OrderId")
-	err := services.CancelOrder(id, &cres)
+	err, cres := Order.CancelOrder(id)
 
 	if err != nil {
 		fmt.Println(err.Error())

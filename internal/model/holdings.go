@@ -5,8 +5,8 @@ import (
 )
 
 type Holdings struct {
-	UserId    string    `gorm:"foreign_key; column:user_id" json:"user_id"`
-	OrderId   string    `gorm:"foreign_key; column:order_id" json:"order_id"`
+	UserId    string    `gorm:"column:user_id" json:"user_id"`
+	OrderId   string    `gorm:"column:order_id" json:"order_id"`
 	Id        int       `gorm:"primary_key; column:id" json:"id"`
 	StockName string    `gorm:"column:stock_name" json:"stock_name"`
 	Quantity  int       `gorm:"column:quantity" json:"quantity"`

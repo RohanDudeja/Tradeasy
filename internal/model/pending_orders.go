@@ -5,7 +5,7 @@ import (
 )
 
 type PendingOrders struct {
-	UserId     string    `gorm:"foreign_key; column:user_id" json:"user_id" `
+	UserId     string    `gorm:"column:user_id" json:"user_id" `
 	OrderId    string    `gorm:"primary_key;column:order_id" json:"order_id"`
 	StockName  string    `gorm:"column:stock_name" json:"stock_name"`
 	OrderType  string    `gorm:"column:order_type" json:"order_type"`
