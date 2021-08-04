@@ -9,17 +9,22 @@ import (
 	"log"
 	"os"
 )
-const dialect = "mysql"
+
 var (
 	flags = flag.NewFlagSet("migrate", flag.ExitOnError)
 	dir   = flags.String("dir", "../../migration", "directory with migration files")
 )
+
 func main() {
 	flags.Usage = usage
 	flags.Parse(os.Args[1:])
 	args := flags.Args()
 
-	command := args[0]// command like up, down
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		flags.Usage()
+		return
+	}
+	command := args[0] // command like up, down
 
 	dbstring := config.DbURL(config.BuildConfig())
 	//fmt.Println(dbstring)
@@ -43,6 +48,7 @@ func usage() {
 	flags.PrintDefaults()
 	fmt.Println(usageCommands)
 }
+
 var (
 	usagePrefix = `Usage: migrate [OPTIONS] COMMAND
 Examples:

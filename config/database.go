@@ -1,7 +1,6 @@
 package config
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	_ "github.com/kelseyhightower/envconfig"
@@ -9,17 +8,16 @@ import (
 	"os"
 )
 
-var DB *sql.DB
-
 // Config represents configuration
 type Config struct {
-	Database struct{
-		Host     string `yaml:"host", envconfig:"DB_HOST"`
-		Port     int `yaml:"port", envconfig:"DB_PORT"`
-		UserName     string `yaml:"user_name", envconfig:"DB_USERNAME"`
-		DBName   string `yaml:"db_name", envconfig:"DB_NAME"`
-		Password string `yaml:"password", envconfig:"DB_PASSWORD"`
-	}`yaml:"database"`
+	Database Database `yaml:"database",envconfig:"Database"`
+}
+type Database struct {
+	Host     string `yaml:"host", envconfig:"DB_HOST"`
+	Port     int    `yaml:"port", envconfig:"DB_PORT"`
+	UserName string `yaml:"user_name", envconfig:"DB_USERNAME"`
+	DBName   string `yaml:"db_name", envconfig:"DB_NAME"`
+	Password string `yaml:"password", envconfig:"DB_PASSWORD"`
 }
 
 //readEnv for reading environment variable
@@ -66,4 +64,3 @@ func DbURL(config *Config) string {
 		config.Database.DBName,
 	)
 }
-
