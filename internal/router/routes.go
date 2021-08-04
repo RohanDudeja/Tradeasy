@@ -15,13 +15,19 @@ func SetUpRouter() *gin.Engine  {
 		trade.PATCH(":OrderId/cancel",controller.CancelOrder)
 	}
 
-	exchange := r.Group("/order_book")
+	exchangeBuy := r.Group("/buy_order_book")
 	{
-		exchange.POST("buy_order", controller.ExecuteBuyOrder)
-		exchange.POST("sell_order", controller.ExecuteSellOrder)
-		exchange.DELETE("buy_order/:StockName", controller.DeleteBuyOrder)
-		exchange.DELETE("sell_order/:StockName", controller.DeleteSellOrder)
-		exchange.GET(":StockName/depth", controller.ViewMarketDepth)
+		exchangeBuy.POST("buy_order", controller.ExecuteBuyOrder)
+		exchangeBuy.DELETE("buy_order/:OrderID", controller.DeleteBuyOrder)
+	}
+	exchangeSell := r.Group("/sell_order_book")
+	{
+		exchangeSell.POST("sell_order", controller.ExecuteSellOrder)
+		exchangeSell.DELETE("sell_order/:OrderID", controller.DeleteSellOrder)
+	}
+	exchangeFetch := r.Group("/order_book")
+	{
+		exchangeFetch.GET(":StockName/depth", controller.ViewMarketDepth)
 	}
 	 */
 	return r
