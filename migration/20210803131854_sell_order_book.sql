@@ -2,11 +2,11 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS sell_order_book(
     id int not null unique AUTO_INCREMENT primary key,
-    order_id varchar not null foreign key,
-    stock_ticker_symbol varchar,
+    order_id varchar(255) not null,
+    stock_ticker_symbol varchar(255),
     order_quantity int,
-    order_status varchar,
-    order_price varchar,
+    order_status varchar(255),
+    order_price varchar(255),
     created_at timestamp,
     updated_at timestamp,
     deleted_at timestamp
