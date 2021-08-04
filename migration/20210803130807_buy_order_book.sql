@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS buy_order_book(
     order_id varchar(255) not null,
     stock_ticker_symbol varchar(255) not null,
     order_quantity int not null,
-    order_status varchar(255) default 'pending',
+    order_status varchar(255) not null,
     order_price int not null,
     created_at timestamp not null,
     updated_at timestamp not null,
