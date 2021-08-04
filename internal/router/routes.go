@@ -18,12 +18,12 @@ func SetUpRouter() *gin.Engine  {
 	exchangeBuy := r.Group("/buy_order_book")
 	{
 		exchangeBuy.POST("buy_order", controller.ExecuteBuyOrder)
-		exchangeBuy.DELETE("buy_order/:OrderID", controller.DeleteBuyOrder)
+		exchangeBuy.DELETE("buy_order/:order_id", controller.DeleteBuyOrder)
 	}
 	exchangeSell := r.Group("/sell_order_book")
 	{
 		exchangeSell.POST("sell_order", controller.ExecuteSellOrder)
-		exchangeSell.DELETE("sell_order/:OrderID", controller.DeleteSellOrder)
+		exchangeSell.DELETE("sell_order/:order_id", controller.DeleteSellOrder)
 	}
 	exchangeFetch := r.Group("/order_book")
 	{
