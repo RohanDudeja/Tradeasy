@@ -1,4 +1,4 @@
-package Order
+package order
 
 type BuyRequest struct {
 	UserId     string `json:"user_id"`
