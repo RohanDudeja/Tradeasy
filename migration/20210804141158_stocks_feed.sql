@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS stocks_feed(
         ltp int not null ,
         high int not null ,
         low int not null ,
-        traded_at timestamp default null,
-        created_at timestamp default current_timestamp,
+        traded_at timestamp not null ,
+        created_at timestamp not null ,
         deleted_at timestamp default null
 );
 -- +goose StatementEnd

@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS pending_orders(
        quantity int not null ,
        order_price int not null ,
        status varchar(255) not null ,
-       created_at timestamp default current_timestamp,
-       updated_at timestamp default null,
+       created_at timestamp  not null ,
+       updated_at timestamp  not null ,
        deleted_at timestamp default null
 );
 -- +goose StatementEnd

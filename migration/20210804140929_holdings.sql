@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS holdings(
         stock_name varchar(255) not null ,
         quantity int not null ,
         buy_price int not null ,
-        ordered_at timestamp default null,
-        created_at timestamp default current_timestamp,
-        updated_at timestamp default null,
+        ordered_at timestamp not null ,
+        created_at timestamp not null ,
+        updated_at timestamp not null ,
         deleted_at timestamp default null
 );
 -- +goose StatementEnd
