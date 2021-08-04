@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS sell_order_book(
     stock_ticker_symbol varchar(255),
     order_quantity int,
     order_status varchar(255),
-    order_price varchar(255),
+    order_price int,
     created_at timestamp,
     updated_at timestamp,
     deleted_at timestamp
