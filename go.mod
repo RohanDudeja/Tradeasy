@@ -3,7 +3,6 @@ module Tradeasy
 go 1.16
 
 require (
-	github.com/ClickHouse/clickhouse-go v1.4.5 // indirect
 	github.com/denisenkom/go-mssqldb v0.10.0 // indirect
 	github.com/gin-gonic/gin v1.7.3
 	github.com/go-playground/validator/v10 v10.8.0 // indirect
