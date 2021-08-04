@@ -1,9 +1,11 @@
 package model
 
-import "github.com/golang/protobuf/ptypes/timestamp"
+import (
+	"time"
+)
 
 type PendingOrders struct {
-	Userid     string              `gorm:"foreign_key; column:userid" json:"userid" `
+	UserId     string              `gorm:"foreign_key; column:user_id" json:"user_id" `
 	OrderId    string              `gorm:"primary_key;column:order_id" json:"order_id"`
 	StockName  string              `gorm:"column:stock_name" json:"stock_name"`
 	OrderType  string              `gorm:"column:order_type" json:"order_type"`
@@ -12,9 +14,9 @@ type PendingOrders struct {
 	Quantity   int                 `gorm:"column:quantity" json:"quantity" `
 	OrderPrice int                 `gorm:"column:order_price" json:"order_price" `
 	Status     string              `gorm:"column:status" json:"status"`
-	CreatedAt  timestamp.Timestamp `gorm:"column:created_at" json:"created_at" `
-	UpdatedAt  timestamp.Timestamp `gorm:"column:updated_at" json:"updated_at" `
-	DeletedAt  timestamp.Timestamp `gorm:"column:deleted_at" json:"deleted_at" `
+	CreatedAt  time.Time `gorm:"column:created_at" json:"created_at" `
+	UpdatedAt  time.Time `gorm:"column:updated_at" json:"updated_at" `
+	DeletedAt  time.Time `gorm:"column:deleted_at" json:"deleted_at" `
 }
 
 func (p *PendingOrders) TableName() string {

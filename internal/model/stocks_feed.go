@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"math/big"
+	"time"
 )
 
 type StocksFeed struct {
@@ -12,9 +12,9 @@ type StocksFeed struct {
 	Open      int                 `gorm:"column:open" json:"open" `
 	High      int                 `gorm:"column:high" json:"high" `
 	Low       int                 `gorm:"column:low" json:"low" `
-	TradedAt  timestamp.Timestamp `gorm:"column:traded_at" json:"traded_at" `
-	CreatedAt timestamp.Timestamp `gorm:"column:created_at" json:"created_at" `
-	DeletedAt timestamp.Timestamp `gorm:"column:deleted-at" json:"deleted_at" `
+	TradedAt  time.Time `gorm:"column:traded_at" json:"traded_at" `
+	CreatedAt time.Time `gorm:"column:created_at" json:"created_at" `
+	DeletedAt time.Time `gorm:"column:deleted-at" json:"deleted_at" `
 }
 
 func (s *StocksFeed) TableName() string {
