@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS order_history(
-        userid varchar(255) not null ,
+        user_id varchar(255) not null ,
         order_id varchar(255) not null ,
         id int not null AUTO_INCREMENT primary key ,
         stock_name varchar(255) not null ,
