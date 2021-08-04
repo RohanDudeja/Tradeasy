@@ -1,17 +1,13 @@
 package services
 
-import (
-	"Tradeasy/internal/model"
-)
-
-func BuyOrder(p *model.PendingOrders)  (err error){
+func BuyOrder(breq *BuyRequest,bres *BuyResponse)  (err error){
 	return err
 }
 
-func SellOrder(p *model.PendingOrders)  (err error){
+func SellOrder(sreq *SellRequest,sres *SellResponse)  (err error){
 	return err
 }
 
-func CancelOrder(id string)  (err error){
+func CancelOrder(id string,cres *CancelResponse)  (err error){
 	return err
 }

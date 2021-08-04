@@ -1,54 +1,54 @@
 package controller
 
 import (
-	"Tradeasy/internal/model"
 	"Tradeasy/internal/services"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func BuyOrder(c *gin.Context)  {
-	var p model.PendingOrders
+func BuyOrder(c *gin.Context) {
+	var breq services.BuyRequest
+	var bres services.BuyResponse
 	id := c.Params.ByName("Userid")
-	c.BindJSON(&p)
-	p.OrderType="Buy"
-	p.Userid=id
-	err:=services.BuyOrder(&p)
+	c.BindJSON(&breq)
+	breq.UserId = id
+	err := services.BuyOrder(&breq, &bres)
 
-	if err !=nil{
+	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
-	}else {
-		c.JSON(http.StatusOK,&p)
+	} else {
+		c.JSON(http.StatusOK, &bres)
 	}
 }
 
-func SellOrder(c *gin.Context)  {
-	var p model.PendingOrders
+func SellOrder(c *gin.Context) {
+	var sreq services.SellRequest
+	var sres services.SellResponse
 	id := c.Params.ByName("Userid")
-	c.BindJSON(&p)
-	p.OrderType="Sell"
-	p.Userid=id
+	c.BindJSON(&sreq)
+	sreq.UserId = id
 
-	err:=services.SellOrder(&p)
+	err := services.SellOrder(&sreq, &sres)
 
-	if err !=nil{
+	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
-	}else {
-		c.JSON(http.StatusOK,&p)
+	} else {
+		c.JSON(http.StatusOK, &sres)
 	}
 }
 
-func CancelOrder(c *gin.Context)  {
+func CancelOrder(c *gin.Context) {
+	var cres services.CancelResponse
 	id := c.Params.ByName("OrderId")
-	err:=services.CancelOrder(id)
+	err := services.CancelOrder(id, &cres)
 
-	if err !=nil{
+	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
-	}else {
-		c.JSON(http.StatusOK,c)
+	} else {
+		c.JSON(http.StatusOK, &cres)
 	}
 }
