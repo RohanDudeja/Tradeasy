@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS stocks(
-    id int not null unique AUTO_INCREMENT primary key,
+    id int not null AUTO_INCREMENT primary key,
     stock_name varchar(255),
     open_price int,
     stock_ticker_symbol varchar(255),
