@@ -8,44 +8,44 @@ import (
 )
 
 func BuyOrder(c *gin.Context) {
-	var BReq order.BuyRequest
+	var bReq order.BuyRequest
 	id := c.Params.ByName("Userid")
-	c.BindJSON(&BReq)
-	BReq.UserId = id
-	BRes, err := order.BuyOrder(BReq)
+	c.BindJSON(&bReq)
+	bReq.UserId = id
+	bRes, err := order.BuyOrder(bReq)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, &BRes)
+		c.JSON(http.StatusOK, bRes)
 	}
 }
 
 func SellOrder(c *gin.Context) {
-	var SReq order.SellRequest
+	var sReq order.SellRequest
 	id := c.Params.ByName("Userid")
-	c.BindJSON(&SReq)
-	SReq.UserId = id
+	c.BindJSON(&sReq)
+	sReq.UserId = id
 
-	SRes, err := order.SellOrder(SReq)
+	sRes, err := order.SellOrder(sReq)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, &SRes)
+		c.JSON(http.StatusOK, sRes)
 	}
 }
 
 func CancelOrder(c *gin.Context) {
 	id := c.Params.ByName("OrderId")
-	CRes, err := order.CancelOrder(id)
+	cRes, err := order.CancelOrder(id)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, &CRes)
+		c.JSON(http.StatusOK, cRes)
 	}
 }
