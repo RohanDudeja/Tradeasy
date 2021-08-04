@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
 )
 // Stocks ... schema for stocks data in stock exchange
 type Stocks struct {
-	gorm.Model
-	StockTickerSymbol     string    `gorm:"primary_key;column:stock_ticker_symbol" json:"stock_ticker_symbol,omitempty"`
+	ID                    int       `gorm:"primary_key;column:id" json:"id"`
+	StockTickerSymbol     string    `gorm:"column:stock_ticker_symbol" json:"stock_ticker_symbol,omitempty"`
 	StockName             string    `json:"stock_name,omitempty" gorm:"column:stock_name"`
 	LTP                   int       `json:"ltp,omitempty" gorm:"column:ltp"`
 	OpenPrice             int       `json:"open_price,omitempty" gorm:"column:open_price"`
