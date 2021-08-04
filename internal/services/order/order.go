@@ -1,7 +1,6 @@
 package order
 
 func BuyOrder(BReq BuyRequest) (bRes BuyResponse, err error) {
-
 	return bRes, err
 }
 
