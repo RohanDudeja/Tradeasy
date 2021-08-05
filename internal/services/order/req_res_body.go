@@ -5,14 +5,14 @@ type BuyRequest struct {
 	StockName  string `json:"stock_name"`
 	BookType   string `json:"book_type"`
 	LimitPrice int    `json:"limit_price"`
-	Quantity   string `json:"quantity"`
+	Quantity   int    `json:"quantity"`
 }
 
 type BuyResponse struct {
 	StockName  string `json:"stock_name"`
 	BookType   string `json:"book_type"`
 	LimitPrice int    `json:"limit_price"`
-	Quantity   string `json:"quantity"`
+	Quantity   int    `json:"quantity"`
 	TotalPrice int    `json:"total_price"`
 	Status     int    `json:"status"`
 	OrderPrice int    `json:"order_price"`
@@ -23,7 +23,7 @@ type SellResponse struct {
 	StockName  string `json:"stock_name"`
 	BookType   string `json:"book_type"`
 	LimitPrice int    `json:"limit_price"`
-	Quantity   string `json:"quantity"`
+	Quantity   int    `json:"quantity"`
 	TotalPrice int    `json:"total_price"`
 	Status     int    `json:"status"`
 	OrderPrice int    `json:"order_price"`
@@ -35,7 +35,7 @@ type SellRequest struct {
 	StockName  string `json:"stock_name"`
 	BookType   string `json:"book_type"`
 	LimitPrice int    `json:"limit_price"`
-	Quantity   string `json:"quantity"`
+	Quantity   int    `json:"quantity"`
 }
 
 type CancelResponse struct {
