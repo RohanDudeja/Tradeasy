@@ -46,7 +46,7 @@ func main() {
 	// running goose commands
 	db,err_ := goose.OpenDBWithDriver("mysql",dbstring)
 	if err_ != nil {
-		log.Fatalf("goose: failed to open DB: %v\n", err)
+		log.Fatalf("goose: failed to open DB: %v\n", err_)
 	}
 	defer func() {
 		if err_ := db.Close(); err_ != nil {
@@ -56,7 +56,7 @@ func main() {
 
 
 	if err_ := goose.Run(command, db, *dir); err_ != nil {
-		log.Fatalf("goose %v: %v", command, err)
+		log.Fatalf("goose %v: %v", command, err_)
 	}
 
 }
