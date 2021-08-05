@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
 	"github.com/pressly/goose"
 	"log"
 	"os"
@@ -13,6 +14,7 @@ import (
 var (
 	flags = flag.NewFlagSet("migrate", flag.ExitOnError)
 	dir   = flags.String("dir", "../../migration", "directory with migration files")
+	err error
 )
 
 func main() {
@@ -27,18 +29,33 @@ func main() {
 	command := args[0] // command like up, down
 
 	dbstring := config.DbURL(config.BuildConfig())
-	//fmt.Println(dbstring)
-	db, err := goose.OpenDBWithDriver("mysql", dbstring)
+
+	//assign connection to global *gorm.DB variable DB
+	config.DB,err = gorm.Open("mysql", dbstring)
 	if err != nil {
+		log.Fatalf("Gorm: failed to open DB: %v\n", err)
+	}
+
+	defer func() {
+		if err := config.DB.Close(); err != nil {
+			log.Fatalf("Gorm: failed to close DB: %v\n", err)
+		}
+	}()
+
+
+	// running goose commands
+	db,err_ := goose.OpenDBWithDriver("mysql",dbstring)
+	if err_ != nil {
 		log.Fatalf("goose: failed to open DB: %v\n", err)
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err_ := db.Close(); err_ != nil {
 			log.Fatalf("goose: failed to close DB: %v\n", err)
 		}
 	}()
 
-	if err := goose.Run(command, db, *dir); err != nil {
+
+	if err_ := goose.Run(command, db, *dir); err_ != nil {
 		log.Fatalf("goose %v: %v", command, err)
 	}
 
