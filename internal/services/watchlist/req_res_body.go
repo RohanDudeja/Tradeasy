@@ -1,7 +1,10 @@
 package watchlist
 
+import "Tradeasy/internal/model"
+
 type CreateRequest struct {
 	WatchlistName string `json:"watchlist_name"`
+	UserId string `json:"userid"`
 }
 
 type CreateResponse struct {
@@ -10,6 +13,7 @@ type CreateResponse struct {
 }
 
 type AddStockRequest struct {
+	UserId string `json:"userid"`
 	StockName string `json:"stock_name"`
 }
 
@@ -17,6 +21,7 @@ type AddStockResponse struct {
 	Message string `json:"message"`
 }
 type DeleteStockRequest struct {
+	UserId string `json:"userid"`
 	StockName string `json:"stock_name"`
 }
 
@@ -28,5 +33,5 @@ type SortRequest struct {
 }
 
 type SortResponse struct {
-	Message string `json:"message"`
+	SortedWatchlist []model.UserWatchlist `json:"sorted_watchlist"`
 }
