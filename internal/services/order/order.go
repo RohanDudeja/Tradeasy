@@ -56,7 +56,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	if err != nil {
 		return bRes, err
 	}
-	return bRes, err
+	return bRes, nil
 }
 
 func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) {
@@ -106,7 +106,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	if err != nil {
 		return sRes, err
 	}
-	return sRes, err
+	return sRes, nil
 }
 
 func CancelOrder(id string) (cRes CancelResponse, err error) {
@@ -146,5 +146,5 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			return cRes, err
 		}
 	}
-	return cRes, err
+	return cRes, nil
 }
