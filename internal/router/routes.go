@@ -27,7 +27,7 @@ func SetUpRouter() *gin.Engine  {
 	}
 	exchangeFetch := r.Group("/order_book")
 	{
-		exchangeFetch.GET(":StockName/depth", controller.ViewMarketDepth)
+		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
 	}
 	 */
 	return r
