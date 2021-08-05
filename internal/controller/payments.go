@@ -7,14 +7,14 @@ import (
 	"net/http"
 )
 
-func AddAmount(c *gin.Context){
+func AddAmount(c *gin.Context) {
 	var addReq payments.AddRequest
 	id := c.Params.ByName("id")
-	if err := c.BindJSON(&addReq); err!=nil {
+	if err := c.BindJSON(&addReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	addRes, err := payments.AddAmount(addReq,id)
+	addRes, err := payments.AddAmount(addReq, id)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -22,14 +22,14 @@ func AddAmount(c *gin.Context){
 		c.JSON(http.StatusOK, addRes)
 	}
 }
-func WithdrawAmount(c *gin.Context){
+func WithdrawAmount(c *gin.Context) {
 	var withdrawReq payments.WithdrawRequest
 	id := c.Params.ByName("id")
-	if err := c.BindJSON(&withdrawReq); err!=nil {
+	if err := c.BindJSON(&withdrawReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	withdrawRes, err := payments.WithdrawAmount(withdrawReq,id)
+	withdrawRes, err := payments.WithdrawAmount(withdrawReq, id)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)

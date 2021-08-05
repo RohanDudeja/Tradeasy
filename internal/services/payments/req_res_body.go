@@ -1,22 +1,24 @@
 package payments
 
+import "math/big"
+
 type AddRequest struct {
-	Amount int    `json:"amount"`
+	Amount big.Int `json:"amount"`
 }
 type AddResponse struct {
-	Userid         string `json:"user_id"`
-	Amount         int    `json:"amount"`
-	Type           string `json:"type"`
-	CurrentBalance int    `json:"current_balance"`
-	Message        string `json:"message"`
+	Userid         string  `json:"user_id"`
+	Amount         big.Int `json:"amount"`
+	Type           string  `json:"type"`
+	CurrentBalance big.Int `json:"current_balance"`
+	Message        string  `json:"message"`
 }
 type WithdrawRequest struct {
-	Amount int    `json:"amount"`
+	Amount big.Int `json:"amount"`
 }
 type WithdrawResponse struct {
-	Userid         string `json:"user_id"`
-	Amount         int    `json:"amount"`
-	Type           string `json:"type"`
-	CurrentBalance int    `json:"current_balance"`
-	Message        string `json:"message"`
+	Userid         string  `json:"user_id"`
+	Amount         big.Int `json:"amount"`
+	Type           string  `json:"type"`
+	CurrentBalance big.Int `json:"current_balance"`
+	Message        string  `json:"message"`
 }
