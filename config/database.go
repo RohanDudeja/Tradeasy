@@ -8,10 +8,8 @@ import (
 	"os"
 )
 
-var (
-	DB  *gorm.DB
-	err error
-)
+var DB  *gorm.DB
+
 
 // Config represents configuration
 type Config struct {
@@ -63,6 +61,7 @@ func DbURL(config *Config) string {
 // InitialiseDB ...assign connection to global *gorm.DB variable DB
 func InitialiseDB() error {
 	dbString := DbURL(BuildConfig())
+	var err error
 	DB, err = gorm.Open("mysql", dbString)
 	if err != nil {
 		return err
