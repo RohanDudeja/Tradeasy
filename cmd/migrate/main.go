@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
 	"github.com/pressly/goose"
 	"log"
 	"os"
@@ -13,6 +14,7 @@ import (
 var (
 	flags = flag.NewFlagSet("migrate", flag.ExitOnError)
 	dir   = flags.String("dir", "../../migration", "directory with migration files")
+	err_ error
 )
 
 func main() {
@@ -41,6 +43,11 @@ func main() {
 	if err := goose.Run(command, db, *dir); err != nil {
 		log.Fatalf("goose %v: %v", command, err)
 	}
+	config.DB,err_=gorm.Open("mysql",config.DbURL(config.BuildConfig()))
+	if err_ != nil {
+		fmt.Println("Status:", err_)
+	}
+	defer config.DB.Close()
 
 }
 func usage() {

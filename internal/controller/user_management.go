@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"Tradeasy/internal/model"
 	"Tradeasy/internal/services/user_management"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -8,12 +9,17 @@ import (
 )
 
 func SignUp(c *gin.Context) {
+	var user model.Users
+	er:=c.BindJSON(&user)
+	if er !=nil {
+		return
+	}
 	var req user_management.SignUpRequest
 	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}
-	res,err := user_management.SignUp(req)
+	res,err := user_management.SignUp(&user,req)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -23,18 +29,18 @@ func SignUp(c *gin.Context) {
 }
 
 func UserDetails(c *gin.Context) {
-	//var user model.Users
+	var user model.TradingAccount
+	er:=c.BindJSON(&user)
+	if er !=nil {
+		return
+	}
 	var req user_management.UserDetailsRequest
 	userid := c.Params.ByName("Userid")
 	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}
-	//err1:=user_management.GetUserByUserid(user,userid)
-	//if err1 !=nil{
-	//	return
-	//}
-	res,errUserDetails := user_management.UserDetails(req,userid)
+	res,errUserDetails := user_management.UserDetails(&user,req,userid)
 	if errUserDetails != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -44,12 +50,17 @@ func UserDetails(c *gin.Context) {
 }
 
 func SignIn(c *gin.Context) {
+	var user model.Users
+	er:=c.BindJSON(&user)
+	if er !=nil {
+		return
+	}
 	var req user_management.SignInRequest
 	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}
-	res,errUserSignIn := user_management.UserSignIn(req)
+	res,errUserSignIn := user_management.UserSignIn(&user,req)
 	if errUserSignIn != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -58,12 +69,17 @@ func SignIn(c *gin.Context) {
 	}
 }
 func ForgetPassword(c *gin.Context) {
+	var user model.Users
+	er:=c.BindJSON(&user)
+	if er !=nil {
+		return
+	}
 	var req user_management.ForgetPasswordRequest
 	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}
-	res,errForgetPassword := user_management.ForgetPassword(req)
+	res,errForgetPassword := user_management.ForgetPassword(&user,req)
 	if errForgetPassword != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)

@@ -1,47 +1,53 @@
 package user_management
 
 import (
+	"Tradeasy/config"
+	"Tradeasy/internal/model"
 	"strings"
 )
 
-func SignUp(SUpReq SignUpRequest) (SUpRes SignUpResponse,err error) {
+func SignUp(user *model.Users,SUpReq SignUpRequest) (SUpRes SignUpResponse,err error) {
 	email := SUpReq.EmailId
 	SUpRes.UserId = strings.Split(email, "@")[0]
 	SUpRes.Password=SUpReq.Password
 	SUpRes.Message="User registered"
-	//user.CreatedAt = time.Now()
-	//err = Config.DB.Table("users").Create(user).Error
-	//if err != nil {
-	//	return err
-	//}
+
+	user.UserId=SUpRes.UserId
+
+	err = config.DB.Table("users").Create(user).Error
 	return SUpRes,err
 }
 
-// UserDetails func GetUserByUserid(user *model.Users,userid string) (err error) {
-//	if err = config.DB.Table("users").Where("userid = ?", userid).First(&user).Error; err != nil {
-//		return err
-//	}
-//	return nil
-//}
-func UserDetails(detReq UserDetailsRequest,userid string) (detRes UserDetailsResponse,err error) {
+func GetUserByUserid(user *model.TradingAccount,userid string) (err error) {
+	if err = config.DB.Table("users").Where("userid = ?", userid).First(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+func UserDetails(user *model.TradingAccount,detReq UserDetailsRequest,userid string) (detRes UserDetailsResponse,err error) {
 	detRes.TradingAccId="TRA"+userid
-	//detRes.Balance = 0
+	detRes.Balance = 0
 	detRes.Message ="User Details registered"
-	//user.CreatedAt = time.Now()
-	//if err = Config.DB.Table("users_trading_acc_details").Create(user).Error; err != nil {
-	//	return err
-	//}
+
+	user.UserId=userid
+	user.TradingAccId=detRes.TradingAccId
+	user.Balance=detRes.Balance
+
+	err = config.DB.Table("users_trading_acc_details").Create(user).Error
+
 	return detRes,err
 }
-func UserSignIn(SInReq SignInRequest) (SInRes SignInResponse,err error) {
+func UserSignIn(user* model.Users,SInReq SignInRequest) (SInRes SignInResponse,err error) {
 	SInRes.Message="Signed in successfully"
-	//if err = Config.DB.Table("users").Where("userid = ? AND password = ?", user.Userid, user.Password).First(user).Error; err != nil {
-	//	return err
-	//}
+
+	err = config.DB.Table("users").Where("userid = ? AND password = ?", user.UserId, user.Password).First(user).Error
+
 	return SInRes,err
 }
 
-func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse,err error) {
+func ForgetPassword(user *model.Users,FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse,err error) {
+
+	err = config.DB.Table("users").Where("userid = ? AND emailId = ?", user.UserId, user.EmailId).First(user).Error
 	return FPRes,err
 }
 
