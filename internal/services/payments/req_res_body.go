@@ -1,7 +1,6 @@
 package payments
 
 type AddRequest struct {
-	Userid string `json:"user_id"`
 	Amount int    `json:"amount"`
 }
 type AddResponse struct {
@@ -12,7 +11,6 @@ type AddResponse struct {
 	Message        string `json:"message"`
 }
 type WithdrawRequest struct {
-	Userid string `json:"user_id"`
 	Amount int    `json:"amount"`
 }
 type WithdrawResponse struct {
