@@ -9,21 +9,23 @@ import (
 
 var err error
 
-func main()  {
-
-	//assign connection to global *gorm.DB variable DB
-	dbstring := config.DbURL(config.BuildConfig())
-	config.DB,err = gorm.Open("mysql", dbstring)
+// initialiseDB ...assign connection to global *gorm.DB variable DB
+func initialiseDB() error{
+	dbString := config.DbURL(config.BuildConfig())
+	config.DB,err = gorm.Open("mysql", dbString)
 	if err != nil {
-		log.Fatalf("Gorm: failed to open DB: %v\n", err)
+		return err
 	}
+	return nil
+}
 
-	defer func() {
-		if err := config.DB.Close(); err != nil {
-			log.Fatalf("Gorm: failed to close DB: %v\n", err)
-		}
-	}()
-
+func main()  {
+	//initialise db
+	err_ := initialiseDB()
+	if err_ != nil {
+		log.Fatalf("Gorm: failed to open DB: %v\n", err_)
+	}
+	//setup router
 	r:=router.SetUpRouter()
 	r.Run()
 }
