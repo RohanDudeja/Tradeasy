@@ -3,34 +3,52 @@ package watchlist
 import (
 	"Tradeasy/config"
 	"Tradeasy/internal/model"
+	"errors"
 )
 
-func CreateWatchlist(wl* model.Watchlist,CrReq CreateRequest) (CrRes CreateResponse, err error) {
-
+func CreateWatchlist(CrReq CreateRequest) (CrRes CreateResponse, err error) {
+	var wl model.Watchlist
+	wl.Name=CrReq.WatchlistName
+	err = config.DB.Table("watchlist").Create(&wl).Error
+	if err !=nil {
+		return CrRes,errors.New("failed to create watchlist")
+	}
 	CrRes.Message="Watchlist created"
-	err = config.DB.Table("watchlist").Create(wl).Error
-	return CrRes, err
+	CrRes.WatchlistId=wl.Id
+
+	return CrRes, nil
 }
 
-func AddStockEntry(uwl* model.UserWatchlist,AddReq AddStockRequest, watchlistId string) (AddRes AddStockResponse, err error) {
+func AddStockEntry(AddReq AddStockRequest, watchlistId int) (AddRes AddStockResponse, err error) {
+	var uwl model.UserWatchlist
 	uwl.Userid=AddReq.UserId
 	uwl.WatchlistId=watchlistId
+	uwl.StockName=AddReq.StockName
 
 	err = config.DB.Table("user_watchlist").Create(uwl).Error
+	if err !=nil {
+		return AddRes,errors.New("stock not added")
+	}
 	AddRes.Message="Stock added"
-	return AddRes, err
+	return AddRes, nil
 }
 
-func DeleteStockEntry(uwl* model.UserWatchlist,DelReq DeleteStockRequest, watchlistId string) (DelRes DeleteStockResponse, err error) {
+func DeleteStockEntry(DelReq DeleteStockRequest, watchlistId int) (DelRes DeleteStockResponse, err error) {
+	var uwl model.UserWatchlist
+	err=config.DB.Table("user_watchlist").Where("userid = ? AND watchlist_id = ? AND stock_name = ?", DelReq.UserId, watchlistId,DelReq.StockName).Delete(uwl).Error
 
-	config.DB.Table("user_watchlist").Where("userid = ? AND watchlist_id = ? AND stock_name = ?", DelReq.UserId, watchlistId,DelReq.StockName).Delete(uwl)
+	if err !=nil {
+		return DelRes,errors.New("stock not deleted")
+	}
 	DelRes.Message="Stock deleted"
-	return DelRes, err
+	return DelRes, nil
 }
 func SortWatchlist(SortReq SortRequest) (SortRes SortResponse, err error) {
 	var wl []model.UserWatchlist
-	config.DB.Raw("SELECT * FROM user_watchlist ORDER BY stock_name").Scan(&wl)
-
+	err=config.DB.Raw("SELECT * FROM user_watchlist ORDER BY stock_name").Scan(&wl).Error
+	if err !=nil {
+		return SortRes,errors.New("watchlist not sorted")
+	}
 	SortRes.SortedWatchlist=wl
-	return SortRes, err
+	return SortRes, nil
 }
