@@ -18,7 +18,6 @@ type PortfolioResponse struct {
 	Quantity  int    `json:"quantity"`
 	BuyPrice  int    `json:"buy_price"`
 }
-
 type OrderHistoryResponse struct {
 	Userid    string `json:"user_id"`
 	OrderId   string `json:"order_id"`
@@ -27,7 +26,6 @@ type OrderHistoryResponse struct {
 	BuyPrice  int    `json:"buy_price"`
 	SellPrice int    `json:"sell_price"`
 }
-
 type ProfitLossHistoryResponse struct {
 	Userid     string `json:"user_id"`
 	OrderId    string `json:"order_id"`

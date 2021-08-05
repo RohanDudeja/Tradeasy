@@ -11,7 +11,10 @@ import (
 func DailyPendingOrders(c *gin.Context){
 	var rep []model.PendingOrders
 	id := c.Params.ByName("id")
-	c.BindJSON(&rep)
+	if err := c.BindJSON(&rep); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusBadRequest)
+	}
 	penOrderRes, err := reports.DailyPendingOrders(rep, id)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -25,7 +28,10 @@ func Portfolio(c *gin.Context){
 	id := c.Params.ByName("id")
 	from := c.Params.ByName("From")
 	to := c.Params.ByName("To")
-	c.BindJSON(&rep)
+	if err := c.BindJSON(&rep); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusBadRequest)
+	}
 	PortfolioRes, err := reports.Portfolio(rep, id, from, to)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -40,8 +46,14 @@ func OrdersHistory(c *gin.Context){
 	id := c.Params.ByName("id")
 	from := c.Params.ByName("From")
 	to := c.Params.ByName("To")
-	c.BindJSON(&rep1)
-	c.BindJSON(&rep2)
+	if err := c.BindJSON(&rep1); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusBadRequest)
+	}
+	if err := c.BindJSON(&rep2); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusBadRequest)
+	}
 	ordHisRes ,err := reports.OrdersHistory(rep1, rep2, id, from, to)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -55,7 +67,10 @@ func ProfitLossHistory(c *gin.Context){
 	id := c.Params.ByName("id")
 	from := c.Params.ByName("From")
 	to := c.Params.ByName("To")
-	c.BindJSON(&rep)
+	if err := c.BindJSON(&rep); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusBadRequest)
+	}
 	proLosRes, err := reports.ProfitLossHistory(rep, id, from, to)
 	if err != nil {
 		fmt.Println(err.Error())
