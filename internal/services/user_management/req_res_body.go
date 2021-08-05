@@ -39,12 +39,18 @@ type ForgetPasswordRequest struct {
 
 type ForgetPasswordResponse struct {
 	Otp string `json:"otp"`
+	Nonce string `json:"nonce"`
 }
 
 type VerifyRequest struct {
+	UserId   string `json:"user_id"`
+	Password string `json:"password"`
 	Otp string `json:"otp"`
+	Nonce string `json:"nonce"`
 }
 
 type VerifyResponse struct {
+	UserId   string `json:"user_id"`
+	Password string `json:"password"`
 	Message string `json:"message"`
 }
