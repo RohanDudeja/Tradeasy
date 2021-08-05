@@ -33,24 +33,22 @@ type SignInResponse struct {
 }
 type ForgetPasswordRequest struct {
 	UserId   string `json:"user_id"`
-	Password string `json:"password"`
 	EmailId  string `json:"emailId"`
 }
 
 type ForgetPasswordResponse struct {
 	Otp string `json:"otp"`
-	Nonce string `json:"nonce"`
 }
 
 type VerifyRequest struct {
 	UserId   string `json:"user_id"`
-	Password string `json:"password"`
+	EmailId  string `json:"emailId"`
+	NewPassword string `json:"new_password"`
 	Otp string `json:"otp"`
-	Nonce string `json:"nonce"`
 }
 
 type VerifyResponse struct {
 	UserId   string `json:"user_id"`
-	Password string `json:"password"`
+	NewPassword string `json:"new_password"`
 	Message string `json:"message"`
 }

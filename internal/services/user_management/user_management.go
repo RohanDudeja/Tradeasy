@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"github.com/go-redis/redis"
-	"github.com/nu7hatch/gouuid"
 	"math/big"
 	"strconv"
 	"strings"
@@ -34,15 +33,6 @@ func getRandNum() (string, error) {
 	}
 	return strconv.FormatInt(nBig.Int64()+1000, 10), nil
 }
-func randToken() (string, error) {
-	// Using UUID V5 for generating the Token
-	u4, err := uuid.NewV4()
-	UUIDtoken := u4.String()
-	if err != nil {
-		return "", err
-	}
-	return UUIDtoken, nil
-}
 // GetValue the value corresponding to a given key
 func GetValue(key string) (string, error) {
 	value, argh := redisClient.Get(key).Result()
@@ -53,16 +43,21 @@ func GetValue(key string) (string, error) {
 }
 
 
-func SignUp(user *model.Users,SUpReq SignUpRequest) (SUpRes SignUpResponse,err error) {
+func SignUp(SUpReq SignUpRequest) (SUpRes SignUpResponse,err error) {
 	email := SUpReq.EmailId
 	SUpRes.UserId = strings.Split(email, "@")[0]
 	SUpRes.Password=SUpReq.Password
 	SUpRes.Message="User registered"
 
+	var user model.Users
 	user.UserId=SUpRes.UserId
-
-	err = config.DB.Table("users").Create(user).Error
-	return SUpRes,err
+	user.EmailId=SUpReq.EmailId
+	user.Password=SUpReq.Password
+	err = config.DB.Table("users").Create(&user).Error
+	if err !=nil {
+		return SUpRes,errors.New("signUp failed")
+	}
+	return SUpRes,nil
 }
 
 // UserDetails func GetUserByUserid(user *model.TradingAccount,userid string) (err error) {
@@ -71,72 +66,67 @@ func SignUp(user *model.Users,SUpReq SignUpRequest) (SUpRes SignUpResponse,err e
 //	}
 //	return nil
 //}
-func UserDetails(user *model.TradingAccount,detReq UserDetailsRequest,userid string) (detRes UserDetailsResponse,err error) {
+func UserDetails(detReq UserDetailsRequest,userid string) (detRes UserDetailsResponse,err error) {
 	detRes.TradingAccId="TRA"+userid
-	//detRes.Balance = big.NewInt(0)
+	//detRes.Balance = big.NewInt(int64(0))
 	detRes.Message ="User Details registered"
 
+	var user model.TradingAccount
 	user.UserId=userid
+	user.PanCardNo=detReq.PanCardNo
+	user.BankAccNo=detReq.BankAccNo
 	user.TradingAccId=detRes.TradingAccId
 	user.Balance=detRes.Balance
 
-	err = config.DB.Table("users_trading_acc_details").Create(user).Error
-
-	return detRes,err
+	err = config.DB.Table("users_trading_acc_details").Create(&user).Error
+	if err !=nil {
+		return detRes,errors.New("enter correct user details")
+	}
+	return detRes,nil
 }
-func UserSignIn(user* model.Users,SInReq SignInRequest) (SInRes SignInResponse,err error) {
+func UserSignIn(SInReq SignInRequest) (SInRes SignInResponse,err error) {
 	SInRes.Message="Signed in successfully"
 
-	err = config.DB.Table("users").Where("userid = ? AND password = ?", user.UserId, user.Password).First(user).Error
-
-	return SInRes,err
+	var user model.Users
+	err = config.DB.Table("users").Where("userid = ? AND password = ?", SInReq.UserId, SInReq.Password).First(&user).Error
+	if err !=nil {
+		return SInRes,errors.New("sign in Failed")
+	}
+	return SInRes,nil
 }
 
-func ForgetPassword(user *model.Users,FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse,err error) {
+func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse,err error) {
 
-	err = config.DB.Table("users").Where("userid = ? AND emailId = ?", user.UserId, user.EmailId).First(user).Error
-
+	var user model.Users
+	err = config.DB.Table("users").Where("userid = ? AND emailId = ?", FPReq.UserId, FPReq.EmailId).First(&user).Error
+	if err !=nil {
+		return FPRes,errors.New("user not found")
+	}
 	otp,err_:=getRandNum()
-	token,er:=randToken()
-	FPRes.Otp=otp
-	FPRes.Nonce=token
-
 	if err_ !=nil {
-		return FPRes,err_
+		return FPRes,errors.New("otp not generated")
 	}
-	if er !=nil {
-		return FPRes,er
-	}
+	FPRes.Otp=otp
 	e:= SetValue(FPReq.EmailId, otp, 5*time.Minute)
-	e1:=SetValue(token,FPReq.EmailId,5*time.Minute)
 	if e != nil{
-		return FPRes,e
+		return FPRes,errors.New("otp not generated")
 	}
-	if e1 !=nil {
-		return FPRes,e1
-	}
-	return FPRes,err
+	return FPRes,nil
 }
 
 func VerificationForPasswordChange(VerReq VerifyRequest) (VerRes VerifyResponse,err error) {
-
 	VerRes.UserId=VerReq.UserId
-	VerRes.Password=VerReq.Password
+	VerRes.NewPassword=VerReq.NewPassword
+	VerRes.Message="Password changed successfully"
 
-	emailId, e := GetValue(VerReq.Nonce)
+	originalOtp, e := GetValue(VerReq.EmailId)
 	if e != nil {
-		VerRes.Message="Verification failed"
-		return VerRes,e
-	}
-	originalOtp, e := GetValue(emailId)
-	if e != nil {
-		VerRes.Message="Verification failed"
-		return VerRes,e
+		return VerRes,errors.New("verification failed")
 	}
 	if VerReq.Otp!=originalOtp {
 		return VerRes,errors.New("verification failed")
 	}
-	config.DB.Table("users").Where("userid = ?",VerReq.UserId).Update("password",VerRes.Password)
+	config.DB.Table("users").Where("userid = ? AND emailId = ?",VerReq.UserId,VerReq.EmailId).Update("password",VerRes.NewPassword)
 
 	return VerRes,nil
 }
