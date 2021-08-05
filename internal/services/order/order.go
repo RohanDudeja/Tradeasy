@@ -31,13 +31,14 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	}
 
 	orderId := uuid.New().String()
+	p := model.PendingOrders{UserId: bReq.UserId, OrderId: orderId, StockName: bReq.StockName, OrderType: "Buy", BookType: bReq.BookType, Quantity: bReq.Quantity, Status: "Pending", CreatedAt: time.Now()}
 	if bReq.BookType == "Market" {
-		p := model.PendingOrders{UserId: bReq.UserId, OrderId: orderId, StockName: bReq.StockName, OrderType: "Buy", BookType: bReq.BookType, OrderPrice: bReq.LimitPrice, Quantity: bReq.Quantity, Status: "Pending", CreatedAt: time.Now()}
+		p.OrderPrice = bReq.LimitPrice
 		if err = config.DB.Create(p).Error; err != nil {
 			return bRes, err
 		}
 	} else {
-		p := model.PendingOrders{UserId: bReq.UserId, OrderId: orderId, StockName: bReq.StockName, OrderType: "Buy", BookType: bReq.BookType, LimitPrice: bReq.LimitPrice, Quantity: bReq.Quantity, Status: "Pending", CreatedAt: time.Now()}
+		p.LimitPrice = bReq.LimitPrice
 		if err = config.DB.Create(p).Error; err != nil {
 			return bRes, err
 		}
@@ -80,13 +81,14 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	}
 
 	orderId := uuid.New().String()
+	p := model.PendingOrders{UserId: sReq.UserId, OrderId: orderId, StockName: sReq.StockName, OrderType: "Sell", BookType: sReq.BookType, Quantity: sReq.Quantity, Status: "Pending", CreatedAt: time.Now()}
 	if sReq.BookType == "Market" {
-		p := model.PendingOrders{UserId: sReq.UserId, OrderId: orderId, StockName: sReq.StockName, OrderType: "Sell", BookType: sReq.BookType, OrderPrice: sReq.LimitPrice, Quantity: sReq.Quantity, Status: "Pending", CreatedAt: time.Now()}
+		p.OrderPrice = sReq.LimitPrice
 		if err = config.DB.Create(p).Error; err != nil {
 			return sRes, err
 		}
 	} else {
-		p := model.PendingOrders{UserId: sReq.UserId, OrderId: orderId, StockName: sReq.StockName, OrderType: "Sell", BookType: sReq.BookType, LimitPrice: sReq.LimitPrice, Quantity: sReq.Quantity, Status: "Pending", CreatedAt: time.Now()}
+		p.LimitPrice = sReq.LimitPrice
 		if err = config.DB.Create(p).Error; err != nil {
 			return sRes, err
 		}
