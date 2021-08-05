@@ -11,7 +11,6 @@ type AddResponse struct {
 	CurrentBalance int    `json:"current_balance"`
 	Message        string `json:"message"`
 }
-
 type WithdrawRequest struct {
 	Userid string `json:"user_id"`
 	Amount int    `json:"amount"`
