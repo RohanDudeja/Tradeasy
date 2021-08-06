@@ -30,9 +30,9 @@ func AddStockEntry(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	i,_:=strconv.ParseInt(watchlistId,10,64)
-	res, errAddStock := watchlist.AddStockEntry(req, int(i))
-	if errAddStock != nil {
+	i, _ := strconv.ParseInt(watchlistId, 10, 64)
+	res, er := watchlist.AddStockEntry(req, int(i))
+	if er != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
@@ -47,9 +47,9 @@ func DeleteStockEntry(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	i,_:=strconv.ParseInt(watchlistId,10,64)
-	res, errAddStock := watchlist.DeleteStockEntry(req, int(i))
-	if errAddStock != nil {
+	i, _ := strconv.ParseInt(watchlistId, 10, 64)
+	res, er := watchlist.DeleteStockEntry(req, int(i))
+	if er != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
@@ -63,8 +63,8 @@ func SortWatchlist(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	res, errDelStock := watchlist.SortWatchlist(req)
-	if errDelStock != nil {
+	res, er := watchlist.SortWatchlist(req)
+	if er != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {

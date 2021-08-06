@@ -28,6 +28,12 @@ func SetUpRouter() *gin.Engine {
 	{
 		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
 	}
+	//websocket := r.Group("/socket")
+	//{
+	//	websocket.GET("/", webSocket.Home)
+	//	websocket.GET("/stocks", webSocket.StockHandler)
+	//	websocket.GET("/orders", webSocket.OrderHandler)
+	//}
 	watchlist := r.Group("/user_watchlist")
 	{
 		watchlist.POST("", controller.CreateWatchlist)
