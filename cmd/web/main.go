@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"Tradeasy/config"
@@ -14,5 +14,5 @@ func main() {
 	}
 	//setup router
 	r := router.SetUpRouter()
-	r.Run()
+	r.Run("localhost:8080")
 }
