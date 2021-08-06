@@ -5,17 +5,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetUpRouter() *gin.Engine  {
-	r:=gin.Default()
+func SetUpRouter() *gin.Engine {
+	r := gin.Default()
 
-	trade:=r.Group("/pending_orders")
+	trade := r.Group("/pending_orders")
 	{
 
-		trade.POST(":Userid/buy",controller.BuyOrder)
-		trade.POST(":Userid/sell",controller.SellOrder)
-		trade.PATCH(":OrderId/cancel",controller.CancelOrder)
+		trade.POST(":Userid/buy", controller.BuyOrder)
+		trade.POST(":Userid/sell", controller.SellOrder)
+		trade.PATCH(":OrderId/cancel", controller.CancelOrder)
 	}
-	//users:=r.Group("/users")
+	//users := r.Group("/users")
 	//{
 	//	users.POST("/signup", controller.SignUp)
 	//	users.POST("/:Userid/details", controller.UserDetails)
