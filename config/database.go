@@ -8,8 +8,7 @@ import (
 	"os"
 )
 
-var DB  *gorm.DB
-
+var DB *gorm.DB
 
 // Config represents configuration
 type Config struct {

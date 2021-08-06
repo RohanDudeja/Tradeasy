@@ -6,15 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetUpRouter() *gin.Engine  {
-	r:=gin.Default()
+func SetUpRouter() *gin.Engine {
+	r := gin.Default()
 
-	trade:=r.Group("/pending_orders")
+	trade := r.Group("/pending_orders")
 	{
 
-		trade.POST(":Userid/buy",controller.BuyOrder)
-		trade.POST(":Userid/sell",controller.SellOrder)
-		trade.PATCH(":OrderId/cancel",controller.CancelOrder)
+		trade.POST(":Userid/buy", controller.BuyOrder)
+		trade.POST(":Userid/sell", controller.SellOrder)
+		trade.PATCH(":OrderId/cancel", controller.CancelOrder)
 	}
 
 	exchangeBuy := r.Group("/buy_order_book")
@@ -32,7 +32,7 @@ func SetUpRouter() *gin.Engine  {
 		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
 	}
 
-	websocket:= r.Group("/socket")
+	websocket := r.Group("/socket")
 	{
 		websocket.GET("/", webSocket.Home)
 		websocket.GET("/stocks", webSocket.StockHandler)

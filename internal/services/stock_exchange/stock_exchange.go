@@ -1,5 +1,21 @@
 package stock_exchange
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
+var DB *gorm.DB
+var OrderUpdated chan bool
+
+func GetAllStocks() (stocks *[]StockDetails, err error) {
+	if err := DB.Find(stocks).Error; err != nil {
+		return stocks, err
+	}
+	return stocks, nil
+}
+func UpdateOrder() (order OrderResponse, err error) {
+	return order, nil
+}
 func BuyOrder(buyReq OrderRequest) (buyRes OrderResponse, err error) {
 	return buyRes, err
 }
