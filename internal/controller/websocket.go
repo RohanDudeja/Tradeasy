@@ -60,7 +60,7 @@ func Home(c *gin.Context) {
 	fmt.Fprintf(c.Writer, "Index Page")
 }
 
-func writeEvery(d time.Duration, conn *websocket.Conn, f func() (*stock_exchange.StockDetails, error)) {
+func writeEvery(d time.Duration, conn *websocket.Conn, f func() (*[]stock_exchange.StockDetails, error)) {
 	for range time.Tick(d) {
 		stocks, err := f()
 		stockJson, err := json.Marshal(stocks)
