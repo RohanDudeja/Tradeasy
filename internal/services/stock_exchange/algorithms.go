@@ -63,6 +63,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 			config.DB.Raw("SELECT * FROM stocks WHERE stock_name = ?", stock).Scan(&currentStock)
 			currentStock.HighPrice = int(math.Max(float64(ltp), float64(currentStock.HighPrice)))
 			currentStock.LowPrice = int(math.Min(float64(ltp), float64(currentStock.LowPrice)))
+			currentStock.LTP = ltp
 			config.DB.Save(&currentStock)
 			//update response
 			resp.Message = "Order Executed Successfully"
@@ -111,6 +112,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 		config.DB.Raw("SELECT * FROM stocks WHERE stock_name = ?", stock).Scan(&currentStock)
 		currentStock.HighPrice = int(math.Max(float64(ltp), float64(currentStock.HighPrice)))
 		currentStock.LowPrice = int(math.Min(float64(ltp), float64(currentStock.LowPrice)))
+		currentStock.LTP = ltp
 		config.DB.Save(&currentStock)
 		//update response
 		resp.Message = "Order Executed Successfully"
@@ -179,6 +181,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 			config.DB.Raw("SELECT * FROM stocks WHERE stock_name = ?", stock).Scan(&currentStock)
 			currentStock.HighPrice = int(math.Max(float64(ltp), float64(currentStock.HighPrice)))
 			currentStock.LowPrice = int(math.Min(float64(ltp), float64(currentStock.LowPrice)))
+			currentStock.LTP = ltp
 			config.DB.Save(&currentStock)
 			//config.DB.Raw("UPDATE stocks SET ltp = ? WHERE stock_ticker_symbol = ?", ltp, stock)
 			//update response
@@ -228,6 +231,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 		config.DB.Raw("SELECT * FROM stocks WHERE stock_name = ?", stock).Scan(&currentStock)
 		currentStock.HighPrice = int(math.Max(float64(ltp), float64(currentStock.HighPrice)))
 		currentStock.LowPrice = int(math.Min(float64(ltp), float64(currentStock.LowPrice)))
+		currentStock.LTP = ltp
 		config.DB.Save(&currentStock)
 		//config.DB.Raw("UPDATE stocks SET ltp = ? WHERE stock_ticker_symbol = ?", ltp, stock)
 		//set response
