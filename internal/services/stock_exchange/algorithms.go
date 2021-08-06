@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+var orderResponse = make(chan OrderResponse)
+
 func UpdateLTP(ltp int, stock string) {
 	currentStock := model.Stocks{}
 	config.DB.Raw("SELECT * FROM stocks WHERE stock_name = ?", stock).Scan(&currentStock)
@@ -16,7 +18,7 @@ func UpdateLTP(ltp int, stock string) {
 	config.DB.Save(&currentStock)
 }
 
-func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, orderResponse chan OrderResponse, resp OrderResponse) {
+func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse) {
 
 	var sellBook []model.SellOrderBook
 	// db lock
@@ -70,7 +72,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, orderResponse chan OrderRes
 				config.DB.Create(&newEntry)
 				time.Sleep(30 * time.Second)
 				//Recursive call :
-				BuyOrderMatchingAlgo(buyOrderBody, orderResponse, resp)
+				BuyOrderMatchingAlgo(buyOrderBody, resp)
 			}
 
 		}
@@ -114,7 +116,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, orderResponse chan OrderRes
 			config.DB.Create(&newEntry)
 			time.Sleep(30 * time.Second)
 			//Recursive call :
-			BuyOrderMatchingAlgo(buyOrderBody, orderResponse, resp)
+			BuyOrderMatchingAlgo(buyOrderBody, resp)
 		}
 		//update response
 		resp.Message = "Order Executed Successfully"
@@ -127,7 +129,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, orderResponse chan OrderRes
 
 }
 
-func SellOrderMatchingAlgo(sellOrderBody OrderRequest, orderResponse chan OrderResponse, resp OrderResponse) {
+func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse) {
 	var buyBook []model.BuyOrderBook
 	// db lock
 	err := config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC ", sellOrderBody.StockName).Scan(&buyBook).Error
@@ -180,7 +182,7 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, orderResponse chan OrderR
 				config.DB.Create(&newEntry)
 				time.Sleep(30 * time.Second)
 				//Recursive call :
-				SellOrderMatchingAlgo(sellOrderBody, orderResponse, resp)
+				SellOrderMatchingAlgo(sellOrderBody, resp)
 			}
 
 		}
@@ -224,7 +226,7 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, orderResponse chan OrderR
 			config.DB.Create(&newEntry)
 			time.Sleep(30 * time.Second)
 			//Recursive call :
-			SellOrderMatchingAlgo(sellOrderBody, orderResponse, resp)
+			SellOrderMatchingAlgo(sellOrderBody, resp)
 		}
 		//update response
 		resp.Message = "Order Executed Successfully"
@@ -243,26 +245,19 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 	resp.OrderID = buyOrderBody.OrderID
 	resp.StockName = buyOrderBody.StockName
 	resp.Message = "Order Received, Pending"
-	//orderUpdate := make(chan string)
-	orderResponse := make(chan OrderResponse)
-	go BuyOrderMatchingAlgo(buyOrderBody, orderResponse, resp)
-
-	response := <-orderResponse
-	return response, nil
+	go BuyOrderMatchingAlgo(buyOrderBody, resp)
+	return resp, nil
 }
 
 // SellOrder ...Update Sell Order actions on the StockExchange database
 func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
-	resp.Status = "Cancelled by engine"
+	resp.Status = "Pending"
 	resp.OrderID = sellOrderBody.OrderID
 	resp.StockName = sellOrderBody.StockName
-	resp.Message = "Couldn't execute due to unavailability of shares"
-	orderResponse := make(chan OrderResponse)
-	go SellOrderMatchingAlgo(sellOrderBody, orderResponse, resp)
-
-	response := <-orderResponse
-	return response, nil
+	resp.Message = "Order Received, Pending"
+	go SellOrderMatchingAlgo(sellOrderBody, resp)
+	return resp, nil
 }
 
 // DeleteBuyOrder ...Update Delete Buy Order actions on the StockExchange database
