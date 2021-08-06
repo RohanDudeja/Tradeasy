@@ -9,9 +9,17 @@ import (
 
 func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 	var p model.PendingOrders
-	if res.Status=="Failed"{
-		p.Status="Failed"
-		if err=config.DB.Table("pending_orders").Where("order_id=?",res.OrderID).Updates(p).Error; err!=nil{
+	var balance model.Payments
+	if res.Status=="FAILED"{
+		p.Status="FAILED"
+		if err=config.DB.Table("pending_orders").Where("order_id=?",res.OrderID).Updates(&p).Error; err!=nil{
+			return err
+		}
+		if err=config.DB.Table("payments").Where("user_id=?",p.UserId).First(&balance).Error;err!=nil{
+			return err
+		}
+		balance.CurrentBalance=balance.CurrentBalance+p.Quantity*p.OrderPrice
+		if err=config.DB.Table("payments").Where("user_id=?",p.UserId).Updates(&balance).Error;err!=nil{
 			return err
 		}
 		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Delete(p).Error; err!=nil{
@@ -19,9 +27,9 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		}
 		return nil
 
-	}else if res.Status=="Completed" {
-		p.Status="Completed"
-		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Updates(p).Error; err!=nil{
+	}else if res.Status=="COMPLETED" {
+		p.Status="COMPLETED"
+		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Updates(&p).Error; err!=nil{
 			return err
 		}
 		h:=model.Holdings{
@@ -40,10 +48,10 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Delete(p).Error; err!=nil{
 			return err
 		}
-	} else if res.Status=="Half Completed" {
-		p.Status="Half Completed"
+	} else if res.Status=="HALF_COMPLETED" {
+		p.Status="HALF_COMPLETED"
 		p.Quantity=p.Quantity-int(res.Quantity)
-		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Updates(p).Error; err!=nil{
+		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Updates(&p).Error; err!=nil{
 			return err
 		}
 
@@ -66,18 +74,20 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 
 func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 	var p model.PendingOrders
-	if res.Status=="failed"{
-		p.Status="Failed"
-		if err=config.DB.Table("pending_orders").Where("order_id=?",res.OrderID).Updates(p).Error; err!=nil{
+	var balance model.Payments
+
+	if res.Status=="FAILED"{
+		p.Status="FAILED"
+		if err=config.DB.Table("pending_orders").Where("order_id=?",res.OrderID).Updates(&p).Error; err!=nil{
 			return err
 		}
 		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Delete(p).Error; err!=nil{
 			return err
 		}
 		return nil
-	} else if res.Status=="Completed"{
-		p.Status="Completed"
-		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Updates(p).Error; err!=nil{
+	} else if res.Status=="COMPLETED"{
+		p.Status="COMPLETED"
+		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Updates(&p).Error; err!=nil{
 			return err
 		}
 
@@ -85,6 +95,8 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 		if err=config.DB.Table("holdings").Where("user_id=? AND stock_name=?",p.UserId,res.StockName).Find(&h).Error;err!=nil{
 			return err
 		}
+		price:=0
+
 		for _,check:=range h{
 			if int(res.Quantity)>=check.Quantity{
 				res.Quantity=res.Quantity-uint(check.Quantity)
@@ -95,7 +107,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 					Quantity:      check.Quantity,
 					BuyPrice:      check.BuyPrice,
 					SellPrice:     int(res.AveragePrice),
-					CommissionFee: int(float64(check.Quantity*int(res.AveragePrice))*0.01),
+					CommissionFee: 2000,
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
@@ -106,6 +118,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 				if err=config.DB.Table("holdings").Where("id",check.Id).Delete(check).Error;err!=nil{
 					return err
 				}
+				price= price+ orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
 			} else {
 				orderHist:=model.OrderHistory{
 					UserId:        check.UserId,
@@ -114,7 +127,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 					Quantity:      int(res.Quantity),
 					BuyPrice:      check.BuyPrice,
 					SellPrice:     int(res.AveragePrice),
-					CommissionFee: int(float64(res.Quantity*res.AveragePrice)*0.01),
+					CommissionFee: 2000,
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
@@ -124,16 +137,27 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 				}
 				check.Quantity=check.Quantity-int(res.Quantity)
 
-				if err=config.DB.Table("holdings").Where("id",check.Id).Update(check).Error;err!=nil{
+				if err=config.DB.Table("holdings").Where("id",check.Id).Updates(check).Error;err!=nil{
 					return err
 				}
+				price= price+ orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
 			}
 		}
+
+		if err=config.DB.Table("payments").Where("user_id=?",p.UserId).First(&balance).Error;err!=nil{
+			return err
+		}
+		balance.CurrentBalance=balance.CurrentBalance + price
+		if err=config.DB.Table("payments").Where("user_id=?",p.UserId).Updates(&balance).Error;err!=nil{
+			return err
+		}
+
 		if err=config.DB.Table("pending_orders").Where("order_id=?",res.OrderID).Delete(p).Error;err!=nil{
 			return err
 		}
-	} else if res.Status=="Half Completed"{
-		p.Status="Half Completed"
+
+	} else if res.Status=="HALF_COMPLETED"{
+		p.Status="HALF_COMPLETED"
 		p.Quantity=p.Quantity-int(res.Quantity)
 		if err=config.DB.Table("pending_orders").Where("order_id",res.OrderID).Updates(p).Error; err!=nil{
 			return err
@@ -143,6 +167,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 		if err=config.DB.Table("holdings").Where("user_id=? AND stock_name=?",p.UserId,res.StockName).Find(&h).Error;err!=nil{
 			return err
 		}
+		price:=0
 		for _,check:=range h{
 			if int(res.Quantity)>=check.Quantity{
 				res.Quantity=res.Quantity-uint(check.Quantity)
@@ -164,6 +189,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 				if err=config.DB.Table("holdings").Where("id",check.Id).Delete(check).Error;err!=nil{
 					return err
 				}
+				price= price+ orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
 			} else {
 				orderHist:=model.OrderHistory{
 					UserId:        check.UserId,
@@ -182,11 +208,21 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error){
 				}
 				check.Quantity=check.Quantity-int(res.Quantity)
 
-				if err=config.DB.Table("holdings").Where("id",check.Id).Update(check).Error;err!=nil{
+				if err=config.DB.Table("holdings").Where("id",check.Id).Updates(&check).Error;err!=nil{
 					return err
 				}
+				price= price+ orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
 			}
 		}
+		if err=config.DB.Table("payments").Where("user_id=?",p.UserId).First(&balance).Error;err!=nil{
+			return err
+		}
+		balance.CurrentBalance=balance.CurrentBalance + price
+		if err=config.DB.Table("payments").Where("user_id=?",p.UserId).Updates(&balance).Error;err!=nil{
+			return err
+		}
+
+
 	}
 	return nil
 }
