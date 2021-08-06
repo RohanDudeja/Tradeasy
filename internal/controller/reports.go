@@ -19,8 +19,8 @@ func DailyPendingOrders(c *gin.Context) {
 }
 func Portfolio(c *gin.Context) {
 	id := c.Params.ByName("id")
-	from := c.Params.ByName("From")
-	to := c.Params.ByName("To")
+	from := c.Params.ByName("from")
+	to := c.Params.ByName("to")
 	PortfolioRes, err := reports.Portfolio(id, from, to)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -31,8 +31,8 @@ func Portfolio(c *gin.Context) {
 }
 func OrdersHistory(c *gin.Context) {
 	id := c.Params.ByName("id")
-	from := c.Params.ByName("From")
-	to := c.Params.ByName("To")
+	from := c.Params.ByName("from")
+	to := c.Params.ByName("to")
 	ordHisRes, err := reports.OrdersHistory(id, from, to)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -43,8 +43,8 @@ func OrdersHistory(c *gin.Context) {
 }
 func ProfitLossHistory(c *gin.Context) {
 	id := c.Params.ByName("id")
-	from := c.Params.ByName("From")
-	to := c.Params.ByName("To")
+	from := c.Params.ByName("from")
+	to := c.Params.ByName("to")
 	proLosRes, err := reports.ProfitLossHistory(id, from, to)
 	if err != nil {
 		fmt.Println(err.Error())
