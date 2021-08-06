@@ -2,10 +2,13 @@ package config
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	_ "github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 	"os"
 )
+
+var DB *gorm.DB
 
 // Config represents configuration
 type Config struct {
@@ -52,4 +55,15 @@ func DbURL(config *Config) string {
 		config.Database.Port,
 		config.Database.DBName,
 	)
+}
+
+// InitialiseDB ...assign connection to global *gorm.DB variable DB
+func InitialiseDB() error {
+	dbString := DbURL(BuildConfig())
+	var err error
+	DB, err = gorm.Open("mysql", dbString)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -7,7 +7,6 @@ import (
 
 func SetUpRouter() *gin.Engine {
 	r := gin.Default()
-
 	trade := r.Group("/pending_orders")
 	{
 
@@ -15,20 +14,26 @@ func SetUpRouter() *gin.Engine {
 		trade.POST(":Userid/sell", controller.SellOrder)
 		trade.PATCH(":OrderId/cancel", controller.CancelOrder)
 	}
-	//users := r.Group("/users")
-	//{
-	//	users.POST("/signup", controller.SignUp)
-	//	users.POST("/:Userid/details", controller.UserDetails)
-	//	users.POST("/signIn", controller.SignIn)
-	//	users.POST("/forgot", controller.ForgetPassword)
-	//	users.PATCH("/verify", controller.VerificationForPasswordChange)
-	//}
-	//watchlist := r.Group("/user_watchlist")
-	//{
-	//	watchlist.POST("", controller.CreateWatchlist)
-	//	watchlist.POST("/:watchlist_id/add", controller.AddStockEntry)
-	//	watchlist.DELETE("/:watchlist_id", controller.DeleteStockEntry)
-	//	watchlist.PATCH("/sort", controller.SortWatchlist)
-	//}
+	exchangeBuy := r.Group("/buy_order_book")
+	{
+		exchangeBuy.POST("buy_order", controller.ExecuteBuyOrder)
+		exchangeBuy.DELETE("buy_order/:order_id", controller.DeleteBuyOrder)
+	}
+	exchangeSell := r.Group("/sell_order_book")
+	{
+		exchangeSell.POST("sell_order", controller.ExecuteSellOrder)
+		exchangeSell.DELETE("sell_order/:order_id", controller.DeleteSellOrder)
+	}
+	exchangeFetch := r.Group("/order_book")
+	{
+		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
+	}
+	watchlist := r.Group("/user_watchlist")
+	{
+		watchlist.POST("", controller.CreateWatchlist)
+		watchlist.POST("/:watchlist_id/add", controller.AddStockEntry)
+		watchlist.DELETE("/:watchlist_id", controller.DeleteStockEntry)
+		watchlist.PATCH("/sort", controller.SortWatchlist)
+	}
 	return r
 }
