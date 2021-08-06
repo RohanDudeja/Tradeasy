@@ -2,12 +2,15 @@ package config
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	_ "github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 	"os"
 )
-
 // Config represents configuration
+
+var DB *gorm.DB
+
 type Config struct {
 	Database Database `yaml:"database"`
 }
