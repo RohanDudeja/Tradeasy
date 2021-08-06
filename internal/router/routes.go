@@ -2,7 +2,7 @@ package router
 
 import (
 	"Tradeasy/internal/controller"
-	webSocket "Tradeasy/internal/controller/websocket"
+	webSocket "Tradeasy/internal/controller"
 	"github.com/gin-gonic/gin"
 )
 
