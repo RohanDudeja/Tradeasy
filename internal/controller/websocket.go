@@ -3,17 +3,16 @@ package controller
 import (
 	"Tradeasy/internal/services/stock_exchange"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
 	"time"
 )
 
-var upgrader = websocket.Upgrader{} // use default options
-var OrderUpdated = make(chan stock_exchange.OrderResponse)
+//var OrderUpdated = make(chan stock_exchange.OrderResponse)
 
 func StockHandler(c *gin.Context) {
+	var upgrader = websocket.Upgrader{} // use default options
 	// Upgrade our raw HTTP connection to a websocket based one
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -25,6 +24,7 @@ func StockHandler(c *gin.Context) {
 	writeEvery(time.Duration(5)*time.Millisecond*1000, conn, stock_exchange.StockWrite)
 }
 func OrderHandler(c *gin.Context) {
+	var upgrader = websocket.Upgrader{} // use default options
 	// Upgrade our raw HTTP connection to a websocket based one
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -55,9 +55,6 @@ func OrderHandler(c *gin.Context) {
 			}
 		}
 	}
-}
-func Home(c *gin.Context) {
-	fmt.Fprintf(c.Writer, "Index Page")
 }
 
 func writeEvery(d time.Duration, conn *websocket.Conn, f func() (*[]stock_exchange.StockDetails, error)) {
