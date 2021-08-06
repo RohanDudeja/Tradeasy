@@ -38,5 +38,19 @@ func SetUpRouter() *gin.Engine  {
 		websocket.GET("/stocks", webSocket.StockHandler)
 		websocket.GET("/orders", webSocket.OrderHandler)
 	}
+	payments := r.Group("/payments")
+	{
+		payments.POST(":id/addAmount", controller.AddAmount)
+		payments.POST(":id/withdrawAmount", controller.WithdrawAmount)
+
+	}
+
+	reports := r.Group("/reports")
+	{
+		reports.GET("pending_orders/:id", controller.DailyPendingOrders)
+		reports.GET("holdings/:id?{:from},{:to}", controller.Portfolio)
+		reports.GET("order_history/:id?{:from},{:to}", controller.OrdersHistory)
+		reports.GET("profit_loss_history/:id?{:from},{:to}", controller.ProfitLossHistory)
+	}
 	return r
 }
