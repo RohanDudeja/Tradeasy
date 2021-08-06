@@ -25,4 +25,4 @@ config/dev.*
 # docker-compose .dev file in deployments.
 # deployments/docker-compose.dev.yml
 # telepresence log file
-
+telepresence.log

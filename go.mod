@@ -17,11 +17,11 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
-	github.com/onsi/gomega v1.14.0 // indirect
+	github.com/onsi/gomega v1.15.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pressly/goose v2.7.0+incompatible
 	github.com/ugorji/go v1.2.6 // indirect
+	gitlab.com/idoko/rediboard v0.0.0-20201102085108-d1f5633f97e6
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

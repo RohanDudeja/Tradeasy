@@ -1,7 +1,5 @@
 package user_management
 
-import "math/big"
-
 type SignUpRequest struct {
 	EmailId  string `json:"emailId"`
 	Password string `json:"password"`
@@ -20,7 +18,7 @@ type UserDetailsRequest struct {
 
 type UserDetailsResponse struct {
 	TradingAccId string `json:"trading_acc_id"`
-	Balance      big.Int `json:"balance"`
+	Balance      int64  `json:"balance"`
 	Message      string `json:"message"`
 }
 type SignInRequest struct {
@@ -32,8 +30,8 @@ type SignInResponse struct {
 	Message string `json:"message"`
 }
 type ForgetPasswordRequest struct {
-	UserId   string `json:"user_id"`
-	EmailId  string `json:"emailId"`
+	UserId  string `json:"user_id"`
+	EmailId string `json:"emailId"`
 }
 
 type ForgetPasswordResponse struct {
@@ -41,14 +39,14 @@ type ForgetPasswordResponse struct {
 }
 
 type VerifyRequest struct {
-	UserId   string `json:"user_id"`
-	EmailId  string `json:"emailId"`
+	UserId      string `json:"user_id"`
+	EmailId     string `json:"emailId"`
 	NewPassword string `json:"new_password"`
-	Otp string `json:"otp"`
+	Otp         string `json:"otp"`
 }
 
 type VerifyResponse struct {
-	UserId   string `json:"user_id"`
+	UserId      string `json:"user_id"`
 	NewPassword string `json:"new_password"`
-	Message string `json:"message"`
+	Message     string `json:"message"`
 }

@@ -13,7 +13,7 @@ func SignUp(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	res,err := user_management.SignUp(req)
+	res, err := user_management.SignUp(req)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -29,7 +29,7 @@ func UserDetails(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	res,errUserDetails := user_management.UserDetails(req,userid)
+	res, errUserDetails := user_management.UserDetails(req, userid)
 	if errUserDetails != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -44,7 +44,7 @@ func SignIn(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	res,errUserSignIn := user_management.UserSignIn(req)
+	res, errUserSignIn := user_management.UserSignIn(req)
 	if errUserSignIn != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -58,7 +58,7 @@ func ForgetPassword(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	res,errForgetPassword := user_management.ForgetPassword(req)
+	res, errForgetPassword := user_management.ForgetPassword(req)
 	if errForgetPassword != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -73,7 +73,7 @@ func VerificationForPasswordChange(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	res,errVer := user_management.VerificationForPasswordChange(req)
+	res, errVer := user_management.VerificationForPasswordChange(req)
 	if errVer != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -81,4 +81,3 @@ func VerificationForPasswordChange(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 	}
 }
-

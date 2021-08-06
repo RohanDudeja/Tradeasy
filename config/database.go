@@ -10,6 +10,7 @@ import (
 
 // DB Config represents configuration
 var DB *gorm.DB
+
 type Config struct {
 	Database Database `yaml:"database"`
 }
