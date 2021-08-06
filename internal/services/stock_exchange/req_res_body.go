@@ -1,6 +1,9 @@
 package stock_exchange
 
-import "time"
+import (
+	model "Tradeasy/internal/model/stock_exchange"
+	"time"
+)
 
 type OrderRequest struct {
 	OrderID         string    `json:"order_id"`
@@ -25,7 +28,7 @@ type DeleteResponse struct {
 }
 
 type ViewDepthResponse struct {
-	BuyOrders  []string //top 5 buy order details
-	SellOrders []string
+	BuyOrders  []model.BuyOrderBook //top 5 buy order details
+	SellOrders []model.SellOrderBook
 	Message    string
 }
