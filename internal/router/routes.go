@@ -1,12 +1,14 @@
 package router
 
 import (
+	"Tradeasy/internal/controller"
+	webSocket "Tradeasy/internal/controller"
 	"github.com/gin-gonic/gin"
 )
 
 func SetUpRouter() *gin.Engine  {
 	r:=gin.Default()
-	/*
+
 	trade:=r.Group("/pending_orders")
 	{
 
@@ -29,6 +31,12 @@ func SetUpRouter() *gin.Engine  {
 	{
 		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
 	}
-	 */
+
+	websocket:= r.Group("/socket")
+	{
+		websocket.GET("/", webSocket.Home)
+		websocket.GET("/stocks", webSocket.StockHandler)
+		websocket.GET("/orders", webSocket.OrderHandler)
+	}
 	return r
 }
