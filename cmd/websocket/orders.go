@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 )
+
 var done chan interface{}
 var interrupt chan os.Signal
 
@@ -20,11 +21,11 @@ func main() {
 	defer conn.Close()
 	// Our main loop
 	for {
-			_, orderMessage, err := conn.ReadMessage()
-			if err != nil {
-				log.Println("Error during message reading:", err)
-				break
-			}
-			log.Printf("Received: %s", orderMessage)
+		_, orderMessage, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Error during message reading:", err)
+			break
+		}
+		log.Printf("Received: %s", orderMessage)
 	}
 }
