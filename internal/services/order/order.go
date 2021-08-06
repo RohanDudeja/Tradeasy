@@ -26,10 +26,10 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 
 	if err = config.DB.Table("payments").Where("user_id=?", bReq.UserId).First(&balance).Error; err != nil {
 		return bRes, err
-	} else if balance.CurrentBalance < bReq.Quantity*bReq.LimitPrice {
+	} else if balance.CurrentBalance < int64(bReq.Quantity*bReq.LimitPrice) {
 		return bRes, errors.New("balance is insufficient for the placed order")
 	} else {
-		balance.CurrentBalance = balance.CurrentBalance - bReq.Quantity*bReq.LimitPrice
+		balance.CurrentBalance = balance.CurrentBalance - int64(bReq.Quantity*bReq.LimitPrice)
 		if err = config.DB.Table("payments").Where("user_id=?", bReq.UserId).Updates(&balance).Error; err != nil {
 			return bRes, err
 		}
@@ -193,9 +193,9 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 				return cRes, err
 			}
 			if p.BookType == "Market" {
-				b.CurrentBalance = b.CurrentBalance + p.Quantity*p.OrderPrice
+				b.CurrentBalance = b.CurrentBalance + int64(p.Quantity*p.OrderPrice)
 			} else {
-				b.CurrentBalance = b.CurrentBalance + p.Quantity*p.LimitPrice
+				b.CurrentBalance = b.CurrentBalance + int64(p.Quantity*p.LimitPrice)
 			}
 			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&b).Error; err != nil {
 				return cRes, err
