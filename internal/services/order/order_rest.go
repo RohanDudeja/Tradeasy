@@ -18,7 +18,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&balance).Error; err != nil {
 			return err
 		}
-		balance.CurrentBalance = balance.CurrentBalance + p.Quantity*p.OrderPrice
+		balance.CurrentBalance = balance.CurrentBalance + int64(p.Quantity*p.OrderPrice)
 		if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&balance).Error; err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			OrderId:   p.OrderId,
 			StockName: p.StockName,
 			Quantity:  p.Quantity,
-			BuyPrice:  int(res.AveragePrice),
+			BuyPrice:  res.AveragePrice,
 			OrderedAt: p.CreatedAt,
 			CreatedAt: time.Now(),
 			UpdatedAt: res.OrderExecutionTime,
@@ -50,7 +50,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		}
 	} else if res.Status == "HALF_COMPLETED" {
 		p.Status = "HALF_COMPLETED"
-		p.Quantity = p.Quantity - int(res.Quantity)
+		p.Quantity = p.Quantity - res.Quantity
 		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
@@ -59,8 +59,8 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			UserId:    p.UserId,
 			OrderId:   p.OrderId,
 			StockName: p.StockName,
-			Quantity:  int(res.Quantity),
-			BuyPrice:  int(res.AveragePrice),
+			Quantity:  res.Quantity,
+			BuyPrice:  res.AveragePrice,
 			OrderedAt: p.CreatedAt,
 			CreatedAt: time.Now(),
 			UpdatedAt: res.OrderExecutionTime,
@@ -98,15 +98,15 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 		price := 0
 
 		for _, check := range h {
-			if int(res.Quantity) >= check.Quantity {
-				res.Quantity = res.Quantity - uint(check.Quantity)
+			if res.Quantity >= check.Quantity {
+				res.Quantity = res.Quantity - check.Quantity
 				orderHist := model.OrderHistory{
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
 					StockName:     check.StockName,
 					Quantity:      check.Quantity,
 					BuyPrice:      check.BuyPrice,
-					SellPrice:     int(res.AveragePrice),
+					SellPrice:     res.AveragePrice,
 					CommissionFee: 2000,
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
@@ -124,9 +124,9 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
 					StockName:     check.StockName,
-					Quantity:      int(res.Quantity),
+					Quantity:      res.Quantity,
 					BuyPrice:      check.BuyPrice,
-					SellPrice:     int(res.AveragePrice),
+					SellPrice:     res.AveragePrice,
 					CommissionFee: 2000,
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
@@ -135,7 +135,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 				if err = config.DB.Table("order_history").Create(orderHist).Error; err != nil {
 					return err
 				}
-				check.Quantity = check.Quantity - int(res.Quantity)
+				check.Quantity = check.Quantity - res.Quantity
 
 				if err = config.DB.Table("holdings").Where("id", check.Id).Updates(check).Error; err != nil {
 					return err
@@ -147,7 +147,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 		if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&balance).Error; err != nil {
 			return err
 		}
-		balance.CurrentBalance = balance.CurrentBalance + price
+		balance.CurrentBalance = balance.CurrentBalance + int64(price)
 		if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&balance).Error; err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 
 	} else if res.Status == "HALF_COMPLETED" {
 		p.Status = "HALF_COMPLETED"
-		p.Quantity = p.Quantity - int(res.Quantity)
+		p.Quantity = p.Quantity - res.Quantity
 		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Updates(p).Error; err != nil {
 			return err
 		}
@@ -169,16 +169,16 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 		}
 		price := 0
 		for _, check := range h {
-			if int(res.Quantity) >= check.Quantity {
-				res.Quantity = res.Quantity - uint(check.Quantity)
+			if res.Quantity >= check.Quantity {
+				res.Quantity = res.Quantity - check.Quantity
 				orderHist := model.OrderHistory{
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
 					StockName:     check.StockName,
 					Quantity:      check.Quantity,
 					BuyPrice:      check.BuyPrice,
-					SellPrice:     int(res.AveragePrice),
-					CommissionFee: int(float64(check.Quantity*int(res.AveragePrice)) * 0.01),
+					SellPrice:     res.AveragePrice,
+					CommissionFee: 2000,
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
@@ -195,10 +195,10 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
 					StockName:     check.StockName,
-					Quantity:      int(res.Quantity),
+					Quantity:      res.Quantity,
 					BuyPrice:      check.BuyPrice,
-					SellPrice:     int(res.AveragePrice),
-					CommissionFee: int(float64(res.Quantity*res.AveragePrice) * 0.01),
+					SellPrice:     res.AveragePrice,
+					CommissionFee: 2000,
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
@@ -206,7 +206,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 				if err = config.DB.Table("order_history").Create(orderHist).Error; err != nil {
 					return err
 				}
-				check.Quantity = check.Quantity - int(res.Quantity)
+				check.Quantity = check.Quantity - res.Quantity
 
 				if err = config.DB.Table("holdings").Where("id", check.Id).Updates(&check).Error; err != nil {
 					return err
@@ -217,7 +217,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 		if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&balance).Error; err != nil {
 			return err
 		}
-		balance.CurrentBalance = balance.CurrentBalance + price
+		balance.CurrentBalance = balance.CurrentBalance + int64(price)
 		if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&balance).Error; err != nil {
 			return err
 		}
