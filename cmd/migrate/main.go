@@ -41,6 +41,7 @@ func main() {
 	if err := goose.Run(command, db, *dir); err != nil {
 		log.Fatalf("goose %v: %v", command, err)
 	}
+
 }
 func usage() {
 	fmt.Println(usagePrefix)
