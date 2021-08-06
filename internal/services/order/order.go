@@ -62,9 +62,9 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	exeOrder := stock_exchange.OrderRequest{
 		OrderID:    orderId,
 		StockName:  bReq.StockName,
-		Quantity:   uint(bReq.Quantity),
+		Quantity:   bReq.Quantity,
 		OrderType:  bReq.BookType,
-		LimitPrice: uint(bReq.LimitPrice),
+		LimitPrice: bReq.LimitPrice,
 	}
 
 	request, err := json.Marshal(exeOrder)
@@ -72,6 +72,9 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		return bRes, err
 	}
 	response, err := http.Post("http://localhost:8080/buy_order_book/buy_order", "application/json", bytes.NewBuffer(request))
+	if response==nil{
+		return bRes, errors.New("there is no response")
+	}
 	body, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(body, &bRes)
 	if err != nil {
@@ -128,9 +131,9 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	exeOrder := stock_exchange.OrderRequest{
 		OrderID:    orderId,
 		StockName:  sReq.StockName,
-		Quantity:   uint(sReq.Quantity),
+		Quantity:   sReq.Quantity,
 		OrderType:  sReq.BookType,
-		LimitPrice: uint(sReq.LimitPrice),
+		LimitPrice: sReq.LimitPrice,
 	}
 
 	request, err := json.Marshal(exeOrder)
@@ -138,6 +141,9 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		return sRes, err
 	}
 	response, err := http.Post("http://localhost:8080/sell_order_book/sell_order", "application/json", bytes.NewBuffer(request))
+	if response==nil{
+		return sRes, errors.New("there is no response")
+	}
 	body, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(body, &sRes)
 	if err != nil {
@@ -168,7 +174,8 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 		return cRes, err
 	}
 	body, _ := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &cRes)
+	var dRes stock_exchange.DeleteResponse
+	err = json.Unmarshal(body, &dRes)
 	if err != nil {
 		return cRes, err
 	}
@@ -176,8 +183,10 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	cRes.UserId = p.UserId
 	cRes.OrderId = p.OrderId
 	cRes.StockName = p.StockName
-	if cRes.Status == "CANCELLED" {
+	if dRes.Success == true {
 		p.Status = "CANCELLED"
+		cRes.Status = "CANCELLED"
+		cRes.Message = dRes.Message
 		if p.OrderType == "Buy" {
 			var b model.Payments
 			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&b).Error; err != nil {
