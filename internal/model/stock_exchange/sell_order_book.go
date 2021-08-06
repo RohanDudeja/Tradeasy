@@ -17,6 +17,6 @@ type SellOrderBook struct {
 	DeletedAt         time.Time `json:"deleted_at" gorm:"column:deleted_at"`
 }
 
-func (s *SellOrderBook) TableName() string{
+func (s *SellOrderBook) TableName() string {
 	return "sell_order_book"
 }
