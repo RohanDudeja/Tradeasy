@@ -15,7 +15,6 @@ type TradingAccount struct {
 	UpdatedAt    time.Time `json:"updated_at" gorm:"column:updated_at"`
 	DeletedAt    time.Time `json:"deleted_at" gorm:"column:deleted_at"`
 }
-
 func (u *TradingAccount) TableName() string {
 	return "trading_account"
 }

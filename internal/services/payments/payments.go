@@ -8,7 +8,8 @@ import (
 )
 
 var Mutex sync.Mutex
-func AddAmount(addReq AddRequest, Userid string)(addRes *AddResponse, err error){
+
+func AddAmount(addReq AddRequest, Userid string) (addRes *AddResponse, err error) {
 	Amount1 := addReq.Amount
 	var tradingAcc model.TradingAccount
 	var addRes1 AddResponse
@@ -18,7 +19,7 @@ func AddAmount(addReq AddRequest, Userid string)(addRes *AddResponse, err error)
 	}
 	tradingAcc.Balance += Amount1
 	Mutex.Unlock()
-	pay := model.Payments{UserId: Userid,RazorpayLinkId: "",RazorpayLink: "",Amount: Amount1,CurrentBalance: tradingAcc.Balance,UpdatedAt: time.Now() }
+	pay := model.Payments{UserId: Userid, RazorpayLinkId: "", RazorpayLink: "", Amount: Amount1, CurrentBalance: tradingAcc.Balance, UpdatedAt: time.Now()}
 	if err = config.DB.Create(pay).Error; err != nil {
 		return nil, err
 	}
@@ -27,9 +28,9 @@ func AddAmount(addReq AddRequest, Userid string)(addRes *AddResponse, err error)
 	addRes1.Type = "add"
 	addRes1.CurrentBalance = pay.CurrentBalance
 	addRes1.Message = "Process Successful"
-	return &addRes1,err
+	return &addRes1, err
 }
-func WithdrawAmount(withdrawReq WithdrawRequest, Userid string )(withdrawRes *WithdrawResponse, err error){
+func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes *WithdrawResponse, err error) {
 	Amount1 := withdrawReq.Amount
 	var tradingAcc model.TradingAccount
 	var withdrawRes1 WithdrawResponse
@@ -38,11 +39,12 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string )(withdrawRes *Wi
 		return nil, err
 	}
 	if tradingAcc.Balance < Amount1 {
-		return nil,err
+		return nil, err
 	} else {
-		tradingAcc.Balance -= Amount1}
+		tradingAcc.Balance -= Amount1
+	}
 	Mutex.Unlock()
-	pay := model.Payments{UserId: Userid,RazorpayLinkId: "",RazorpayLink: "",Amount: Amount1,CurrentBalance: tradingAcc.Balance,UpdatedAt: time.Now() }
+	pay := model.Payments{UserId: Userid, RazorpayLinkId: "", RazorpayLink: "", Amount: Amount1, CurrentBalance: tradingAcc.Balance, UpdatedAt: time.Now()}
 	if err = config.DB.Create(pay).Error; err != nil {
 		return nil, err
 	}
@@ -51,5 +53,5 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string )(withdrawRes *Wi
 	withdrawRes1.Type = "Withdraw"
 	withdrawRes1.CurrentBalance = pay.CurrentBalance
 	withdrawRes1.Message = "Process Successful"
-	return &withdrawRes1,err
+	return &withdrawRes1, err
 }
