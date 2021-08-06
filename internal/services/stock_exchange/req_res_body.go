@@ -1,6 +1,8 @@
 package stock_exchange
 
-import "time"
+import (
+	"time"
+)
 
 type OrderRequest struct {
 	OrderID         string    `json:"order_id"`
@@ -29,4 +31,13 @@ type ViewDepthResponse struct {
 	BuyOrders  []string //top 5 buy order details
 	SellOrders []string
 	Message    string
+}
+
+type StockDetails struct {
+	StockName string    `json:"stock_name"`
+	LTP       string    `json:"ltp"`
+	UpdatedAt time.Time `json:"updated_at"`
+	High      uint      `json:"high"`
+	Open      uint      `json:"open"`
+	Low       uint      `json:"low"`
 }
