@@ -26,4 +26,3 @@ config/dev.*
 # deployments/docker-compose.dev.yml
 # telepresence log file
 telepresence.log
-.gitignore/
