@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func DailyPendingOrders(c *gin.Context){
+func DailyPendingOrders(c *gin.Context) {
 	var rep []model.PendingOrders
 	id := c.Params.ByName("id")
 	c.BindJSON(&rep)
@@ -20,7 +20,7 @@ func DailyPendingOrders(c *gin.Context){
 		c.JSON(http.StatusOK, penOrderRes)
 	}
 }
-func Portfolio(c *gin.Context){
+func Portfolio(c *gin.Context) {
 	var rep []model.Holdings
 	id := c.Params.ByName("id")
 	from := c.Params.ByName("From")
@@ -34,7 +34,7 @@ func Portfolio(c *gin.Context){
 		c.JSON(http.StatusOK, PortfolioRes)
 	}
 }
-func OrdersHistory(c *gin.Context){
+func OrdersHistory(c *gin.Context) {
 	var rep1 []model.OrderHistory
 	var rep2 []model.Holdings
 	id := c.Params.ByName("id")
@@ -42,7 +42,7 @@ func OrdersHistory(c *gin.Context){
 	to := c.Params.ByName("To")
 	c.BindJSON(&rep1)
 	c.BindJSON(&rep2)
-	ordHisRes ,err := reports.OrdersHistory(rep1, rep2, id, from, to)
+	ordHisRes, err := reports.OrdersHistory(rep1, rep2, id, from, to)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -50,7 +50,7 @@ func OrdersHistory(c *gin.Context){
 		c.JSON(http.StatusOK, ordHisRes)
 	}
 }
-func ProfitLossHistory(c *gin.Context){
+func ProfitLossHistory(c *gin.Context) {
 	var rep []model.OrderHistory
 	id := c.Params.ByName("id")
 	from := c.Params.ByName("From")
@@ -64,4 +64,3 @@ func ProfitLossHistory(c *gin.Context){
 		c.JSON(http.StatusOK, proLosRes)
 	}
 }
-
