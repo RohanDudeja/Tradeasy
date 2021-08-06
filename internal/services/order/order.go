@@ -28,22 +28,22 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		return bRes, err
 	} else if balance.CurrentBalance < bReq.Quantity*bReq.LimitPrice {
 		return bRes, errors.New("balance is insufficient for the placed order")
-	} else{
-		balance.CurrentBalance=balance.CurrentBalance-bReq.Quantity*bReq.LimitPrice
-		if err = config.DB.Table("payments").Where("user_id=?", bReq.UserId).Update(&balance).Error; err != nil {
+	} else {
+		balance.CurrentBalance = balance.CurrentBalance - bReq.Quantity*bReq.LimitPrice
+		if err = config.DB.Table("payments").Where("user_id=?", bReq.UserId).Updates(&balance).Error; err != nil {
 			return bRes, err
 		}
 	}
 
 	orderId := uuid.New().String()
 	p := model.PendingOrders{
-		UserId: bReq.UserId,
-		OrderId: orderId,
+		UserId:    bReq.UserId,
+		OrderId:   orderId,
 		StockName: bReq.StockName,
 		OrderType: "Buy",
-		BookType: bReq.BookType,
-		Quantity: bReq.Quantity,
-		Status: "Pending",
+		BookType:  bReq.BookType,
+		Quantity:  bReq.Quantity,
+		Status:    "Pending",
 		CreatedAt: time.Now(),
 	}
 
@@ -60,10 +60,10 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	}
 
 	exeOrder := stock_exchange.OrderRequest{
-		OrderID: orderId,
-		StockName: bReq.StockName,
-		Quantity: uint(bReq.Quantity),
-		OrderType: bReq.BookType,
+		OrderID:    orderId,
+		StockName:  bReq.StockName,
+		Quantity:   uint(bReq.Quantity),
+		OrderType:  bReq.BookType,
 		LimitPrice: uint(bReq.LimitPrice),
 	}
 
@@ -103,13 +103,13 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 
 	orderId := uuid.New().String()
 	p := model.PendingOrders{
-		UserId: sReq.UserId,
-		OrderId: orderId,
+		UserId:    sReq.UserId,
+		OrderId:   orderId,
 		StockName: sReq.StockName,
 		OrderType: "Sell",
-		BookType: sReq.BookType,
-		Quantity: sReq.Quantity,
-		Status: "Pending",
+		BookType:  sReq.BookType,
+		Quantity:  sReq.Quantity,
+		Status:    "Pending",
 		CreatedAt: time.Now(),
 	}
 
@@ -126,10 +126,10 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	}
 
 	exeOrder := stock_exchange.OrderRequest{
-		OrderID: orderId,
-		StockName: sReq.StockName,
-		Quantity: uint(sReq.Quantity),
-		OrderType: sReq.BookType,
+		OrderID:    orderId,
+		StockName:  sReq.StockName,
+		Quantity:   uint(sReq.Quantity),
+		OrderType:  sReq.BookType,
 		LimitPrice: uint(sReq.LimitPrice),
 	}
 
@@ -176,27 +176,26 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	cRes.UserId = p.UserId
 	cRes.OrderId = p.OrderId
 	cRes.StockName = p.StockName
-	if cRes.Message == "Order has been cancelled" {
-		cRes.Status = "Cancelled"
-		p.Status = "Cancelled"
-		if p.OrderType=="Buy"{
+	if cRes.Status == "CANCELLED" {
+		p.Status = "CANCELLED"
+		if p.OrderType == "Buy" {
 			var b model.Payments
 			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&b).Error; err != nil {
 				return cRes, err
 			}
-			if p.BookType=="Market" {
+			if p.BookType == "Market" {
 				b.CurrentBalance = b.CurrentBalance + p.Quantity*p.OrderPrice
-			} else{
+			} else {
 				b.CurrentBalance = b.CurrentBalance + p.Quantity*p.LimitPrice
 			}
-			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(b).Error; err != nil {
+			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&b).Error; err != nil {
 				return cRes, err
 			}
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Updates(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Updates(&p).Error; err != nil {
 			return cRes, err
 		}
-		if err =config.DB.Table("pending_orders").Where("order_id=?", id).Delete(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Delete(&p).Error; err != nil {
 			return cRes, err
 		}
 	}
