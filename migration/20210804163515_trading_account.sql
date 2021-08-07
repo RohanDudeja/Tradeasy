@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS trading_account(
-    user_id  varchar(255) not null primary key,
+    user_id  varchar(255) not null,
     id int not null AUTO_INCREMENT primary key,
     pan_card_no varchar(255) not null,
     bank_acc_no varchar(255) not null,
