@@ -6,7 +6,7 @@ import (
 
 // BuyOrderBook ... schema for order book that stores buy orders
 type BuyOrderBook struct {
-	ID                int       `json:"id" gorm:"primary_key; column:id"`
+	ID                int       `json:"id" gorm:"primary_key; auto_increment; column:id"`
 	OrderID           string    `json:"order_id,omitempty" gorm:"column:order_id"`
 	StockTickerSymbol string    `json:"stock_ticker_symbol,omitempty" gorm:"column:stock_ticker_symbol"`
 	OrderQuantity     int       `json:"order_quantity,omitempty" gorm:"column:order_quantity"`
@@ -17,6 +17,6 @@ type BuyOrderBook struct {
 	DeletedAt         time.Time `json:"deleted_at" gorm:"column:deleted_at"`
 }
 
-func (b *BuyOrderBook) TableName() string{
+func (b *BuyOrderBook) TableName() string {
 	return "buy_order_book"
 }

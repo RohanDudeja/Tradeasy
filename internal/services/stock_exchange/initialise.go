@@ -5,7 +5,9 @@ import (
 	model "Tradeasy/internal/model/stock_exchange"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -36,24 +38,28 @@ func RandomizerAlgo() {
 	for _, stock := range allStocks {
 
 		//placing buy order
-		u := uuid.New().String()
+		orderID := uuid.New().String()
 		rand.Seed(time.Now().UnixNano())
 		idx := rand.Intn(2)
 		order := orderType[idx]
 		min := stock.LTP - int(float64(stock.LTP)*0.01)
 		max := stock.LTP + int(float64(stock.LTP)*0.01)
 		buyOrderBody := OrderRequest{
-			OrderID:         u,
+			OrderID:         orderID,
 			StockName:       stock.StockName,
 			OrderPlacedTime: time.Time{},
 			OrderType:       order,
-			LimitPrice:      uint(rand.Intn(max-min+1) + min),
-			Quantity:        uint(rand.Intn(100) + 1),
+			LimitPrice:      rand.Intn(max-min+1) + min,
+			Quantity:        rand.Intn(100) + 1,
 		}
-		BuyOrder(buyOrderBody)
+		_, err := BuyOrder(buyOrderBody)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
 
 		//placing sell order
-		u = uuid.New().String()
+		orderID = uuid.New().String()
 		rand.Seed(time.Now().UnixNano())
 		idx = rand.Intn(2)
 		order = orderType[idx]
@@ -61,17 +67,21 @@ func RandomizerAlgo() {
 		max = stock.LTP + int(float64(stock.LTP)*0.01)
 		time.Sleep(1 * time.Second)
 		sellOrderBody := OrderRequest{
-			OrderID:         u,
+			OrderID:         orderID,
 			StockName:       stock.StockName,
 			OrderPlacedTime: time.Time{},
 			OrderType:       order,
-			LimitPrice:      uint(rand.Intn(max-min+1) + min),
-			Quantity:        uint(rand.Intn(100) + 1),
+			LimitPrice:      rand.Intn(max-min+1) + min,
+			Quantity:        rand.Intn(100) + 1,
 		}
-		SellOrder(sellOrderBody)
+		_, err = SellOrder(sellOrderBody)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
 	}
 	// sleep and run again
-	time.Sleep(300 * time.Second)
+	time.Sleep(120 * time.Second)
 	RandomizerAlgo()
 }
 
@@ -81,13 +91,23 @@ func GetTickers(limit int) (tickers []string) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+	}(res.Body)
 	body, _ := ioutil.ReadAll(res.Body)
 
 	rawResponse := bytes.NewReader(body)
 	decoder := json.NewDecoder(rawResponse)
 	parsedResponse := Response{}
-	decoder.Decode(&parsedResponse)
+	err := decoder.Decode(&parsedResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
 
 	for _, r := range parsedResponse.Results {
 		//fmt.Println(r.Ticker)
@@ -98,16 +118,26 @@ func GetTickers(limit int) (tickers []string) {
 
 func InitialiseStock(ticker string) {
 
-	url1 := "https://api.polygon.io/v1/open-close/" + ticker + "/2021-08-04?adjusted=true&apiKey=721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
-	req, _ := http.NewRequest("GET", url1, nil)
+	stocksURL := "https://api.polygon.io/v1/open-close/" + ticker + "/2021-08-04?adjusted=true&apiKey=721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
+	req, _ := http.NewRequest("GET", stocksURL, nil)
 
 	res, _ := http.DefaultClient.Do(req)
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+	}(res.Body)
 	body, _ := ioutil.ReadAll(res.Body)
 	rawResponse := bytes.NewReader(body)
 	decoder := json.NewDecoder(rawResponse)
 	parsedResponse := StockFeed{}
-	decoder.Decode(&parsedResponse)
+	err := decoder.Decode(&parsedResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	newStock := model.Stocks{
 		StockTickerSymbol: parsedResponse.Ticker,
 		StockName:         parsedResponse.Ticker,
@@ -117,8 +147,11 @@ func InitialiseStock(ticker string) {
 		LowPrice:          int(parsedResponse.Low * 100.0),
 		PreviousDayClose:  int(parsedResponse.PrevClose * 100.0),
 		PercentageChange:  int(100.0 * (parsedResponse.PrevClose - parsedResponse.LTP) / parsedResponse.PrevClose),
+		//DeletedAt:         time.Time{},
 	}
-	config.DB.Create(&newStock)
+	if parsedResponse.Ticker != "" {
+		config.DB.Create(&newStock)
+	}
 }
 
 func InitialiseAllStocks() {
@@ -160,7 +193,9 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 func InitialiseBuyersAndSellers() {
 
 	var allStocks []model.Stocks
-	config.DB.Find(&allStocks)
+	//config.DB.Find(&allStocks)
+	config.DB.Raw("select * from stocks").Scan(&allStocks)
+	fmt.Println(allStocks[0])
 
 	quantities := []int{100, 50, 120, 200, 280}
 	for _, stock := range allStocks {
