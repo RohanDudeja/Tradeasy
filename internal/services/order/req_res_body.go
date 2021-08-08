@@ -1,5 +1,7 @@
 package order
-var status =[5]string{"PENDING","COMPLETED","HALF_COMPLETED","FAILED","CANCELLED"}
+
+var status = [5]string{"PENDING", "COMPLETED", "HALF_COMPLETED", "FAILED", "CANCELLED"}
+
 type BuyRequest struct {
 	UserId     string `json:"user_id"`
 	StockName  string `json:"stock_name"`
