@@ -44,11 +44,11 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			CreatedAt: time.Now(),
 			UpdatedAt: res.OrderExecutionTime,
 		}
-		if p.BookType=="Market"{
+		if p.BookType == "Market" {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
-			account.Balance =  account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
+			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
@@ -56,7 +56,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
-			account.Balance =  account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
+			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
@@ -89,11 +89,11 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			CreatedAt: time.Now(),
 			UpdatedAt: res.OrderExecutionTime,
 		}
-		if p.BookType=="Market"{
+		if p.BookType == "Market" {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
-			account.Balance =  account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
+			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
@@ -101,7 +101,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
-			account.Balance =  account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
+			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
