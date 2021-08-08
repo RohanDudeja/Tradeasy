@@ -1,5 +1,10 @@
 package reports
 
+type ReportsParamRequest struct {
+	From string `json:"from" form:"from" `
+	To   string `json:"to" from:"to"`
+}
+
 type DailyPendingOrderResponse struct {
 	Userid     string `json:"user_id"`
 	OrderId    string `json:"order_id"`
