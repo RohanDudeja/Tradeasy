@@ -37,7 +37,6 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		return bRes, err
 	}
 
-
 	orderId := uuid.New().String()
 	p := model.PendingOrders{
 		UserId:    bReq.UserId,
@@ -75,7 +74,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		return bRes, err
 	}
 	response, err := http.Post("http://localhost:8080/buy_order_book/buy_order", "application/json", bytes.NewBuffer(request))
-	if err!=nil{
+	if err != nil {
 		return bRes, err
 	}
 	body, _ := ioutil.ReadAll(response.Body)
@@ -144,7 +143,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		return sRes, err
 	}
 	response, err := http.Post("http://localhost:8080/sell_order_book/sell_order", "application/json", bytes.NewBuffer(request))
-	if err!=nil{
+	if err != nil {
 		return sRes, err
 	}
 	body, _ := ioutil.ReadAll(response.Body)
@@ -191,16 +190,16 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 		cRes.Status = status[4]
 		cRes.Message = dRes.Message
 		if p.OrderType == "Buy" {
-			var b model.Payments
-			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&b).Error; err != nil {
+			var account model.TradingAccount
+			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return cRes, err
 			}
 			if p.BookType == "Market" {
-				b.CurrentBalance = b.CurrentBalance + int64(p.Quantity*p.OrderPrice)
+				account.Balance = account.Balance + int64(p.Quantity*p.OrderPrice)
 			} else {
-				b.CurrentBalance = b.CurrentBalance + int64(p.Quantity*p.LimitPrice)
+				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
-			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&b).Error; err != nil {
+			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return cRes, err
 			}
 		}
