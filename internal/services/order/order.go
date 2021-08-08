@@ -14,26 +14,29 @@ import (
 )
 
 func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
-	var checkLtp model.StocksFeed
-	var balance model.Payments
+	var stocks model.StocksFeed
+	var account model.TradingAccount
 
 	if bReq.BookType == "Market" {
-		if err = config.DB.Table("stocks_feed").Where("stock_name=?", bReq.StockName).Last(&checkLtp).Error; err != nil {
+		if err = config.DB.Table("stocks_feed").Where("stock_name=?", bReq.StockName).Last(&stocks).Error; err != nil {
 			return bRes, err
 		}
-		bReq.LimitPrice = checkLtp.LTP
+		bReq.LimitPrice = stocks.LTP
 	}
 
-	if err = config.DB.Table("payments").Where("user_id=?", bReq.UserId).First(&balance).Error; err != nil {
+	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).First(&account).Error; err != nil {
 		return bRes, err
-	} else if balance.CurrentBalance < int64(bReq.Quantity*bReq.LimitPrice) {
-		return bRes, errors.New("balance is insufficient for the placed order")
-	} else {
-		balance.CurrentBalance = balance.CurrentBalance - int64(bReq.Quantity*bReq.LimitPrice)
-		if err = config.DB.Table("payments").Where("user_id=?", bReq.UserId).Updates(&balance).Error; err != nil {
-			return bRes, err
-		}
 	}
+
+	if account.Balance < int64(bReq.Quantity*bReq.LimitPrice) {
+		return bRes, errors.New("balance is insufficient for the placed order")
+	}
+
+	account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
+	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
+		return bRes, err
+	}
+
 
 	orderId := uuid.New().String()
 	p := model.PendingOrders{
@@ -43,7 +46,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		OrderType: "Buy",
 		BookType:  bReq.BookType,
 		Quantity:  bReq.Quantity,
-		Status:    "Pending",
+		Status:    status[0],
 		CreatedAt: time.Now(),
 	}
 
@@ -72,8 +75,8 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		return bRes, err
 	}
 	response, err := http.Post("http://localhost:8080/buy_order_book/buy_order", "application/json", bytes.NewBuffer(request))
-	if response==nil{
-		return bRes, errors.New("there is no response")
+	if err!=nil{
+		return bRes, err
 	}
 	body, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(body, &bRes)
@@ -84,7 +87,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 }
 
 func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) {
-	var checkLtp model.StocksFeed
+	var stocks model.StocksFeed
 
 	type result struct {
 		StockName     string
@@ -98,10 +101,10 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	}
 
 	if sReq.BookType == "Market" {
-		if err = config.DB.Table("stocks_feed").Where("stock_name=?", sReq.StockName).Last(&checkLtp).Error; err != nil {
+		if err = config.DB.Table("stocks_feed").Where("stock_name=?", sReq.StockName).Last(&stocks).Error; err != nil {
 			return sRes, err
 		}
-		sReq.LimitPrice = checkLtp.LTP
+		sReq.LimitPrice = stocks.LTP
 	}
 
 	orderId := uuid.New().String()
@@ -112,7 +115,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		OrderType: "Sell",
 		BookType:  sReq.BookType,
 		Quantity:  sReq.Quantity,
-		Status:    "Pending",
+		Status:    status[0],
 		CreatedAt: time.Now(),
 	}
 
@@ -141,8 +144,8 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		return sRes, err
 	}
 	response, err := http.Post("http://localhost:8080/sell_order_book/sell_order", "application/json", bytes.NewBuffer(request))
-	if response==nil{
-		return sRes, errors.New("there is no response")
+	if err!=nil{
+		return sRes, err
 	}
 	body, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(body, &sRes)
@@ -184,8 +187,8 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	cRes.OrderId = p.OrderId
 	cRes.StockName = p.StockName
 	if dRes.Success == true {
-		p.Status = "CANCELLED"
-		cRes.Status = "CANCELLED"
+		p.Status = status[4]
+		cRes.Status = status[4]
 		cRes.Message = dRes.Message
 		if p.OrderType == "Buy" {
 			var b model.Payments
