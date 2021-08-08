@@ -8,7 +8,7 @@ import (
 )
 
 func DailyPendingOrders(c *gin.Context) {
-	id := c.Params.ByName("id")
+	id := c.Params.ByName("Userid")
 	penOrderRes, err := reports.DailyPendingOrders(id)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -18,9 +18,8 @@ func DailyPendingOrders(c *gin.Context) {
 	}
 }
 func Portfolio(c *gin.Context) {
-	id := c.Params.ByName("id")
 	var reportsParamRequest reports.ReportsParamRequest
-	id = c.Params.ByName("Userid")
+	id := c.Params.ByName("Userid")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -34,9 +33,8 @@ func Portfolio(c *gin.Context) {
 	}
 }
 func OrdersHistory(c *gin.Context) {
-	id := c.Params.ByName("id")
 	var reportsParamRequest reports.ReportsParamRequest
-	id = c.Params.ByName("Userid")
+	id := c.Params.ByName("Userid")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -50,9 +48,8 @@ func OrdersHistory(c *gin.Context) {
 	}
 }
 func ProfitLossHistory(c *gin.Context) {
-	id := c.Params.ByName("id")
 	var reportsParamRequest reports.ReportsParamRequest
-	id = c.Params.ByName("Userid")
+	id := c.Params.ByName("Userid")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
