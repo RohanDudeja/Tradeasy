@@ -33,7 +33,7 @@ type StockFeed struct {
 func RandomizerAlgo() {
 
 	var allStocks []model.Stocks
-	config.DB.Model(&allStocks)
+	config.DB.Raw("SELECT * FROM stocks").Scan(&allStocks)
 	orderType := []string{"Limit", "Market"}
 	for _, stock := range allStocks {
 
