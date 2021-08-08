@@ -9,21 +9,22 @@ type OrderRequest struct {
 	StockName       string    `json:"stock_name"`
 	OrderPlacedTime time.Time `json:"order_placed_time"`
 	OrderType       string    `json:"order_type"`
-	LimitPrice      uint      `json:"limit_price"`
-	Quantity        uint      `json:"quantity"`
+	LimitPrice      int      `json:"limit_price"`
+	Quantity        int      `json:"quantity"`
 }
 
 type OrderResponse struct {
 	OrderID            string    `json:"order_id"`
 	StockName          string    `json:"stock_name"`
-	AveragePrice       uint      `json:"average_price"`
+	AveragePrice       int      `json:"average_price"`
 	Status             string    `json:"status"`
-	Quantity           uint      `json:"quantity"`
+	Quantity           int      `json:"quantity"`
 	OrderExecutionTime time.Time `json:"order_execution_time"`
 	Message            string    `json:"message"`
 }
 
 type DeleteResponse struct {
+	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
@@ -35,9 +36,9 @@ type ViewDepthResponse struct {
 
 type StockDetails struct {
 	StockName string    `json:"stock_name"`
-	LTP       string    `json:"ltp"`
+	LTP       int    `json:"ltp"`
 	UpdatedAt time.Time `json:"updated_at"`
-	High      uint      `json:"high"`
-	Open      uint      `json:"open"`
-	Low       uint      `json:"low"`
+	High      int      `json:"high"`
+	Open      int      `json:"open"`
+	Low       int      `json:"low"`
 }
