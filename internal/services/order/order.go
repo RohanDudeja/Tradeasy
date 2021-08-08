@@ -191,7 +191,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 		cRes.Message = dRes.Message
 		if p.OrderType == "Buy" {
 			var account model.TradingAccount
-			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return cRes, err
 			}
 			if p.BookType == "Market" {
@@ -199,7 +199,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			} else {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
-			if err = config.DB.Table("payments").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return cRes, err
 			}
 		}
