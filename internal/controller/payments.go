@@ -9,7 +9,7 @@ import (
 
 func AddAmount(c *gin.Context) {
 	var addReq payments.AddRequest
-	id := c.Params.ByName("id")
+	id := c.Params.ByName("Userid")
 	if err := c.BindJSON(&addReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -24,7 +24,7 @@ func AddAmount(c *gin.Context) {
 }
 func WithdrawAmount(c *gin.Context) {
 	var withdrawReq payments.WithdrawRequest
-	id := c.Params.ByName("id")
+	id := c.Params.ByName("Userid")
 	if err := c.BindJSON(&withdrawReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)

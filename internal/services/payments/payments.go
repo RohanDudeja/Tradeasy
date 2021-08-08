@@ -10,48 +10,50 @@ import (
 var Mutex sync.Mutex
 
 func AddAmount(addReq AddRequest, Userid string) (addRes *AddResponse, err error) {
-	Amount1 := addReq.Amount
+	addAmount := addReq.Amount
 	var tradingAcc model.TradingAccount
-	var addRes1 AddResponse
-	Mutex.Lock()
-	if err = config.DB.Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
+	var addResponse AddResponse
+	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
 		return nil, err
 	}
-	tradingAcc.Balance += Amount1
-	Mutex.Unlock()
-	pay := model.Payments{UserId: Userid, RazorpayLinkId: "", RazorpayLink: "", Amount: Amount1, CurrentBalance: tradingAcc.Balance, UpdatedAt: time.Now()}
+	tradingAcc.Balance += addAmount
+	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
+		return nil, err
+	}
+	pay := model.Payments{UserId: Userid, RazorpayLinkId: "", RazorpayLink: "", Amount: addAmount, CurrentBalance: tradingAcc.Balance, UpdatedAt: time.Now()}
 	if err = config.DB.Create(pay).Error; err != nil {
 		return nil, err
 	}
-	addRes1.Userid = pay.UserId
-	addRes1.Amount = pay.Amount
-	addRes1.Type = "add"
-	addRes1.CurrentBalance = pay.CurrentBalance
-	addRes1.Message = "Process Successful"
-	return &addRes1, err
+	addResponse.Userid = pay.UserId
+	addResponse.Amount = pay.Amount
+	addResponse.Type = "add"
+	addResponse.CurrentBalance = pay.CurrentBalance
+	addResponse.Message = "Process Successful"
+	return &addResponse, err
 }
 func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes *WithdrawResponse, err error) {
-	Amount1 := withdrawReq.Amount
+	withdrawAmount := withdrawReq.Amount
 	var tradingAcc model.TradingAccount
-	var withdrawRes1 WithdrawResponse
-	Mutex.Lock()
-	if err = config.DB.Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
+	var withdrawResponse WithdrawResponse
+	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
 		return nil, err
 	}
-	if tradingAcc.Balance < Amount1 {
+	if tradingAcc.Balance < withdrawAmount {
 		return nil, err
 	} else {
-		tradingAcc.Balance -= Amount1
+		tradingAcc.Balance -= withdrawAmount
 	}
-	Mutex.Unlock()
-	pay := model.Payments{UserId: Userid, RazorpayLinkId: "", RazorpayLink: "", Amount: Amount1, CurrentBalance: tradingAcc.Balance, UpdatedAt: time.Now()}
+	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
+		return nil, err
+	}
+	pay := model.Payments{UserId: Userid, RazorpayLinkId: "", RazorpayLink: "", Amount: withdrawAmount, CurrentBalance: tradingAcc.Balance, UpdatedAt: time.Now()}
 	if err = config.DB.Create(pay).Error; err != nil {
 		return nil, err
 	}
-	withdrawRes1.Userid = pay.UserId
-	withdrawRes1.Amount = pay.Amount
-	withdrawRes1.Type = "Withdraw"
-	withdrawRes1.CurrentBalance = pay.CurrentBalance
-	withdrawRes1.Message = "Process Successful"
-	return &withdrawRes1, err
+	withdrawResponse.Userid = pay.UserId
+	withdrawResponse.Amount = pay.Amount
+	withdrawResponse.Type = "Withdraw"
+	withdrawResponse.CurrentBalance = pay.CurrentBalance
+	withdrawResponse.Message = "Process Successful"
+	return &withdrawResponse, err
 }
