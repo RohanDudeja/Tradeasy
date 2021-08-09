@@ -41,8 +41,8 @@ func SetUpRouter() *gin.Engine {
 	users := r.Group("/users")
 	{
 		users.POST("/signup", controller.SignUp)
-		users.POST("/:Userid/details", controller.UserDetails)
-		users.POST("/signIn", controller.SignIn)
+		users.POST("/:user_id/details", controller.UserDetails)
+		users.POST("/sign_in", controller.SignIn)
 		users.POST("/forgot", controller.ForgetPassword)
 		users.PATCH("/verify", controller.VerificationForPasswordChange)
 	}

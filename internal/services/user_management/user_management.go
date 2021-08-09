@@ -4,16 +4,16 @@ import (
 	"Tradeasy/config"
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/provider/redis"
+	"crypto/rand"
 	"errors"
+	"math/big"
+	"strconv"
 	"strings"
 	"time"
 )
 
 func SignUp(SUpReq SignUpRequest) (SUpRes SignUpResponse, err error) {
 	email := SUpReq.EmailId
-	SUpRes.UserId = strings.Split(email, "@")[0]
-	SUpRes.Password = SUpReq.Password
-	SUpRes.Message = "User registered"
 
 	var user model.Users
 	err = config.DB.Table("users").Where("email_id = ?", SUpReq.EmailId).First(&user).Error
@@ -31,19 +31,21 @@ func SignUp(SUpReq SignUpRequest) (SUpRes SignUpResponse, err error) {
 	if err != nil {
 		return SUpRes, errors.New("signUp failed")
 	}
+	SUpRes.UserId = strings.Split(email, "@")[0]
+	SUpRes.Password = SUpReq.Password
+	SUpRes.Message = "User registered"
 	return SUpRes, nil
 }
 
 func UserDetails(detReq UserDetailsRequest, userid string) (detRes UserDetailsResponse, err error) {
-	detRes.TradingAccId = "TRA" + userid
-	detRes.Balance = 0
-	detRes.Message = "User Details registered"
+
 	var user model.Users
+	var ta model.TradingAccount
+
 	err = config.DB.Table("users").Where("user_id = ? ", userid).First(&user).Error
 	if err != nil {
 		return detRes, errors.New("user not found")
 	}
-	var ta model.TradingAccount
 	err = config.DB.Table("trading_account").Where("user_id = ? OR pan_card_no = ? OR bank_acc_no = ?", userid, detReq.PanCardNo, detReq.BankAccNo).First(&ta).Error
 	if err == nil {
 		return detRes, errors.New("user details already registered")
@@ -56,21 +58,30 @@ func UserDetails(detReq UserDetailsRequest, userid string) (detRes UserDetailsRe
 
 	err = config.DB.Table("trading_account").Create(&ta).Error
 	if err != nil {
-		return detRes, errors.New("enter correct user details")
+		return detRes, errors.New("user details failed to enter")
 	}
+	detRes.TradingAccId = "TRA" + userid
+	detRes.Balance = 0
+	detRes.Message = "User Details registered"
 	return detRes, nil
 }
 func UserSignIn(SInReq SignInRequest) (SInRes SignInResponse, err error) {
-	SInRes.Message = "Signed in successfully"
 
 	var user model.Users
 	err = config.DB.Table("users").Where("user_id = ? AND password = ?", SInReq.UserId, SInReq.Password).First(&user).Error
 	if err != nil {
 		return SInRes, errors.New("sign in Failed")
 	}
+	SInRes.Message = "Signed in successfully"
 	return SInRes, nil
 }
-
+func GetRandNum() (string, error) {
+	nBig, e := rand.Int(rand.Reader, big.NewInt(8999))
+	if e != nil {
+		return "", e
+	}
+	return strconv.FormatInt(nBig.Int64()+1000, 10), nil
+}
 func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse, err error) {
 
 	var user model.Users
@@ -78,23 +89,19 @@ func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse, 
 	if err != nil {
 		return FPRes, errors.New("user not found")
 	}
-	otp, err_ := redis.GetRandNum()
+	otp, err_ := GetRandNum()
 	if err_ != nil {
 		return FPRes, errors.New("otp not generated")
 	}
-	FPRes.Otp = otp
-	e := redis.SetValue(FPReq.EmailId, otp, 5*time.Minute)
-	if e != nil {
+	er := redis.SetValue(FPReq.EmailId, otp, 5*time.Minute)
+	if er != nil {
 		return FPRes, errors.New("otp not generated")
 	}
+	FPRes.Otp = otp
 	return FPRes, nil
 }
 
 func VerificationForPasswordChange(VerReq VerifyRequest) (VerRes VerifyResponse, err error) {
-	VerRes.UserId = VerReq.UserId
-	VerRes.NewPassword = VerReq.NewPassword
-	VerRes.Message = "Password changed successfully"
-
 	originalOtp, e := redis.GetValue(VerReq.EmailId)
 	if e != nil {
 		return VerRes, errors.New("verification failed")
@@ -103,6 +110,8 @@ func VerificationForPasswordChange(VerReq VerifyRequest) (VerRes VerifyResponse,
 		return VerRes, errors.New("verification failed")
 	}
 	config.DB.Table("users").Where("user_id = ? AND email_id = ?", VerReq.UserId, VerReq.EmailId).Update("password", VerRes.NewPassword)
-
+	VerRes.UserId = VerReq.UserId
+	VerRes.NewPassword = VerReq.NewPassword
+	VerRes.Message = "Password changed successfully"
 	return VerRes, nil
 }
