@@ -33,6 +33,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	}
 
 	account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
+	account.UpdatedAt=time.Now()
 	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
 		return bRes, err
 	}
@@ -199,10 +200,12 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			} else {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
+			account.UpdatedAt=time.Now()
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return cRes, err
 			}
 		}
+		p.UpdatedAt=time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Updates(&p).Error; err != nil {
 			return cRes, err
 		}
