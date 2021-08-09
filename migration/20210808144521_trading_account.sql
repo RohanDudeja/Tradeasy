@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS trading_account(
     balance bigint not null,
     created_at timestamp  not null,
     updated_at timestamp  not null,
-    deleted_at timestamp default null
+    deleted_at timestamp  default null
     );
 -- +goose StatementEnd
 

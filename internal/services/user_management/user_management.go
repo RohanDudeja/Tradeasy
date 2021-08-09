@@ -16,6 +16,14 @@ func SignUp(SUpReq SignUpRequest) (SUpRes SignUpResponse, err error) {
 	SUpRes.Message = "User registered"
 
 	var user model.Users
+	er1 := config.DB.Table("users").Where("emailId = ?", SUpReq.EmailId).First(&user).Error
+	if er1 != nil {
+		return SUpRes, errors.New("email id already registered")
+	}
+	er2 := config.DB.Table("users").Where("password = ?", SUpRes.Password).First(&user).Error
+	if er2 != nil {
+		return SUpRes, errors.New("password already taken")
+	}
 	user.UserId = SUpRes.UserId
 	user.EmailId = SUpReq.EmailId
 	user.Password = SUpReq.Password
