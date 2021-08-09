@@ -1,7 +1,7 @@
 package user_management
 
 type SignUpRequest struct {
-	EmailId  string `json:"emailId"`
+	EmailId  string `json:"email_id"`
 	Password string `json:"password"`
 }
 
@@ -31,7 +31,7 @@ type SignInResponse struct {
 }
 type ForgetPasswordRequest struct {
 	UserId  string `json:"user_id"`
-	EmailId string `json:"emailId"`
+	EmailId string `json:"email_id"`
 }
 
 type ForgetPasswordResponse struct {
@@ -40,7 +40,7 @@ type ForgetPasswordResponse struct {
 
 type VerifyRequest struct {
 	UserId      string `json:"user_id"`
-	EmailId     string `json:"emailId"`
+	EmailId     string `json:"email_id"`
 	NewPassword string `json:"new_password"`
 	Otp         string `json:"otp"`
 }

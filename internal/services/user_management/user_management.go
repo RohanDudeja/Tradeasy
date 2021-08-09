@@ -16,12 +16,12 @@ func SignUp(SUpReq SignUpRequest) (SUpRes SignUpResponse, err error) {
 	SUpRes.Message = "User registered"
 
 	var user model.Users
-	er1 := config.DB.Table("users").Where("emailId = ?", SUpReq.EmailId).First(&user).Error
-	if er1 != nil {
+	err = config.DB.Table("users").Where("email_id = ?", SUpReq.EmailId).First(&user).Error
+	if err == nil {
 		return SUpRes, errors.New("email id already registered")
 	}
-	er2 := config.DB.Table("users").Where("password = ?", SUpRes.Password).First(&user).Error
-	if er2 != nil {
+	err = config.DB.Table("users").Where("password = ?", SUpRes.Password).First(&user).Error
+	if err == nil {
 		return SUpRes, errors.New("password already taken")
 	}
 	user.UserId = SUpRes.UserId
@@ -38,15 +38,23 @@ func UserDetails(detReq UserDetailsRequest, userid string) (detRes UserDetailsRe
 	detRes.TradingAccId = "TRA" + userid
 	detRes.Balance = 0
 	detRes.Message = "User Details registered"
+	var user model.Users
+	err = config.DB.Table("users").Where("user_id = ? ", userid).First(&user).Error
+	if err != nil {
+		return detRes, errors.New("user not found")
+	}
+	var ta model.TradingAccount
+	err = config.DB.Table("trading_account").Where("user_id = ? OR pan_card_no = ? OR bank_acc_no = ?", userid, detReq.PanCardNo, detReq.BankAccNo).First(&ta).Error
+	if err == nil {
+		return detRes, errors.New("user details already registered")
+	}
+	ta.UserId = userid
+	ta.PanCardNo = detReq.PanCardNo
+	ta.BankAccNo = detReq.BankAccNo
+	ta.TradingAccId = detRes.TradingAccId
+	ta.Balance = detRes.Balance
 
-	var user model.TradingAccount
-	user.UserId = userid
-	user.PanCardNo = detReq.PanCardNo
-	user.BankAccNo = detReq.BankAccNo
-	user.TradingAccId = detRes.TradingAccId
-	user.Balance = detRes.Balance
-
-	err = config.DB.Table("users_trading_acc_details").Create(&user).Error
+	err = config.DB.Table("trading_account").Create(&ta).Error
 	if err != nil {
 		return detRes, errors.New("enter correct user details")
 	}
@@ -56,7 +64,7 @@ func UserSignIn(SInReq SignInRequest) (SInRes SignInResponse, err error) {
 	SInRes.Message = "Signed in successfully"
 
 	var user model.Users
-	err = config.DB.Table("users").Where("userid = ? AND password = ?", SInReq.UserId, SInReq.Password).First(&user).Error
+	err = config.DB.Table("users").Where("user_id = ? AND password = ?", SInReq.UserId, SInReq.Password).First(&user).Error
 	if err != nil {
 		return SInRes, errors.New("sign in Failed")
 	}
@@ -66,7 +74,7 @@ func UserSignIn(SInReq SignInRequest) (SInRes SignInResponse, err error) {
 func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse, err error) {
 
 	var user model.Users
-	err = config.DB.Table("users").Where("userid = ? AND emailId = ?", FPReq.UserId, FPReq.EmailId).First(&user).Error
+	err = config.DB.Table("users").Where("user_id = ? AND email_id = ?", FPReq.UserId, FPReq.EmailId).First(&user).Error
 	if err != nil {
 		return FPRes, errors.New("user not found")
 	}
@@ -94,7 +102,7 @@ func VerificationForPasswordChange(VerReq VerifyRequest) (VerRes VerifyResponse,
 	if VerReq.Otp != originalOtp {
 		return VerRes, errors.New("verification failed")
 	}
-	config.DB.Table("users").Where("userid = ? AND emailId = ?", VerReq.UserId, VerReq.EmailId).Update("password", VerRes.NewPassword)
+	config.DB.Table("users").Where("user_id = ? AND email_id = ?", VerReq.UserId, VerReq.EmailId).Update("password", VerRes.NewPassword)
 
 	return VerRes, nil
 }
