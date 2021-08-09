@@ -276,7 +276,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
 // DeleteBuyOrder ...Update Delete Buy Order actions on the StockExchange database
 func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ? AND DeletedAt IS NOT NULL", orderId).Error
+	err = config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ? AND deleted_at IS NOT NULL", orderId).Error
 	if err != nil {
 		deleteRes.Message = "Failed"
 		return deleteRes, err
@@ -287,7 +287,7 @@ func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
 
 // DeleteSellOrder ...Update Delete Sell Order actions on the StockExchange database
 func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ? AND DeletedAt IS NOT NULL", orderId).Error
+	err = config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ? AND deleted_at IS NOT NULL", orderId).Error
 	if err != nil {
 		deleteRes.Message = "Failed"
 		return deleteRes, err
