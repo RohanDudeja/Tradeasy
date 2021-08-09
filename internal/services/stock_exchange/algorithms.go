@@ -7,14 +7,7 @@ import (
 	"time"
 )
 
-type OrderId struct {
-	id int
-}
-
 var orderResponse = make(chan OrderResponse)
-
-const sellBookQuery = "SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"
-const buyBookQuery = "SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "
 
 func UpdateLTP(ltp int, stock string) {
 	currentStock := model.Stocks{}
@@ -26,12 +19,168 @@ func UpdateLTP(ltp int, stock string) {
 	config.DB.Table("stocks").Where("stock_ticker_symbol = ?", stock).Updates(&currentStock)
 
 }
+func SendResponse(resp OrderResponse, status string, message string, orderId string, price int, quantity int) {
+	resp.Status = status
+	resp.Message = message
+	resp.OrderID = orderId
+	resp.AveragePrice = price
+	resp.OrderExecutionTime = time.Now()
+	resp.Quantity = quantity
+	orderResponse <- resp
+}
+func BuyLimitOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook, resp OrderResponse) {
+
+	ltp := 0
+	for _, elem := range sellBook {
+		if elem.OrderPrice <= buyOrderBody.LimitPrice {
+			if elem.OrderQuantity > buyOrderBody.Quantity {
+				ltp = elem.OrderPrice
+				config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-buyOrderBody.Quantity, time.Now(), elem.ID)
+				config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
+				SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+				SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+				buyOrderBody.Quantity -= buyOrderBody.Quantity
+				UpdateLTP(ltp, buyOrderBody.StockName)
+				break
+			} else if elem.OrderQuantity < buyOrderBody.Quantity {
+				ltp = elem.OrderPrice
+				UpdateLTP(ltp, buyOrderBody.StockName)
+				SendResponse(resp, "Partial", "Order Executed Partially", resp.OrderID, elem.OrderPrice, elem.OrderQuantity)
+				SendResponse(resp, "Completed", "Order Executed", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
+				buyOrderBody.Quantity -= elem.OrderQuantity
+				config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
+				config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", buyOrderBody.Quantity, time.Now(), buyOrderBody.OrderID)
+			} else {
+				ltp = elem.OrderPrice
+				UpdateLTP(ltp, buyOrderBody.StockName)
+				SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+				SendResponse(resp, "Completed", "Order Executed", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+				buyOrderBody.Quantity -= elem.OrderQuantity
+				config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
+				config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
+			}
+		} else {
+			// add to pending order list in order book
+			time.Sleep(30 * time.Second)
+			//Recursive call :
+			BuyOrderMatchingAlgo(buyOrderBody, resp)
+		}
+
+	}
+}
+
+func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook, resp OrderResponse) {
+
+	ltp := 0
+	for _, elem := range sellBook {
+		if elem.OrderQuantity > buyOrderBody.Quantity {
+			ltp = elem.OrderPrice
+			config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-buyOrderBody.Quantity, time.Now(), elem.ID)
+			config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
+			SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+			SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+			buyOrderBody.Quantity -= buyOrderBody.Quantity
+			UpdateLTP(ltp, buyOrderBody.StockName)
+			break
+		} else if elem.OrderQuantity < buyOrderBody.Quantity {
+			ltp = elem.OrderPrice
+			UpdateLTP(ltp, buyOrderBody.StockName)
+			SendResponse(resp, "Partial", "Order Executed Partially", resp.OrderID, elem.OrderPrice, elem.OrderQuantity)
+			SendResponse(resp, "Completed", "Order Executed", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
+			buyOrderBody.Quantity -= elem.OrderQuantity
+			config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
+			config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", buyOrderBody.Quantity, time.Now(), buyOrderBody.OrderID)
+		} else {
+			ltp = elem.OrderPrice
+			UpdateLTP(ltp, buyOrderBody.StockName)
+			SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+			SendResponse(resp, "Completed", "Order Executed", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
+			buyOrderBody.Quantity -= elem.OrderQuantity
+			config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
+			config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
+		}
+	}
+}
+func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook, resp OrderResponse) {
+
+	ltp := 0
+	for _, elem := range buyBook {
+
+		if elem.OrderPrice >= sellOrderBody.LimitPrice {
+			if elem.OrderQuantity > sellOrderBody.Quantity {
+				ltp = elem.OrderPrice
+				config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? ,updated_at = ?  WHERE id = ? ", elem.OrderQuantity-sellOrderBody.Quantity, time.Now(), elem.ID)
+				config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
+				SendResponse(resp, "Completed", "Order Executed Partially", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+				SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+				sellOrderBody.Quantity -= sellOrderBody.Quantity
+				UpdateLTP(ltp, sellOrderBody.StockName)
+				break
+			} else if elem.OrderQuantity < sellOrderBody.Quantity {
+				ltp = elem.OrderPrice
+				UpdateLTP(ltp, sellOrderBody.StockName)
+				SendResponse(resp, "Completed", "Order Executed Partially", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
+				SendResponse(resp, "Partial", "Order Executed Partially", resp.OrderID, elem.OrderPrice, elem.OrderQuantity)
+				sellOrderBody.Quantity -= elem.OrderQuantity
+				config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", elem.ID)
+				config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", sellOrderBody.Quantity, time.Now(), sellOrderBody.OrderID)
+
+			} else {
+				ltp = elem.OrderPrice
+				UpdateLTP(ltp, sellOrderBody.StockName)
+				SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+				SendResponse(resp, "Completed", "Order Executed", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+				sellOrderBody.Quantity -= elem.OrderQuantity
+				config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", elem.ID)
+				config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
+			}
+		} else {
+			time.Sleep(30 * time.Second)
+			//Recursive call :
+			SellOrderMatchingAlgo(sellOrderBody, resp)
+		}
+	}
+
+}
+func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook, resp OrderResponse) {
+
+	ltp := 0
+	for _, elem := range buyBook {
+		if elem.OrderQuantity > sellOrderBody.Quantity {
+			ltp = elem.OrderPrice
+			config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-sellOrderBody.Quantity, time.Now(), elem.ID)
+			config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", resp.OrderID)
+			SendResponse(resp, "Completed", "Order Executed Partially", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+			SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+			sellOrderBody.Quantity -= sellOrderBody.Quantity
+			UpdateLTP(ltp, sellOrderBody.StockName)
+			break
+		} else if elem.OrderQuantity < sellOrderBody.Quantity {
+			ltp = elem.OrderPrice
+			UpdateLTP(ltp, sellOrderBody.StockName)
+			SendResponse(resp, "Completed", "Order Executed Partially", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
+			SendResponse(resp, "Partial", "Order Executed Partially", resp.OrderID, elem.OrderPrice, elem.OrderQuantity)
+			sellOrderBody.Quantity -= elem.OrderQuantity
+			config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", elem.ID)
+			config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", sellOrderBody.Quantity, time.Now(), sellOrderBody.OrderID)
+
+		} else {
+			ltp = elem.OrderPrice
+			UpdateLTP(ltp, sellOrderBody.StockName)
+			SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+			SendResponse(resp, "Completed", "Order Executed", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+			sellOrderBody.Quantity -= elem.OrderQuantity
+			config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", elem.ID)
+			config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
+		}
+	}
+}
 
 func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse) {
 
 	var sellBook []model.SellOrderBook
 	// db lock
-	err := config.DB.Raw(sellBookQuery, buyOrderBody.StockName).Scan(&sellBook).Error
+	err := config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC", buyOrderBody.StockName).Scan(&sellBook).Error
 
 	if err != nil || len(sellBook) == 0 {
 		// abort
@@ -52,80 +201,22 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse) {
 		orderResponse <- resp
 		return
 	}
-	totalCost := 0
-	ltp := 0
-	orderedQuantity := buyOrderBody.Quantity
+
 	if buyOrderBody.OrderType == "Limit" {
-
-		for _, elem := range sellBook {
-			if elem.OrderPrice <= buyOrderBody.LimitPrice {
-				if elem.OrderQuantity > buyOrderBody.Quantity {
-					ltp = elem.OrderPrice
-					config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-buyOrderBody.Quantity, time.Now(), elem.ID)
-					totalCost += elem.OrderPrice * buyOrderBody.Quantity
-					buyOrderBody.Quantity -= buyOrderBody.Quantity
-					UpdateLTP(ltp, buyOrderBody.StockName)
-					break
-				} else {
-					ltp = elem.OrderPrice
-					UpdateLTP(ltp, buyOrderBody.StockName)
-					totalCost += elem.OrderPrice * elem.OrderQuantity
-					buyOrderBody.Quantity -= elem.OrderQuantity
-					config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
-				}
-			} else {
-				// add to pending order list in order book
-				config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", buyOrderBody.Quantity, time.Now(), buyOrderBody.OrderID)
-				time.Sleep(30 * time.Second)
-				//Recursive call :
-				BuyOrderMatchingAlgo(buyOrderBody, resp)
-			}
-
-		}
-
-		//update response
-		config.DB.Exec(" DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
-		resp.Message = "Order Executed Successfully"
-		resp.Status = "Completed"
-		resp.OrderExecutionTime = time.Now()
-		resp.AveragePrice = totalCost / orderedQuantity
-		// order complete
-		orderResponse <- resp
-
+		BuyLimitOrder(buyOrderBody, sellBook, resp)
 	} else {
 		//Market  order
-		for _, elem := range sellBook {
-			if elem.OrderQuantity > buyOrderBody.Quantity {
-				ltp = elem.OrderPrice
-				config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-buyOrderBody.Quantity, time.Now(), elem.ID)
-				totalCost += elem.OrderPrice * buyOrderBody.Quantity
-				buyOrderBody.Quantity -= buyOrderBody.Quantity
-				UpdateLTP(ltp, buyOrderBody.StockName)
-				break
-			} else {
-				ltp = elem.OrderPrice
-				UpdateLTP(ltp, buyOrderBody.StockName)
-				totalCost += elem.OrderPrice * elem.OrderQuantity
-				buyOrderBody.Quantity -= elem.OrderQuantity
-				config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
-			}
-		}
-
-		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
-		resp.Message = "Order Executed Successfully"
-		resp.Status = "Completed"
-		resp.OrderExecutionTime = time.Now()
-		resp.AveragePrice = totalCost / orderedQuantity
-		// order complete
-		orderResponse <- resp
+		BuyMarketOrder(buyOrderBody, sellBook, resp)
 	}
+	//order complete
+	orderResponse <- resp
 	return
 }
 
 func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse) {
 	var buyBook []model.BuyOrderBook
 	// db lock
-	err := config.DB.Raw(buyBookQuery, sellOrderBody.StockName).Scan(&buyBook).Error
+	err := config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC ", sellOrderBody.StockName).Scan(&buyBook).Error
 
 	if err != nil || len(buyBook) == 0 {
 		// abort
@@ -146,72 +237,12 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse) {
 		orderResponse <- resp
 		return
 	}
-	totalCost := 0
-	ltp := 0
-	orderedQuantity := sellOrderBody.Quantity
+
 	if sellOrderBody.OrderType == "Limit" {
-		for _, elem := range buyBook {
-
-			if elem.OrderPrice >= sellOrderBody.LimitPrice {
-				if elem.OrderQuantity > sellOrderBody.Quantity {
-					ltp = elem.OrderPrice
-					config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? ,updated_at = ?  WHERE id = ? ", elem.OrderQuantity-sellOrderBody.Quantity, time.Now(), elem.ID)
-					totalCost += elem.OrderPrice * sellOrderBody.Quantity
-					sellOrderBody.Quantity -= sellOrderBody.Quantity
-					UpdateLTP(ltp, sellOrderBody.StockName)
-					break
-				} else {
-					ltp = elem.OrderPrice
-					UpdateLTP(ltp, sellOrderBody.StockName)
-					totalCost += elem.OrderPrice * elem.OrderQuantity
-					sellOrderBody.Quantity -= elem.OrderQuantity
-					config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
-				}
-			} else {
-				// update the pending order list in order book
-				config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", sellOrderBody.Quantity, time.Now(), sellOrderBody.OrderID)
-				time.Sleep(30 * time.Second)
-				//Recursive call :
-				SellOrderMatchingAlgo(sellOrderBody, resp)
-			}
-		}
-
-		//update response
-		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
-		resp.Message = "Order Executed Successfully"
-		resp.Status = "Completed"
-		resp.OrderExecutionTime = time.Now()
-		resp.AveragePrice = totalCost / orderedQuantity
-		// order complete
-		orderResponse <- resp
-
+		SellLimitOrder(sellOrderBody, buyBook, resp)
 	} else {
 		//Market  order
-		for _, elem := range buyBook {
-			if elem.OrderQuantity > sellOrderBody.Quantity {
-				ltp = elem.OrderPrice
-				config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-sellOrderBody.Quantity, time.Now(), elem.ID)
-				totalCost += elem.OrderPrice * sellOrderBody.Quantity
-				sellOrderBody.Quantity -= sellOrderBody.Quantity
-				UpdateLTP(ltp, sellOrderBody.StockName)
-				break
-			} else {
-				ltp = elem.OrderPrice
-				UpdateLTP(ltp, sellOrderBody.StockName)
-				totalCost += elem.OrderPrice * elem.OrderQuantity
-				sellOrderBody.Quantity -= elem.OrderQuantity
-				config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", elem.ID)
-			}
-		}
-
-		//update response
-		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
-		resp.Message = "Order Executed Successfully"
-		resp.Status = "Completed"
-		resp.OrderExecutionTime = time.Now()
-		resp.AveragePrice = totalCost / orderedQuantity
-		// order complete
-		orderResponse <- resp
+		SellMarketOrder(sellOrderBody, buyBook, resp)
 	}
 }
 
@@ -283,13 +314,13 @@ func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
 func ViewMarketDepth(stock string) (vdRes ViewDepthResponse, err error) {
 
 	var buyBook []model.BuyOrderBook
-	err = config.DB.Raw(buyBookQuery+" LIMIT 5", stock).Scan(&buyBook).Error
+	err = config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
 	vdRes.Message = "Error in fetching data"
 	if err != nil {
 		return vdRes, err
 	}
 	var sellBook []model.SellOrderBook
-	err = config.DB.Raw(sellBookQuery+" LIMIT 5", stock).Scan(&sellBook).Error
+	err = config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
 	if err != nil {
 		return vdRes, err
 	}
