@@ -14,8 +14,8 @@ var DB *gorm.DB
 
 // Config represents configuration
 type Config struct {
-	Database Database `yaml:"database"`
-	Server   Server   `yaml:"server"`
+	Database       Database       `yaml:"database"`
+	Server         Server         `yaml:"server"`
 	Authentication Authentication `yaml:"authentication"`
 }
 type Database struct {
@@ -35,6 +35,7 @@ type Authentication struct {
 	UserName string `yaml:"user_name"`
 	Password string `yaml:"password"`
 }
+
 //readFile for reading development.yaml file
 func readFile(cfg *Config) {
 	f, err := os.Open("./config/development.yaml")
@@ -76,9 +77,10 @@ func ServerURL(config *Config) string {
 		config.Server.Port,
 	)
 }
-func ApiToken(config *Config) (string,string) {
+func ApiToken(config *Config) (string, string) {
 	return config.Authentication.UserName, config.Authentication.Password
 }
+
 // InitialiseDB ...assign connection to global *gorm.DB variable DB
 func InitialiseDB() error {
 	dbString := DbURL(BuildConfig())
