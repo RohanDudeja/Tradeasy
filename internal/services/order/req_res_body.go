@@ -1,7 +1,8 @@
 package order
 
-var status = [5]string{"PENDING", "COMPLETED", "HALF_COMPLETED", "FAILED", "CANCELLED"}
-
+const pending,completed,halfCompleted,failed,cancelled = "PENDING","COMPLETED","HALF_COMPLETED","FAILED","CANCELLED"
+const buy,sell = "Buy","Sell"
+const market, limit = "Market","Limit"
 type BuyRequest struct {
 	UserId     string `json:"user_id"`
 	StockName  string `json:"stock_name"`
