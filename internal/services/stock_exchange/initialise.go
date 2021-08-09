@@ -30,6 +30,9 @@ type StockFeed struct {
 	Low       float64 `json:"low"`
 }
 
+const percentChange = 0.01
+const ordersQuantityRange = 100
+
 func RandomizerAlgo() {
 
 	for {
@@ -43,15 +46,15 @@ func RandomizerAlgo() {
 			rand.Seed(time.Now().UnixNano())
 			idx := rand.Intn(2)
 			order := orderType[idx]
-			min := stock.LTP - int(float64(stock.LTP)*0.01)
-			max := stock.LTP + int(float64(stock.LTP)*0.01)
+			min := stock.LTP - int(float64(stock.LTP)*percentChange)
+			max := stock.LTP + int(float64(stock.LTP)*percentChange)
 			buyOrderBody := OrderRequest{
 				OrderID:         orderID,
 				StockName:       stock.StockName,
 				OrderPlacedTime: time.Time{},
 				OrderType:       order,
 				LimitPrice:      rand.Intn(max-min+1) + min,
-				Quantity:        rand.Intn(100) + 1,
+				Quantity:        rand.Intn(ordersQuantityRange) + 1,
 			}
 			_, err := BuyOrder(buyOrderBody)
 			if err != nil {
@@ -64,8 +67,8 @@ func RandomizerAlgo() {
 			rand.Seed(time.Now().UnixNano())
 			idx = rand.Intn(2)
 			order = orderType[idx]
-			min = stock.LTP - int(float64(stock.LTP)*0.01)
-			max = stock.LTP + int(float64(stock.LTP)*0.01)
+			min = stock.LTP - int(float64(stock.LTP)*percentChange)
+			max = stock.LTP + int(float64(stock.LTP)*percentChange)
 			time.Sleep(1 * time.Second)
 			sellOrderBody := OrderRequest{
 				OrderID:         orderID,
@@ -73,7 +76,7 @@ func RandomizerAlgo() {
 				OrderPlacedTime: time.Time{},
 				OrderType:       order,
 				LimitPrice:      rand.Intn(max-min+1) + min,
-				Quantity:        rand.Intn(100) + 1,
+				Quantity:        rand.Intn(ordersQuantityRange) + 1,
 			}
 			_, err = SellOrder(sellOrderBody)
 			if err != nil {
@@ -164,8 +167,8 @@ func InitialiseAllStocks() {
 func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 
 	rand.Seed(time.Now().UnixNano())
-	min := ltp - int(float64(ltp)*0.01)
-	max := ltp + int(float64(ltp)*0.01)
+	min := ltp - int(float64(ltp)*percentChange)
+	max := ltp + int(float64(ltp)*percentChange)
 	newBuy := model.BuyOrderBook{
 		OrderID:           uuid.New().String(),
 		StockTickerSymbol: ticker,
@@ -177,8 +180,8 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 
 	time.Sleep(1 * time.Millisecond)
 	rand.Seed(time.Now().UnixNano())
-	min = ltp - int(float64(ltp)*0.01)
-	max = ltp + int(float64(ltp)*0.01)
+	min = ltp - int(float64(ltp)*percentChange)
+	max = ltp + int(float64(ltp)*percentChange)
 	newSell := model.SellOrderBook{
 		OrderID:           uuid.New().String(),
 		StockTickerSymbol: ticker,
