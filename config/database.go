@@ -30,10 +30,9 @@ type Server struct {
 	Port int    `yaml:"port"`
 }
 
-//readFile for reading config.yaml file
+//readFile for reading dev.yaml file
 func readFile(cfg *Config) {
-	f, err := os.Open("./config/config.yaml")
-	//f, err := filepath.Abs("config/config" +  ".yaml")
+	f, err := os.Open("./config/dev.yaml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
