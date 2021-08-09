@@ -35,12 +35,12 @@ func BuyLimitOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook, re
 		if elem.OrderPrice <= buyOrderBody.LimitPrice {
 			if elem.OrderQuantity > buyOrderBody.Quantity {
 				ltp = elem.OrderPrice
+				UpdateLTP(ltp, buyOrderBody.StockName)
 				config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-buyOrderBody.Quantity, time.Now(), elem.ID)
 				config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 				SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 				SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 				buyOrderBody.Quantity -= buyOrderBody.Quantity
-				UpdateLTP(ltp, buyOrderBody.StockName)
 				break
 			} else if elem.OrderQuantity < buyOrderBody.Quantity {
 				ltp = elem.OrderPrice
@@ -75,12 +75,12 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook, r
 	for _, elem := range sellBook {
 		if elem.OrderQuantity > buyOrderBody.Quantity {
 			ltp = elem.OrderPrice
+			UpdateLTP(ltp, buyOrderBody.StockName)
 			config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-buyOrderBody.Quantity, time.Now(), elem.ID)
 			config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 			SendResponse(resp, "Completed", "Order Executed", resp.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 			SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 			buyOrderBody.Quantity -= buyOrderBody.Quantity
-			UpdateLTP(ltp, buyOrderBody.StockName)
 			break
 		} else if elem.OrderQuantity < buyOrderBody.Quantity {
 			ltp = elem.OrderPrice
@@ -109,12 +109,12 @@ func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook, re
 		if elem.OrderPrice >= sellOrderBody.LimitPrice {
 			if elem.OrderQuantity > sellOrderBody.Quantity {
 				ltp = elem.OrderPrice
+				UpdateLTP(ltp, sellOrderBody.StockName)
 				config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? ,updated_at = ?  WHERE id = ? ", elem.OrderQuantity-sellOrderBody.Quantity, time.Now(), elem.ID)
 				config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
 				SendResponse(resp, "Completed", "Order Executed Partially", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 				SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 				sellOrderBody.Quantity -= sellOrderBody.Quantity
-				UpdateLTP(ltp, sellOrderBody.StockName)
 				break
 			} else if elem.OrderQuantity < sellOrderBody.Quantity {
 				ltp = elem.OrderPrice
@@ -148,12 +148,12 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook, r
 	for _, elem := range buyBook {
 		if elem.OrderQuantity > sellOrderBody.Quantity {
 			ltp = elem.OrderPrice
+			UpdateLTP(ltp, sellOrderBody.StockName)
 			config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE id = ? ", elem.OrderQuantity-sellOrderBody.Quantity, time.Now(), elem.ID)
 			config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", resp.OrderID)
 			SendResponse(resp, "Completed", "Order Executed Partially", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 			SendResponse(resp, "Partial", "Order Executed Partially", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 			sellOrderBody.Quantity -= sellOrderBody.Quantity
-			UpdateLTP(ltp, sellOrderBody.StockName)
 			break
 		} else if elem.OrderQuantity < sellOrderBody.Quantity {
 			ltp = elem.OrderPrice
