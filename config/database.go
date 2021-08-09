@@ -2,18 +2,20 @@ package config
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 	"os"
 )
 
-var DB  *gorm.DB
-
+var DB *gorm.DB
 
 // Config represents configuration
 type Config struct {
 	Database Database `yaml:"database"`
+	Server   Server   `yaml:"server"`
 }
 type Database struct {
 	Host     string `yaml:"host"`
@@ -23,9 +25,14 @@ type Database struct {
 	Password string `yaml:"password"`
 }
 
-//readFile for reading config.yml file
+type Server struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+//readFile for reading development.yaml file
 func readFile(cfg *Config) {
-	f, err := os.Open("../../config/config.yml")
+	f, err := os.Open("./config/development.yaml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
@@ -57,6 +64,13 @@ func DbURL(config *Config) string {
 		config.Database.DBName,
 	)
 }
+func ServerURL(config *Config) string {
+	return fmt.Sprintf(
+		"%s:%d",
+		config.Server.Host,
+		config.Server.Port,
+	)
+}
 
 // InitialiseDB ...assign connection to global *gorm.DB variable DB
 func InitialiseDB() error {
@@ -65,6 +79,9 @@ func InitialiseDB() error {
 	DB, err = gorm.Open("mysql", dbString)
 	if err != nil {
 		return err
+	}
+	if gin.IsDebugging() {
+		DB.LogMode(true)
 	}
 	return nil
 }
