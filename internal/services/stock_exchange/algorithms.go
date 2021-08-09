@@ -3,7 +3,6 @@ package stock_exchange
 import (
 	"Tradeasy/config"
 	model "Tradeasy/internal/model/stock_exchange"
-	"fmt"
 	"math"
 	"time"
 )
@@ -14,34 +13,36 @@ type OrderId struct {
 
 var orderResponse = make(chan OrderResponse)
 
+const sellBookQuery = "SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"
+const buyBookQuery = "SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "
+
 func UpdateLTP(ltp int, stock string) {
 	currentStock := model.Stocks{}
-	config.DB.Raw("SELECT * FROM stocks WHERE stock_name = ?", stock).Scan(&currentStock)
+	config.DB.Table("stocks").Where("stock_name = ?", stock).Find(&currentStock)
 	currentStock.HighPrice = int(math.Max(float64(ltp), float64(currentStock.HighPrice)))
 	currentStock.LowPrice = int(math.Min(float64(ltp), float64(currentStock.LowPrice)))
 	currentStock.LTP = ltp
 	currentStock.UpdatedAt = time.Now()
-	//fmt.Println(currentStock)
-	config.DB.Exec("UPDATE stocks SET ltp = ? ,high_price = ? ,low_price = ? , updated_at = ?  WHERE stock_ticker_symbol = ? ", ltp, currentStock.HighPrice, currentStock.LowPrice, currentStock.UpdatedAt, stock)
-	//config.DB.Table("stocks").Save(&currentStock)
+	config.DB.Table("stocks").Where("stock_ticker_symbol = ?", stock).Updates(&currentStock)
+
 }
 
-func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int) {
+func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse) {
 
 	var sellBook []model.SellOrderBook
 	// db lock
-	err := config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC ", buyOrderBody.StockName).Scan(&sellBook).Error
+	err := config.DB.Raw(sellBookQuery, buyOrderBody.StockName).Scan(&sellBook).Error
 	if err != nil {
-		resp.Status = "Db Fetch failed, order cancelled"
-		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
+		resp.Status = "Failed"
+		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 		orderResponse <- resp
 		return
 	}
 	if len(sellBook) == 0 {
 		// abort with message not enough shares
-		resp.Status = "Db Fetch failed, order cancelled"
+		resp.Status = "Failed"
 		orderResponse <- resp
-		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 		return
 	}
 	SharesAvailable := 0
@@ -50,9 +51,9 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 	}
 
 	if SharesAvailable < buyOrderBody.Quantity {
-		resp.Status = "Shares not available, order cancelled"
+		resp.Status = "Cancelled"
 		resp.Message = "Shares not available"
-		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 		orderResponse <- resp
 		return
 	}
@@ -60,9 +61,8 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 	ltp := 0
 	orderedQuantity := buyOrderBody.Quantity
 	if buyOrderBody.OrderType == "Limit" {
-		//if int(sellBook[0].OrderPrice) <= price {
-		for _, elem := range sellBook {
 
+		for _, elem := range sellBook {
 			if elem.OrderPrice <= buyOrderBody.LimitPrice {
 				if elem.OrderQuantity > buyOrderBody.Quantity {
 					ltp = elem.OrderPrice
@@ -77,20 +77,19 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 					totalCost += elem.OrderPrice * elem.OrderQuantity
 					buyOrderBody.Quantity -= elem.OrderQuantity
 					config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
-					//config.DB.Delete(&model.SellOrderBook{}, elem.ID)
 				}
 			} else {
 				// add to pending order list in order book
-				config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE id = ?", buyOrderBody.Quantity, time.Now(), id)
+				config.DB.Exec("UPDATE buy_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", buyOrderBody.Quantity, time.Now(), buyOrderBody.OrderID)
 				time.Sleep(30 * time.Second)
 				//Recursive call :
-				BuyOrderMatchingAlgo(buyOrderBody, resp, id)
+				BuyOrderMatchingAlgo(buyOrderBody, resp)
 			}
 
 		}
 
 		//update response
-		config.DB.Exec(" DELETE FROM buy_order_book WHERE id = ?", id)
+		config.DB.Exec(" DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -124,7 +123,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 			}
 		*/
 		//update response
-		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -135,22 +134,21 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 	return
 }
 
-func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id int) {
+func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse) {
 	var buyBook []model.BuyOrderBook
 	// db lock
-	err := config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC ", sellOrderBody.StockName).Scan(&buyBook).Error
+	err := config.DB.Raw(buyBookQuery, sellOrderBody.StockName).Scan(&buyBook).Error
 	if err != nil {
 		resp.Status = "Db fetch failed, Order cancelled"
-		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
 		orderResponse <- resp
 		return
 	}
 	if len(buyBook) == 0 {
 		// abort with message not enough shares
-		resp.Status = "Db fetch failed, Order Cancelled"
-		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
+		resp.Status = "Failed"
+		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
 		orderResponse <- resp
-		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
 		return
 	}
 	SharesAvailable := 0
@@ -159,9 +157,9 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 	}
 
 	if SharesAvailable < sellOrderBody.Quantity {
-		resp.Status = "Shares not available, order cancelled"
+		resp.Status = "Cancelled"
 		resp.Message = "Shares not available"
-		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
 		orderResponse <- resp
 		return
 	}
@@ -169,7 +167,6 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 	ltp := 0
 	orderedQuantity := sellOrderBody.Quantity
 	if sellOrderBody.OrderType == "Limit" {
-		//if int(sellBook[0].OrderPrice) <= price {
 		for _, elem := range buyBook {
 
 			if elem.OrderPrice >= sellOrderBody.LimitPrice {
@@ -186,19 +183,18 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 					totalCost += elem.OrderPrice * elem.OrderQuantity
 					sellOrderBody.Quantity -= elem.OrderQuantity
 					config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
-					//config.DB.Delete(&model.SellOrderBook{}, elem.ID)
 				}
 			} else {
 				// update the pending order list in order book
-				config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE id = ?", sellOrderBody.Quantity, time.Now(), id)
+				config.DB.Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE order_id = ?", sellOrderBody.Quantity, time.Now(), sellOrderBody.OrderID)
 				time.Sleep(30 * time.Second)
 				//Recursive call :
-				SellOrderMatchingAlgo(sellOrderBody, resp, id)
+				SellOrderMatchingAlgo(sellOrderBody, resp)
 			}
 		}
 
 		//update response
-		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -222,12 +218,11 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 				totalCost += elem.OrderPrice * elem.OrderQuantity
 				sellOrderBody.Quantity -= elem.OrderQuantity
 				config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", elem.ID)
-				//config.DB.Delete(&model.SellOrderBook{}, elem.ID)
 			}
 		}
 
 		//update response
-		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -243,7 +238,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 	resp.Status = "Pending"
 	resp.OrderID = buyOrderBody.OrderID
 	resp.StockName = buyOrderBody.StockName
-	resp.Message = "Order Received, Pending"
+	resp.Message = "Order Received"
 	newEntry := model.BuyOrderBook{
 		OrderID:           buyOrderBody.OrderID,
 		StockTickerSymbol: buyOrderBody.StockName,
@@ -252,18 +247,9 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 		OrderPrice:        buyOrderBody.LimitPrice,
 		CreatedAt:         buyOrderBody.OrderPlacedTime,
 		UpdatedAt:         time.Now(),
-		//DeletedAt:         nil,
 	}
 	config.DB.Create(&newEntry)
-
-	newID := OrderId{}
-	err = config.DB.Raw("SELECT id FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID).Scan(&newID).Error
-	if err != nil {
-		resp.Status = "Db fetch failed, order cancelled"
-		return resp, nil
-	}
-	go BuyOrderMatchingAlgo(buyOrderBody, resp, newID.id)
-	fmt.Println(<-orderResponse)
+	go BuyOrderMatchingAlgo(buyOrderBody, resp)
 	return resp, nil
 }
 
@@ -273,7 +259,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 	resp.Status = "Pending"
 	resp.OrderID = sellOrderBody.OrderID
 	resp.StockName = sellOrderBody.StockName
-	resp.Message = "Order Received, Pending"
+	resp.Message = "Order Received"
 	newEntry := model.SellOrderBook{
 		OrderID:           sellOrderBody.OrderID,
 		StockTickerSymbol: sellOrderBody.StockName,
@@ -282,17 +268,9 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 		OrderPrice:        sellOrderBody.LimitPrice,
 		CreatedAt:         sellOrderBody.OrderPlacedTime,
 		UpdatedAt:         time.Now(),
-		//DeletedAt:         nil,
 	}
 	config.DB.Create(&newEntry)
-	newID := OrderId{}
-	err = config.DB.Raw("SELECT id FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID).Scan(&newID).Error
-	if err != nil {
-		resp.Status = "Db fetch failed, order cancelled"
-		return resp, nil
-	}
-	go SellOrderMatchingAlgo(sellOrderBody, resp, newID.id)
-	fmt.Println(<-orderResponse)
+	go SellOrderMatchingAlgo(sellOrderBody, resp)
 	return resp, nil
 }
 
@@ -322,13 +300,13 @@ func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
 func ViewMarketDepth(stock string) (vdRes ViewDepthResponse, err error) {
 
 	var buyBook []model.BuyOrderBook
-	err = config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC LIMIT 5", stock).Scan(&buyBook).Error
+	err = config.DB.Raw(buyBookQuery+" LIMIT 5", stock).Scan(&buyBook).Error
 	vdRes.Message = "Error in fetching data"
 	if err != nil {
 		return vdRes, err
 	}
 	var sellBook []model.SellOrderBook
-	err = config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC LIMIT 5", stock).Scan(&sellBook).Error
+	err = config.DB.Raw(sellBookQuery+" LIMIT 5", stock).Scan(&sellBook).Error
 	if err != nil {
 		return vdRes, err
 	}
