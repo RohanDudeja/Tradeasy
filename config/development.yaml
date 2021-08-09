@@ -6,7 +6,7 @@ server:
 # Database credentials
 database:
   user_name: "root"
-  password: "password"
+  password: "Bhargavi@961819"
   port: 3306
   db_name: "first_go"
   host: "localhost"

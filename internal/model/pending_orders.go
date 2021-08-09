@@ -16,7 +16,7 @@ type PendingOrders struct {
 	Status     string    `gorm:"column:status" json:"status"`
 	CreatedAt  time.Time `gorm:"column:created_at" json:"created_at" `
 	UpdatedAt  time.Time `gorm:"column:updated_at" json:"updated_at" `
-	DeletedAt  time.Time `gorm:"column:deleted_at" json:"deleted_at" `
+	DeletedAt  time.Time `gorm:"column:deleted_at;default: NULL" json:"deleted_at" `
 }
 
 func (p *PendingOrders) TableName() string {
