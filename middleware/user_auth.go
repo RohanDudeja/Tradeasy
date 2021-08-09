@@ -20,7 +20,7 @@ func UserBasicAuth() gin.HandlerFunc {
 			c.AbortWithStatusJSON(401, gin.H{"error": "Enter details in Basic Authentication"})
 			return
 		}
-		//use User SignIn API
+		use User SignIn API
 		req := user_management.SignInRequest{
 			userId,
 			password,

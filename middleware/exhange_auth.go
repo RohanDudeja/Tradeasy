@@ -6,7 +6,7 @@ import (
 )
 
 func ExchangeBasicAuth() gin.HandlerFunc {
-	Auth := config.AuthDetails(config.Con)
+	Auth := config.GetConfig().StockExchange.Authentication
 	return func(c *gin.Context) {
 		userName, password, ok := c.Request.BasicAuth()
 		if !ok {

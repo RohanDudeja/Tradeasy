@@ -26,21 +26,6 @@ type Database struct {
 	Password string `yaml:"password"`
 }
 
-type Server struct {
-	Host string `yaml:"host"`
-	Port int    `yaml:"port"`
-}
-
-type StockExchange struct {
-	Authentication Authentication `yaml:"authentication"`
-	Url            string         `yaml:"url"`
-}
-
-type Authentication struct {
-	UserName string `yaml:"user_name"`
-	Password string `yaml:"password"`
-}
-
 //readFile for reading development.yaml file
 func readFile(cfg *Config) {
 	f, err := os.Open("./config/development.yaml")
@@ -66,9 +51,9 @@ func BuildConfig() *Config {
 
 }
 
-var Con = BuildConfig()
+var config = BuildConfig()
 
-func DbURL(config *Config) string {
+func DbURL(config Config) string {
 	return fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
 		config.Database.UserName,
@@ -78,20 +63,20 @@ func DbURL(config *Config) string {
 		config.Database.DBName,
 	)
 }
-func ServerURL(config *Config) string {
+func ServerURL(config Config) string {
 	return fmt.Sprintf(
 		"%s:%d",
 		config.Server.Host,
 		config.Server.Port,
 	)
 }
-func AuthDetails(config *Config) Authentication {
-	return config.StockExchange.Authentication
+func GetConfig() Config{
+	return *config
 }
 
 // InitialiseDB ...assign connection to global *gorm.DB variable DB
 func InitialiseDB() error {
-	dbString := DbURL(BuildConfig())
+	dbString := DbURL(*config)
 	var err error
 	DB, err = gorm.Open("mysql", dbString)
 	if err != nil {
