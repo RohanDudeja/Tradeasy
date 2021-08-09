@@ -77,7 +77,7 @@ func ServerURL(config *Config) string {
 		config.Server.Port,
 	)
 }
-func ApiToken(config *Config) (string, string) {
+func TradingDetails(config *Config) (string, string) {
 	return config.Authentication.UserName, config.Authentication.Password
 }
 
