@@ -14,7 +14,7 @@ type SellOrderBook struct {
 	OrderPrice        int       `json:"order_price,omitempty" gorm:"column:order_price"`
 	CreatedAt         time.Time `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt         time.Time `json:"updated_at" gorm:"column:updated_at"`
-	DeletedAt         time.Time `json:"deleted_at" gorm:"column:deleted_at"`
+	DeletedAt         time.Time `json:"deleted_at" gorm:"column:deleted_at; default:NULL"`
 }
 
 func (s *SellOrderBook) TableName() string {
