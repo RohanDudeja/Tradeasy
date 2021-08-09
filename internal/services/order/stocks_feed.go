@@ -11,14 +11,14 @@ func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error){
 	for _,stock:=range res{
 		newStock:=model.StocksFeed{
 			StockName: stock.StockName,
-			LTP:       int(stock.LTP),
-			Open:      int(stock.Open),
-			High:      int(stock.High),
-			Low:       int(stock.Low),
+			LTP:       stock.LTP,
+			Open:      stock.Open,
+			High:      stock.High,
+			Low:       stock.Low,
 			TradedAt:  stock.UpdatedAt,
 			CreatedAt: time.Now(),
 		}
-		if err=config.DB.Create(newStock).Error;err!=nil{
+		if err=config.DB.Table("stocks_feed").Create(newStock).Error;err!=nil{
 			return err
 		}
 	}
