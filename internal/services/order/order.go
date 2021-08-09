@@ -87,7 +87,6 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	if err != nil {
 		return bRes, err
 	}
-
 	return bRes, nil
 }
 

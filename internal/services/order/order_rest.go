@@ -168,7 +168,6 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					CommissionFee: 2000,
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
-					CreatedAt:     time.Now(),
 				}
 				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
 					return err
