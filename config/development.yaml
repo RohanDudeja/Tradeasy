@@ -10,3 +10,8 @@ database:
   port: 3306
   db_name: "first_go"
   host: "localhost"
+
+# StockExchange api token
+authentication:
+  user_name : "TradingPlatform"
+  password : "PlatformPassword"
