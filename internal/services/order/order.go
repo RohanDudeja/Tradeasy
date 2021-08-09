@@ -37,7 +37,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	}
 
 	account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
-	account.UpdatedAt=time.Now()
+	//account.UpdatedAt=time.Now()
 	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
 		return bRes, err
 	}
@@ -51,17 +51,16 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		BookType:  bReq.BookType,
 		Quantity:  bReq.Quantity,
 		Status:    pending,
-		CreatedAt: time.Now(),
 	}
 
 	if bReq.BookType == market {
 		p.OrderPrice = bReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
 			return bRes, err
 		}
 	} else {
 		p.LimitPrice = bReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
 			return bRes, err
 		}
 	}
@@ -94,7 +93,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	var stocks model.StocksFeed
 
 	var r result
-	if err = config.DB.Table("holdings").Select("stock_name, sum(quantity)").Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").First(&r).Error; err != nil {
+	if err = config.DB.Table("holdings").Select("stock_name, sum(quantity) as total_quantity").Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").Scan(&r).Error; err != nil {
 		return sRes, err
 	} else if r.TotalQuantity < sReq.Quantity {
 		return sRes, errors.New("sell Order quantity is higher than holdings quantity")
@@ -116,17 +115,16 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		BookType:  sReq.BookType,
 		Quantity:  sReq.Quantity,
 		Status:    pending,
-		CreatedAt: time.Now(),
 	}
 
 	if sReq.BookType == market {
 		p.OrderPrice = sReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
 			return sRes, err
 		}
 	} else {
 		p.LimitPrice = sReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
 			return sRes, err
 		}
 	}
