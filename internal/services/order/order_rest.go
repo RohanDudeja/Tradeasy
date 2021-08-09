@@ -13,8 +13,10 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 
 	if res.Status == failed {
 		//Buy order Failed
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+			return err
+		}
 		p.Status = failed
-		p.UpdatedAt=time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
@@ -22,19 +24,20 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		account.Balance = account.Balance + int64(p.Quantity*p.OrderPrice)
-		account.UpdatedAt=time.Now()
 		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			return err
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Delete(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			return err
 		}
 		return nil
 	} else if res.Status == completed {
 		//Buy order completed
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+			return err
+		}
 		p.Status = completed
-		p.UpdatedAt=time.Now()
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Updates(&p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
 		h := model.Holdings{
@@ -52,7 +55,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
-			account.UpdatedAt=time.Now()
+			account.UpdatedAt = time.Now()
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
@@ -61,27 +64,27 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
-			account.UpdatedAt=time.Now()
+			account.UpdatedAt = time.Now()
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
 		}
 
-		if err = config.DB.Table("holdings").Create(h).Error; err != nil {
+		if err = config.DB.Table("holdings").Create(&h).Error; err != nil {
 			return err
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Delete(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			return err
 		}
 	} else if res.Status == halfCompleted {
 		//Buy order Half Completed
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).First(&p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
 		p.Status = halfCompleted
 		p.Quantity = p.Quantity - res.Quantity
-		p.UpdatedAt=time.Now()
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Updates(&p).Error; err != nil {
+		p.UpdatedAt = time.Now()
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
 
@@ -100,7 +103,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
-			account.UpdatedAt=time.Now()
+			account.UpdatedAt = time.Now()
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
@@ -109,12 +112,12 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
-			account.UpdatedAt=time.Now()
+			account.UpdatedAt = time.Now()
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
 		}
-		if err = config.DB.Table("holdings").Create(h).Error; err != nil {
+		if err = config.DB.Table("holdings").Create(&h).Error; err != nil {
 			return err
 		}
 	}
@@ -127,20 +130,26 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 
 	if res.Status == failed {
 		//Sell order failed
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+			return err
+		}
 		p.Status = failed
-		p.UpdatedAt=time.Now()
+		p.UpdatedAt = time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Delete(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			return err
 		}
 		return nil
 	} else if res.Status == completed {
 		//Sell order Completed
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+			return err
+		}
 		p.Status = completed
-		p.UpdatedAt=time.Now()
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Updates(&p).Error; err != nil {
+		p.UpdatedAt = time.Now()
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
 
@@ -165,10 +174,10 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
 				}
-				if err = config.DB.Table("order_history").Create(orderHist).Error; err != nil {
+				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
 					return err
 				}
-				if err = config.DB.Table("holdings").Where("id", check.Id).Delete(check).Error; err != nil {
+				if err = config.DB.Table("holdings").Where("id=?", check.Id).Delete(&check).Error; err != nil {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
@@ -185,12 +194,12 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
 				}
-				if err = config.DB.Table("order_history").Create(orderHist).Error; err != nil {
+				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
 					return err
 				}
 				check.Quantity = check.Quantity - res.Quantity
-				check.UpdatedAt=time.Now()
-				if err = config.DB.Table("holdings").Where("id", check.Id).Updates(&check).Error; err != nil {
+				check.UpdatedAt = time.Now()
+				if err = config.DB.Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
@@ -201,24 +210,24 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		account.Balance = account.Balance + int64(price)
-		account.UpdatedAt=time.Now()
+		account.UpdatedAt = time.Now()
 		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			return err
 		}
 
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			return err
 		}
 
 	} else if res.Status == halfCompleted {
 		//Sell Order Half completed
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).First(&p).Error; err != nil {
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
 		p.Status = halfCompleted
 		p.Quantity = p.Quantity - res.Quantity
-		p.UpdatedAt=time.Now()
-		if err = config.DB.Table("pending_orders").Where("order_id", res.OrderID).Updates(&p).Error; err != nil {
+		p.UpdatedAt = time.Now()
+		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
 
@@ -242,10 +251,10 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
 				}
-				if err = config.DB.Table("order_history").Create(orderHist).Error; err != nil {
+				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
 					return err
 				}
-				if err = config.DB.Table("holdings").Where("id", check.Id).Delete(check).Error; err != nil {
+				if err = config.DB.Table("holdings").Where("id=?", check.Id).Delete(&check).Error; err != nil {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
@@ -262,12 +271,12 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					SoldAt:        res.OrderExecutionTime,
 					CreatedAt:     time.Now(),
 				}
-				if err = config.DB.Table("order_history").Create(orderHist).Error; err != nil {
+				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
 					return err
 				}
 				check.Quantity = check.Quantity - res.Quantity
-				check.UpdatedAt=time.Now()
-				if err = config.DB.Table("holdings").Where("id", check.Id).Updates(&check).Error; err != nil {
+				check.UpdatedAt = time.Now()
+				if err = config.DB.Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
@@ -277,7 +286,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		account.Balance = account.Balance + int64(price)
-		account.UpdatedAt=time.Now()
+		account.UpdatedAt = time.Now()
 		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			return err
 		}

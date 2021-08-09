@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"time"
 )
+
 type result struct {
 	StockName     string
 	TotalQuantity int
@@ -86,6 +87,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	if err != nil {
 		return bRes, err
 	}
+
 	return bRes, nil
 }
 
@@ -198,12 +200,12 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			} else {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
-			account.UpdatedAt=time.Now()
+			account.UpdatedAt = time.Now()
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return cRes, err
 			}
 		}
-		p.UpdatedAt=time.Now()
+		p.UpdatedAt = time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Updates(&p).Error; err != nil {
 			return cRes, err
 		}
@@ -211,8 +213,8 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			return cRes, err
 		}
 	} else {
-		cRes.Message=dRes.Message
-		cRes.Status=failed
+		cRes.Message = dRes.Message
+		cRes.Status = failed
 	}
 	return cRes, nil
 }
