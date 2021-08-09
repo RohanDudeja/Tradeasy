@@ -4,7 +4,6 @@ import (
 	"Tradeasy/config"
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/services/stock_exchange"
-	"time"
 )
 
 func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error){
@@ -16,9 +15,8 @@ func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error){
 			High:      stock.High,
 			Low:       stock.Low,
 			TradedAt:  stock.UpdatedAt,
-			CreatedAt: time.Now(),
 		}
-		if err=config.DB.Table("stocks_feed").Create(newStock).Error;err!=nil{
+		if err=config.DB.Table("stocks_feed").Create(&newStock).Error;err!=nil{
 			return err
 		}
 	}
