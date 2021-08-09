@@ -1,0 +1,12 @@
+# Server configurations
+server:
+  host: "localhost"
+  port: 8080
+
+# Database credentials
+database:
+  user_name: "root"
+  password: "password"
+  port: 3306
+  db_name: "first_go"
+  host: "localhost"
