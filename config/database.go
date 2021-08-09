@@ -15,6 +15,7 @@ var DB *gorm.DB
 // Config represents configuration
 type Config struct {
 	Database Database `yaml:"database"`
+	Server   Server   `yaml:"server"`
 }
 type Database struct {
 	Host     string `yaml:"host"`
@@ -24,10 +25,14 @@ type Database struct {
 	Password string `yaml:"password"`
 }
 
-//readFile for reading config.yaml file
+type Server struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+//readFile for reading development.yaml file
 func readFile(cfg *Config) {
-	f, err := os.Open("./config/config.yaml")
-	//f, err := filepath.Abs("config/config" +  ".yaml")
+	f, err := os.Open("./config/development.yaml")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
@@ -57,6 +62,13 @@ func DbURL(config *Config) string {
 		config.Database.Host,
 		config.Database.Port,
 		config.Database.DBName,
+	)
+}
+func ServerURL(config *Config) string {
+	return fmt.Sprintf(
+		"%s:%d",
+		config.Server.Host,
+		config.Server.Port,
 	)
 }
 
