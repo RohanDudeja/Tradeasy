@@ -63,13 +63,7 @@ func DbURL(config Config) string {
 		config.Database.DBName,
 	)
 }
-func ServerURL(config Config) string {
-	return fmt.Sprintf(
-		"%s:%d",
-		config.Server.Host,
-		config.Server.Port,
-	)
-}
+
 func GetConfig() Config {
 	return *config
 }
