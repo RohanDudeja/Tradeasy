@@ -37,3 +37,13 @@ func WithdrawAmount(c *gin.Context) {
 		c.JSON(http.StatusOK, withdrawRes)
 	}
 }
+
+func Callback(c *gin.Context) {
+	callBackResponse, err := payments.Callback()
+	if err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
+	} else {
+		c.JSON(http.StatusOK, callBackResponse)
+	}
+}
