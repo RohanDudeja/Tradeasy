@@ -70,7 +70,7 @@ func ServerURL(config Config) string {
 		config.Server.Port,
 	)
 }
-func GetConfig() Config{
+func GetConfig() Config {
 	return *config
 }
 
