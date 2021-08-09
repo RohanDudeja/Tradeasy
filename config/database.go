@@ -14,9 +14,9 @@ var DB *gorm.DB
 
 // Config represents configuration
 type Config struct {
-	Database       Database       `yaml:"database"`
-	Server         Server         `yaml:"server"`
-	Authentication Authentication `yaml:"authentication"`
+	Database      Database      `yaml:"database"`
+	Server        Server        `yaml:"server"`
+	StockExchange StockExchange `yaml:"stock_exchange"`
 }
 type Database struct {
 	Host     string `yaml:"host"`
@@ -29,6 +29,11 @@ type Database struct {
 type Server struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
+}
+
+type StockExchange struct {
+	Authentication Authentication `yaml:"authentication"`
+	Url            string         `yaml:"url"`
 }
 
 type Authentication struct {
@@ -60,6 +65,9 @@ func BuildConfig() *Config {
 	return &cfg
 
 }
+
+var Con = BuildConfig()
+
 func DbURL(config *Config) string {
 	return fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
@@ -77,8 +85,8 @@ func ServerURL(config *Config) string {
 		config.Server.Port,
 	)
 }
-func TradingDetails(config *Config) (string, string) {
-	return config.Authentication.UserName, config.Authentication.Password
+func AuthDetails(config *Config) Authentication {
+	return config.StockExchange.Authentication
 }
 
 // InitialiseDB ...assign connection to global *gorm.DB variable DB

@@ -26,7 +26,7 @@ func main() {
 	}
 	command := args[0] // command like up, down
 
-	dbstring := config.DbURL(config.BuildConfig())
+	dbstring := config.DbURL(config.Con)
 	//fmt.Println(dbstring)
 	db, err := goose.OpenDBWithDriver("mysql", dbstring)
 	if err != nil {

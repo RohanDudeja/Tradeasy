@@ -12,6 +12,7 @@ database:
   host: "localhost"
 
 # StockExchange api token
-authentication:
-  user_name : "TradingPlatform"
-  password : "PlatformPassword"
+stock_exchange:
+  authentication:
+    user_name : "TradingPlatform"
+    password : "PlatformPassword"

@@ -17,19 +17,19 @@ func SetUpRouter() *gin.Engine {
 		trade.PATCH(":OrderId/cancel", controller.CancelOrder)
 	}
 	exchangeBuy := r.Group("/buy_order_book")
-	exchangeBuy.Use(middleware.TradingAuth())
+	exchangeBuy.Use(middleware.ExchangeBasicAuth())
 	{
 		exchangeBuy.POST("buy_order", controller.ExecuteBuyOrder)
 		exchangeBuy.DELETE("buy_order/:order_id", controller.DeleteBuyOrder)
 	}
 	exchangeSell := r.Group("/sell_order_book")
-	exchangeSell.Use(middleware.TradingAuth())
+	exchangeSell.Use(middleware.ExchangeBasicAuth())
 	{
 		exchangeSell.POST("sell_order", controller.ExecuteSellOrder)
 		exchangeSell.DELETE("sell_order/:order_id", controller.DeleteSellOrder)
 	}
 	exchangeFetch := r.Group("/order_book")
-	exchangeFetch.Use(middleware.TradingAuth())
+	exchangeFetch.Use(middleware.ExchangeBasicAuth())
 	{
 		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
 	}
