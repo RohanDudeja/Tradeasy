@@ -3,6 +3,8 @@ package order
 const pending,completed,halfCompleted,failed,cancelled = "PENDING","COMPLETED","HALF_COMPLETED","FAILED","CANCELLED"
 const buy,sell = "Buy","Sell"
 const market, limit = "Market","Limit"
+const buyOrderURL,sellOrderURL = "http://localhost:8080/buy_order_book/buy_order","http://localhost:8080/sell_order_book/sell_order"
+
 type BuyRequest struct {
 	UserId     string `json:"user_id"`
 	StockName  string `json:"stock_name"`

@@ -78,7 +78,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	if err != nil {
 		return bRes, err
 	}
-	response, err := http.Post("http://localhost:8080/buy_order_book/buy_order", "application/json", bytes.NewBuffer(request))
+	response, err := http.Post(buyOrderURL, "application/json", bytes.NewBuffer(request))
 	if err != nil {
 		return bRes, err
 	}
@@ -143,7 +143,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	if err != nil {
 		return sRes, err
 	}
-	response, err := http.Post("http://localhost:8080/sell_order_book/sell_order", "application/json", bytes.NewBuffer(request))
+	response, err := http.Post(sellOrderURL, "application/json", bytes.NewBuffer(request))
 	if err != nil {
 		return sRes, err
 	}
@@ -160,11 +160,11 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	if err = config.DB.Table("pending_orders").Where("order_id=?", id).First(&p).Error; err != nil {
 		return cRes, err
 	}
-	url := "http://localhost:8080/"
+	url:=""
 	if p.OrderType == "Buy" {
-		url = url + "/buy_order_book/buy_order/" + id
+		url= buyOrderURL + id
 	} else {
-		url = url + "/sell_order_book/sell_order/" + id
+		url= sellOrderURL + id
 	}
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {

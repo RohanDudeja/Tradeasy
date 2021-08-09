@@ -46,9 +46,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			StockName: p.StockName,
 			Quantity:  p.Quantity,
 			BuyPrice:  res.AveragePrice,
-			OrderedAt: p.CreatedAt,
-			CreatedAt: time.Now(),
-			UpdatedAt: res.OrderExecutionTime,
+			OrderedAt: res.OrderExecutionTime,
 		}
 		if p.BookType == market {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
@@ -94,9 +92,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			StockName: p.StockName,
 			Quantity:  res.Quantity,
 			BuyPrice:  res.AveragePrice,
-			OrderedAt: p.CreatedAt,
-			CreatedAt: time.Now(),
-			UpdatedAt: res.OrderExecutionTime,
+			OrderedAt: res.OrderExecutionTime,
 		}
 		if p.BookType == market {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
