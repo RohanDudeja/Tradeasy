@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-//var OrderUpdated = make(chan stock_exchange.OrderResponse)
+const TimeInterval = time.Duration(5)*time.Millisecond*1000
 
 func StockHandler(c *gin.Context) {
 	var upgrader = websocket.Upgrader{} // use default options
@@ -21,7 +21,19 @@ func StockHandler(c *gin.Context) {
 	}
 	defer conn.Close()
 	//write stock details
-	writeEvery(time.Duration(5)*time.Millisecond*1000, conn, stock_exchange.StockWrite)
+	for range time.Tick(TimeInterval) {
+		stocks, err := stock_exchange.StockWrite()
+		stockJson, err := json.Marshal(&stocks)
+		if err != nil {
+			log.Println("Error while converting stocks to bytes", err)
+			return
+		}
+
+		if err := conn.WriteMessage(websocket.TextMessage, stockJson); err != nil {
+			log.Println("Error during writing stocks to websocket:", err)
+			return
+		}
+	}
 }
 func OrderHandler(c *gin.Context) {
 	var upgrader = websocket.Upgrader{} // use default options
@@ -33,16 +45,9 @@ func OrderHandler(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	/*go func() {
-		for {
-			time.Sleep(5 * time.Second)
-			OrderUpdated <- stock_exchange.OrderResponse{AveragePrice: uint(rand.Intn(10))}
-		}
-	}()*/
-
 	for {
 		select {
-		case orderMsg := <-OrderUpdated:
+		case orderMsg := <-stock_exchange.OrderUpdated:
 			orderJson, err := json.Marshal(orderMsg)
 			if err != nil {
 				log.Println("Error while converting stocks to bytes", err)
@@ -53,22 +58,6 @@ func OrderHandler(c *gin.Context) {
 				log.Println("Error during writing stocks to websocket:", err)
 				return
 			}
-		}
-	}
-}
-
-func writeEvery(d time.Duration, conn *websocket.Conn, f func() (*[]stock_exchange.StockDetails, error)) {
-	for range time.Tick(d) {
-		stocks, err := f()
-		stockJson, err := json.Marshal(stocks)
-		if err != nil {
-			log.Println("Error while converting stocks to bytes", err)
-			return
-		}
-
-		if err := conn.WriteMessage(websocket.TextMessage, stockJson); err != nil {
-			log.Println("Error during writing stocks to websocket:", err)
-			return
 		}
 	}
 }
