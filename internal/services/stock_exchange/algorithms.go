@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type OrderId struct {
+	id int
+}
+
 var orderResponse = make(chan OrderResponse)
 
 func UpdateLTP(ltp int, stock string) {
@@ -17,7 +21,7 @@ func UpdateLTP(ltp int, stock string) {
 	currentStock.LowPrice = int(math.Min(float64(ltp), float64(currentStock.LowPrice)))
 	currentStock.LTP = ltp
 	currentStock.UpdatedAt = time.Now()
-	fmt.Println(currentStock)
+	//fmt.Println(currentStock)
 	config.DB.Exec("UPDATE stocks SET ltp = ? ,high_price = ? ,low_price = ? , updated_at = ?  WHERE stock_ticker_symbol = ? ", ltp, currentStock.HighPrice, currentStock.LowPrice, currentStock.UpdatedAt, stock)
 	//config.DB.Table("stocks").Save(&currentStock)
 }
@@ -29,7 +33,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 	err := config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC ", buyOrderBody.StockName).Scan(&sellBook).Error
 	if err != nil {
 		resp.Status = "Db Fetch failed, order cancelled"
-		config.DB.Exec("DELETE buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
 		orderResponse <- resp
 		return
 	}
@@ -37,7 +41,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 		// abort with message not enough shares
 		resp.Status = "Db Fetch failed, order cancelled"
 		orderResponse <- resp
-		config.DB.Exec("DELETE buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
 		return
 	}
 	SharesAvailable := 0
@@ -48,7 +52,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 	if SharesAvailable < buyOrderBody.Quantity {
 		resp.Status = "Shares not available, order cancelled"
 		resp.Message = "Shares not available"
-		config.DB.Exec("DELETE buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
 		orderResponse <- resp
 		return
 	}
@@ -86,7 +90,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 		}
 
 		//update response
-		config.DB.Exec("DELETE buy_order_book WHERE id = ?", id)
+		config.DB.Exec(" DELETE FROM buy_order_book WHERE id = ?", id)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -120,7 +124,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse, id int)
 			}
 		*/
 		//update response
-		config.DB.Exec("DELETE buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -137,16 +141,16 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 	err := config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC ", sellOrderBody.StockName).Scan(&buyBook).Error
 	if err != nil {
 		resp.Status = "Db fetch failed, Order cancelled"
-		config.DB.Exec("DELETE sell_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
 		orderResponse <- resp
 		return
 	}
 	if len(buyBook) == 0 {
 		// abort with message not enough shares
 		resp.Status = "Db fetch failed, Order Cancelled"
-		config.DB.Exec("DELETE buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
 		orderResponse <- resp
-		config.DB.Exec("DELETE sell_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
 		return
 	}
 	SharesAvailable := 0
@@ -157,7 +161,7 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 	if SharesAvailable < sellOrderBody.Quantity {
 		resp.Status = "Shares not available, order cancelled"
 		resp.Message = "Shares not available"
-		config.DB.Exec("DELETE sell_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
 		orderResponse <- resp
 		return
 	}
@@ -194,7 +198,7 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 		}
 
 		//update response
-		config.DB.Exec("DELETE buy_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", id)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -223,7 +227,7 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse, id in
 		}
 
 		//update response
-		config.DB.Exec("DELETE sell_order_book WHERE id = ?", id)
+		config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", id)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
 		resp.OrderExecutionTime = time.Now()
@@ -251,13 +255,14 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 		//DeletedAt:         nil,
 	}
 	config.DB.Create(&newEntry)
-	var id int
-	err = config.DB.Raw("SELECT id FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID).Scan(&id).Error
+
+	newID := OrderId{}
+	err = config.DB.Raw("SELECT id FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID).Scan(&newID).Error
 	if err != nil {
 		resp.Status = "Db fetch failed, order cancelled"
 		return resp, nil
 	}
-	go BuyOrderMatchingAlgo(buyOrderBody, resp, id)
+	go BuyOrderMatchingAlgo(buyOrderBody, resp, newID.id)
 	fmt.Println(<-orderResponse)
 	return resp, nil
 }
@@ -280,13 +285,13 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 		//DeletedAt:         nil,
 	}
 	config.DB.Create(&newEntry)
-	var id int
-	err = config.DB.Raw("SELECT id FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID).Scan(&id).Error
+	newID := OrderId{}
+	err = config.DB.Raw("SELECT id FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID).Scan(&newID).Error
 	if err != nil {
 		resp.Status = "Db fetch failed, order cancelled"
 		return resp, nil
 	}
-	go SellOrderMatchingAlgo(sellOrderBody, resp, id)
+	go SellOrderMatchingAlgo(sellOrderBody, resp, newID.id)
 	fmt.Println(<-orderResponse)
 	return resp, nil
 }
