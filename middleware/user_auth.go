@@ -11,18 +11,18 @@ func UserBasicAuth() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
-		userId, password, ok := c.Request.BasicAuth()
+		userID, password, ok := c.Request.BasicAuth()
 		if !ok {
 			c.AbortWithStatusJSON(401, gin.H{"error": "Use Basic Authentication to access this API"})
 			return
 		}
-		if userId == "" || password == "" {
+		if userID == "" || password == "" {
 			c.AbortWithStatusJSON(401, gin.H{"error": "Enter details in Basic Authentication"})
 			return
 		}
 		//use User SignIn API
 		req := user_management.SignInRequest{
-			userId,
+			userID,
 			password,
 		}
 		_, err := user_management.UserSignIn(req)
