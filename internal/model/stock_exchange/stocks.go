@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 )
-
 // Stocks ... schema for stocks data in stock exchange
 type Stocks struct {
 	ID                int       `gorm:"primary_key;auto_increment;column:id" json:"id"`

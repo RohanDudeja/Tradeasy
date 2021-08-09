@@ -32,3 +32,12 @@ type ViewDepthResponse struct {
 	SellOrders []model.SellOrderBook
 	Message    string
 }
+
+type StockDetails struct {
+	StockName string    `json:"stock_name"`
+	LTP       int       `json:"ltp"`
+	UpdatedAt time.Time `json:"updated_at"`
+	High      int       `json:"high"`
+	Open      int       `json:"open"`
+	Low       int       `json:"low"`
+}
