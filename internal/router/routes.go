@@ -5,15 +5,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetUpRouter() *gin.Engine  {
-	r:=gin.Default()
+func SetUpRouter() *gin.Engine {
+	r := gin.Default()
 
-	trade:=r.Group("/pending_orders")
+	trade := r.Group("/pending_orders")
 	{
 
-		trade.POST(":Userid/buy",controller.BuyOrder)
-		trade.POST(":Userid/sell",controller.SellOrder)
-		trade.PATCH(":OrderId/cancel",controller.CancelOrder)
+		trade.POST(":Userid/buy", controller.BuyOrder)
+		trade.POST(":Userid/sell", controller.SellOrder)
+		trade.PATCH(":OrderId/cancel", controller.CancelOrder)
 	}
 
 	exchangeBuy := r.Group("/buy_order_book")
@@ -37,5 +37,19 @@ func SetUpRouter() *gin.Engine  {
 	//	websocket.GET("/stocks", webSocket.StockHandler)
 	//	websocket.GET("/orders", webSocket.OrderHandler)
 	//}
+	payments := r.Group("/payments")
+	{
+		payments.POST(":Userid/addAmount", controller.AddAmount)
+		payments.POST(":Userid/withdrawAmount", controller.WithdrawAmount)
+
+	}
+
+	reports := r.Group("/reports")
+	{
+		reports.GET("pending_orders/:Userid", controller.DailyPendingOrders)
+		reports.GET("holdings/:Userid", controller.Portfolio)
+		reports.GET("order_history/:Userid", controller.OrdersHistory)
+		reports.GET("profit_loss_history/:Userid", controller.ProfitLossHistory)
+	}
 	return r
 }
