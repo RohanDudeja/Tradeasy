@@ -4,7 +4,7 @@ import "Tradeasy/internal/model"
 
 type CreateRequest struct {
 	WatchlistName string `json:"watchlist_name"`
-	UserId        string `json:"userid"`
+	UserId        string `json:"user_id"`
 }
 
 type CreateResponse struct {
@@ -13,7 +13,7 @@ type CreateResponse struct {
 }
 
 type AddStockRequest struct {
-	UserId    string `json:"userid"`
+	UserId    string `json:"user_id"`
 	StockName string `json:"stock_name"`
 }
 
@@ -21,7 +21,7 @@ type AddStockResponse struct {
 	Message string `json:"message"`
 }
 type DeleteStockRequest struct {
-	UserId    string `json:"userid"`
+	UserId    string `json:"user_id"`
 	StockName string `json:"stock_name"`
 }
 
