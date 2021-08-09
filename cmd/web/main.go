@@ -14,5 +14,5 @@ func main() {
 	}
 	//setup router
 	r := router.SetUpRouter()
-	r.Run(config.ServerURL(config.BuildConfig()))
+	r.Run(config.ServerURL(config.GetConfig()))
 }
