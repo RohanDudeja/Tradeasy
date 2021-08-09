@@ -14,5 +14,5 @@ func main() {
 	}
 	//setup router
 	r := router.SetUpRouter()
-	r.Run("localhost:8080")
+	r.Run(config.ServerURL(config.BuildConfig()))
 }

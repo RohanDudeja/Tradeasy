@@ -10,12 +10,12 @@ import (
 	"os"
 )
 
-var DB  *gorm.DB
-
+var DB *gorm.DB
 
 // Config represents configuration
 type Config struct {
 	Database Database `yaml:"database"`
+	Server   Server   `yaml:"server"`
 }
 type Database struct {
 	Host     string `yaml:"host"`
@@ -23,6 +23,11 @@ type Database struct {
 	UserName string `yaml:"user_name"`
 	DBName   string `yaml:"db_name"`
 	Password string `yaml:"password"`
+}
+
+type Server struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
 }
 
 //readFile for reading config.yaml file
@@ -58,6 +63,13 @@ func DbURL(config *Config) string {
 		config.Database.Host,
 		config.Database.Port,
 		config.Database.DBName,
+	)
+}
+func ServerURL(config *Config) string {
+	return fmt.Sprintf(
+		"%s:%d",
+		config.Server.Host,
+		config.Server.Port,
 	)
 }
 
