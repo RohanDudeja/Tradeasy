@@ -32,14 +32,9 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse) {
 	var sellBook []model.SellOrderBook
 	// db lock
 	err := config.DB.Raw(sellBookQuery, buyOrderBody.StockName).Scan(&sellBook).Error
-	if err != nil {
-		resp.Status = "Failed"
-		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
-		orderResponse <- resp
-		return
-	}
-	if len(sellBook) == 0 {
-		// abort with message not enough shares
+
+	if err != nil || len(sellBook) == 0 {
+		// abort
 		resp.Status = "Failed"
 		orderResponse <- resp
 		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
@@ -113,16 +108,9 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest, resp OrderResponse) {
 				totalCost += elem.OrderPrice * elem.OrderQuantity
 				buyOrderBody.Quantity -= elem.OrderQuantity
 				config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", elem.ID)
-				//config.DB.Delete(&model.SellOrderBook{}, elem.ID)
 			}
 		}
-		// If the book ends but order is unfulfilled: Functionality not available yet
-		/*
-			if quantity!=0{
-				//do something
-			}
-		*/
-		//update response
+
 		config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID)
 		resp.Message = "Order Executed Successfully"
 		resp.Status = "Completed"
@@ -138,14 +126,9 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest, resp OrderResponse) {
 	var buyBook []model.BuyOrderBook
 	// db lock
 	err := config.DB.Raw(buyBookQuery, sellOrderBody.StockName).Scan(&buyBook).Error
-	if err != nil {
-		resp.Status = "Db fetch failed, Order cancelled"
-		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
-		orderResponse <- resp
-		return
-	}
-	if len(buyBook) == 0 {
-		// abort with message not enough shares
+
+	if err != nil || len(buyBook) == 0 {
+		// abort
 		resp.Status = "Failed"
 		config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID)
 		orderResponse <- resp
