@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"time"
 )
 
 func AddAmount(addReq AddRequest, Userid string) (addRes *AddResponse, err error) {
@@ -21,17 +21,20 @@ func AddAmount(addReq AddRequest, Userid string) (addRes *AddResponse, err error
 	}
 	razorRequest := RazorpayRequest{Amount: addAmount, CallbackURL: "http://localhost:8080/payments/payment_status", CallbackMethod: "get", AcceptPartial: false}
 	jsonReq, err := json.Marshal(razorRequest)
-	resp, err := http.Post("https://api.razorpay.com/v1/payment_links", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
+	}
+	resp, err := http.Post("https://api.razorpay.com/v1/payment_links", "application/json", bytes.NewBuffer(jsonReq))
+	if err != nil {
+		return nil, err
 	}
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bodyBytes, &razorpayRes)
 	if err != nil {
 		return nil, err
 	}
-	pay := model.Payments{UserId: Userid, Amount: addAmount, RazorpayLink: razorpayRes.ShortURL, RazorpayLinkId: razorpayRes.ID, PaymentType: "add"}
-	if err = config.DB.Create(pay).Error; err != nil {
+	pay := model.Payments{UserId: Userid, Amount: addAmount, RazorpayLink: razorpayRes.ShortURL, RazorpayLinkId: razorpayRes.ID, PaymentType: "add", CreatedAt: time.Now()}
+	if err = config.DB.Create(&pay).Error; err != nil {
 		return nil, err
 	}
 	addResponse.Userid = payments.UserId
@@ -56,8 +59,8 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes *Wi
 	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
 		return nil, err
 	}
-	pay := model.Payments{UserId: Userid, Amount: withdrawAmount, CurrentBalance: tradingAcc.Balance, PaymentType: "withdraw"}
-	if err = config.DB.Create(pay).Error; err != nil {
+	pay := model.Payments{UserId: Userid, Amount: withdrawAmount, CurrentBalance: tradingAcc.Balance, PaymentType: "withdraw", CreatedAt: time.Now()}
+	if err = config.DB.Create(&pay).Error; err != nil {
 		return nil, err
 	}
 	withdrawResponse.Userid = pay.UserId
