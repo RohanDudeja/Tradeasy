@@ -4,6 +4,7 @@ import (
 	"Tradeasy/config"
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/services/stock_exchange"
+	"log"
 )
 
 func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error){
@@ -17,7 +18,8 @@ func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error){
 			TradedAt:  stock.UpdatedAt,
 		}
 		if err=config.DB.Table("stocks_feed").Create(&newStock).Error;err!=nil{
-			return err
+			log.Println("Error in Creating a stock field")
+			continue
 		}
 	}
 	return nil
