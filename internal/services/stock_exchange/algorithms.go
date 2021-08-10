@@ -71,7 +71,7 @@ func CancelAtExpiry() {
 		log.Println(err.Error())
 	}
 	for _, order := range buyOrders {
-		SendResponse(order.StockTickerSymbol, "CANCELLED", "Order Executed", order.OrderID, order.OrderPrice, order.OrderQuantity)
+		SendResponse(order.StockTickerSymbol, "CANCELLED", "Expiry Time Reached", order.OrderID, order.OrderPrice, order.OrderQuantity)
 		err = config.DB.Exec("DELETE FROM buy_order_book WHERE id = ?", order.ID).Error
 		if err != nil {
 			log.Println(err.Error())
@@ -83,7 +83,7 @@ func CancelAtExpiry() {
 		log.Println(err.Error())
 	}
 	for _, order := range sellOrders {
-		SendResponse(order.StockTickerSymbol, "CANCELLED", "Order Executed", order.OrderID, order.OrderPrice, order.OrderQuantity)
+		SendResponse(order.StockTickerSymbol, "CANCELLED", "Expiry Time Reached", order.OrderID, order.OrderPrice, order.OrderQuantity)
 		err = config.DB.Exec("DELETE FROM sell_order_book WHERE id = ?", order.ID).Error
 		if err != nil {
 			log.Println(err.Error())
