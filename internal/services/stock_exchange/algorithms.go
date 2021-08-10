@@ -8,15 +8,11 @@ import (
 	"time"
 )
 
-type LTP struct {
-	ltp int
-}
-
 var orderResponse = make(chan OrderResponse)
 
 func UpdateLTP(ltp int, stock string) {
 	currentStock := model.Stocks{}
-	err := config.DB.Table("stocks").Where("stock_name = ?", stock).Find(&currentStock).Error
+	err := config.DB.Table("stocks").Where("stock_ticker_symbol = ?", stock).Find(&currentStock).Error
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -31,13 +27,13 @@ func UpdateLTP(ltp int, stock string) {
 }
 
 func GetLTP(stock string) (int, error) {
-	currStockLTP := LTP{}
-	err := config.DB.Raw("SELECT ltp FROM stocks WHERE stock_name = ?", stock).Scan(&currStockLTP).Error
+	var currStockLTP []model.Stocks
+	err := config.DB.Raw("SELECT * FROM stocks WHERE stock_ticker_symbol = ?", stock).Scan(&currStockLTP).Error
 	if err != nil {
 		log.Println(err.Error())
 		return 0, err
 	}
-	return currStockLTP.ltp, nil
+	return currStockLTP[0].LTP, nil
 }
 func UpdateMarketOrderPrices() {
 
@@ -51,11 +47,11 @@ func UpdateMarketOrderPrices() {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		err = config.DB.Exec("UPDATE buy_order_book SET order_price = ? WHERE stock_name = ?", ltp, elem.StockName).Error
+		err = config.DB.Exec("UPDATE buy_order_book SET order_price = ? WHERE stock_ticker_symbol = ? AND order_type =?", ltp, elem.StockName, "Market").Error
 		if err != nil {
 			log.Println(err.Error())
 		}
-		err = config.DB.Exec("UPDATE sell_order_book SET order_price = ? WHERE stock_name = ?", ltp, elem.StockName).Error
+		err = config.DB.Exec("UPDATE sell_order_book SET order_price = ? WHERE stock_ticker_symbol = ? AND order_type =?", ltp, elem.StockName, "Market").Error
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -362,7 +358,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 		CreatedAt:         buyOrderBody.OrderPlacedTime,
 		UpdatedAt:         time.Now(),
 	}
-	if buyOrderBody.OrderType != "Market" || buyOrderBody.OrderType != "Limit" {
+	if buyOrderBody.OrderType != "Market" && buyOrderBody.OrderType != "Limit" {
 		resp.Status = "CANCELLED"
 		resp.Message = "Incorrect order type"
 		return resp, nil
@@ -397,7 +393,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 		CreatedAt:         sellOrderBody.OrderPlacedTime,
 		UpdatedAt:         time.Now(),
 	}
-	if sellOrderBody.OrderType != "Market" || sellOrderBody.OrderType != "Limit" {
+	if sellOrderBody.OrderType != "Market" && sellOrderBody.OrderType != "Limit" {
 		resp.Status = "CANCELLED"
 		resp.Message = "Incorrect order type"
 		return resp, nil
