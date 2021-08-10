@@ -38,8 +38,8 @@ func SetUpRouter() *gin.Engine {
 	//}
 	payments := r.Group("/payments")
 	{
-		payments.POST(":Userid/add_amount", controller.AddAmount)
-		payments.POST(":Userid/withdraw_amount", controller.WithdrawAmount)
+		payments.POST(":user_id/add_amount", controller.AddAmount)
+		payments.POST(":user_id/withdraw_amount", controller.WithdrawAmount)
 
 	}
 
