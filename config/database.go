@@ -16,6 +16,7 @@ var DB *gorm.DB
 type Config struct {
 	Database Database `yaml:"database"`
 	Server   Server   `yaml:"server"`
+	Redis    Redis    `yaml:"redis"`
 }
 type Database struct {
 	Host     string `yaml:"host"`
@@ -70,6 +71,12 @@ func ServerURL(config *Config) string {
 		config.Server.Host,
 		config.Server.Port,
 	)
+}
+
+var config = BuildConfig()
+
+func GetConfig() Config {
+	return *config
 }
 
 // InitialiseDB ...assign connection to global *gorm.DB variable DB

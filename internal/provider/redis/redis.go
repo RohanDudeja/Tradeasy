@@ -1,15 +1,17 @@
 package redis
 
 import (
+	"Tradeasy/config"
 	"github.com/go-redis/redis"
 	"time"
 )
 
 func createClient() *redis.Client {
+	redisConfig := config.GetConfig().Redis
 	var redisClient = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     redisConfig.Host + ":" + string(redisConfig.Port),
+		Password: redisConfig.Password,
+		DB:       redisConfig.DB,
 	})
 	return redisClient
 }

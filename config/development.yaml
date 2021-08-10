@@ -10,3 +10,10 @@ database:
   port: 3306
   db_name: "first_go"
   host: "localhost"
+
+# Redis configurations
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
