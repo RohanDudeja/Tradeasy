@@ -2,8 +2,8 @@ package controller
 
 import (
 	"Tradeasy/internal/services/watchlist"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -16,7 +16,7 @@ func CreateWatchlist(c *gin.Context) {
 	}
 	res, err := watchlist.CreateWatchlist(req)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
@@ -33,7 +33,7 @@ func AddStockEntry(c *gin.Context) {
 	i, _ := strconv.ParseInt(watchlistId, 10, 64)
 	res, er := watchlist.AddStockEntry(req, int(i))
 	if er != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
@@ -50,7 +50,7 @@ func DeleteStockEntry(c *gin.Context) {
 	i, _ := strconv.ParseInt(watchlistId, 10, 64)
 	res, er := watchlist.DeleteStockEntry(req, int(i))
 	if er != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
@@ -65,7 +65,7 @@ func SortWatchlist(c *gin.Context) {
 	}
 	res, er := watchlist.SortWatchlist(req)
 	if er != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
