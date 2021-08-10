@@ -41,7 +41,7 @@ func SetUpRouter() *gin.Engine {
 	//	websocket.GET("/orders", webSocket.OrderHandler)
 	//}
 	payments := r.Group("/payments")
-	payments.Use(middleware.ExchangeBasicAuth())
+	payments.Use(middleware.UserBasicAuth())
 	{
 		payments.POST(":user_id/add_amount", controller.AddAmount)
 		payments.POST(":user_id/withdraw_amount", controller.WithdrawAmount)
@@ -49,7 +49,7 @@ func SetUpRouter() *gin.Engine {
 	}
 
 	reports := r.Group("/reports")
-	reports.Use(middleware.ExchangeBasicAuth())
+	reports.Use(middleware.UserBasicAuth())
 	{
 		reports.GET("pending_orders/:user_id", controller.DailyPendingOrders)
 		reports.GET("holdings/:user_id", controller.Portfolio)
