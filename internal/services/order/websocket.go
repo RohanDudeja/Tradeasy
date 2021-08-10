@@ -3,6 +3,7 @@ package order
 import (
 	"Tradeasy/config"
 	"Tradeasy/internal/model"
+	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/services/stock_exchange"
 	"encoding/json"
 	"github.com/gorilla/websocket"
@@ -33,7 +34,7 @@ func OrderConnection() {
 			continue
 		}
 		var p model.PendingOrders
-		if err = config.DB.Table("pending_orders").Where("order_id=?", orderDetails.OrderID).First(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", orderDetails.OrderID).First(&p).Error; err != nil {
 			log.Println("Order_id doesnt match with pending_orders table:", err)
 			continue
 		}

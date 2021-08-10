@@ -1,8 +1,9 @@
 package order
 
 import (
-	"Tradeasy/config"
+	_ "Tradeasy/config"
 	"Tradeasy/internal/model"
+	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/services/stock_exchange"
 	"log"
 )
@@ -13,16 +14,16 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 
 	if res.Status == Failed {
 		//Buy order Failed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			log.Println("Error in fetching pending orders", err)
 			return err
 		}
 		p.Status = Failed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating status in pending orders", err)
 			return err
 		}
-		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 			log.Println("Error in fetching trading account", err)
 			return err
 		}
@@ -32,23 +33,23 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		} else if p.BookType == Limit {
 			account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 		}
-		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in updating balance in trading account", err)
 			return err
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			log.Println("Error in deleting failed order in pending orders", err)
 			return err
 		}
 		return nil
 	} else if res.Status == Completed {
 		//Buy order completed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			log.Println("Error in fetching pending orders", err)
 			return err
 		}
 		p.Status = Completed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating status in pending orders", err)
 			return err
 		}
@@ -61,44 +62,44 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			OrderedAt: res.OrderExecutionTime,
 		}
 		if p.BookType == Market {
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				log.Println("Error in fetching trading account", err)
 				return err
 			}
 			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
 			}
 		} else if p.BookType == Limit {
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				log.Println("Error in fetching trading account", err)
 				return err
 			}
 			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
 			}
 		}
 
-		if err = config.DB.Table("holdings").Create(&h).Error; err != nil {
+		if err = database.GetDB().Table("holdings").Create(&h).Error; err != nil {
 			log.Println("Error in creating holdings", err)
 			return err
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			log.Println("Error in deleting order in pending orders", err)
 			return err
 		}
 	} else if res.Status == Partial {
 		//Buy order Half Completed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			log.Println("Error in fetching pending orders", err)
 			return err
 		}
 		p.Status = Partial
 		p.Quantity = p.Quantity - res.Quantity
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating orders in pending orders", err)
 			return err
 		}
@@ -112,27 +113,27 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			OrderedAt: res.OrderExecutionTime,
 		}
 		if p.BookType == Market {
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				log.Println("Error in fetching trading account", err)
 				return err
 			}
 			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
 			}
 		} else if p.BookType == Limit {
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				log.Println("Error in fetching trading account", err)
 				return err
 			}
 			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
 			}
 		}
-		if err = config.DB.Table("holdings").Create(&h).Error; err != nil {
+		if err = database.GetDB().Table("holdings").Create(&h).Error; err != nil {
 			log.Println("Error in creating holdings", err)
 			return err
 		}
@@ -146,34 +147,34 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 
 	if res.Status == Failed {
 		//Sell order failed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			log.Println("Error in fetching pending orders", err)
 			return err
 		}
 		p.Status = Failed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating status in pending orders", err)
 			return err
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			log.Println("Error in deleting order in pending orders", err)
 			return err
 		}
 		return nil
 	} else if res.Status == Completed {
 		//Sell order Completed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			log.Println("Error in fetching pending orders", err)
 			return err
 		}
 		p.Status = Completed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating order in pending orders", err)
 			return err
 		}
 
 		var h []model.Holdings
-		if err = config.DB.Table("holdings").Where("user_id=? AND stock_name=?", p.UserId, res.StockName).Find(&h).Error; err != nil {
+		if err = database.GetDB().Table("holdings").Where("user_id=? AND stock_name=?", p.UserId, res.StockName).Find(&h).Error; err != nil {
 			log.Println("Error in fetching holdings", err)
 			return err
 		}
@@ -193,11 +194,11 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 				}
-				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
+				if err = database.GetDB().Table("order_history").Create(&orderHist).Error; err != nil {
 					log.Println("Error in creating order history", err)
 					return err
 				}
-				if err = config.DB.Table("holdings").Where("id=?", check.Id).Delete(&check).Error; err != nil {
+				if err = database.GetDB().Table("holdings").Where("id=?", check.Id).Delete(&check).Error; err != nil {
 					log.Println("Error in deleting holdings", err)
 					return err
 				}
@@ -214,12 +215,12 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 				}
-				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
+				if err = database.GetDB().Table("order_history").Create(&orderHist).Error; err != nil {
 					log.Println("Error in creating order history", err)
 					return err
 				}
 				check.Quantity = check.Quantity - res.Quantity
-				if err = config.DB.Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
+				if err = database.GetDB().Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
 					log.Println("Error in updating holdings", err)
 					return err
 				}
@@ -227,36 +228,36 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			}
 		}
 
-		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 			log.Println("Error in fetching trading account", err)
 			return err
 		}
 		account.Balance = account.Balance + int64(price)
-		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in updating balance in trading account", err)
 			return err
 		}
 
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			log.Println("Error in deleting order in pending orders", err)
 			return err
 		}
 
 	} else if res.Status == Partial {
 		//Sell Order Half completed
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			log.Println("Error in fetching pending orders", err)
 			return err
 		}
 		p.Status = Partial
 		p.Quantity = p.Quantity - res.Quantity
-		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating order in pending orders", err)
 			return err
 		}
 
 		var h []model.Holdings
-		if err = config.DB.Table("holdings").Where("user_id=? AND stock_name=?", p.UserId, res.StockName).Find(&h).Error; err != nil {
+		if err = database.GetDB().Table("holdings").Where("user_id=? AND stock_name=?", p.UserId, res.StockName).Find(&h).Error; err != nil {
 			log.Println("Error in fetching holdings", err)
 			return err
 		}
@@ -275,11 +276,11 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 				}
-				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
+				if err = database.GetDB().Table("order_history").Create(&orderHist).Error; err != nil {
 					log.Println("Error in creating order history", err)
 					return err
 				}
-				if err = config.DB.Table("holdings").Where("id=?", check.Id).Delete(&check).Error; err != nil {
+				if err = database.GetDB().Table("holdings").Where("id=?", check.Id).Delete(&check).Error; err != nil {
 					log.Println("Error in deleting holdings", err)
 					return err
 				}
@@ -296,24 +297,24 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					BoughtAt:      check.OrderedAt,
 					SoldAt:        res.OrderExecutionTime,
 				}
-				if err = config.DB.Table("order_history").Create(&orderHist).Error; err != nil {
+				if err = database.GetDB().Table("order_history").Create(&orderHist).Error; err != nil {
 					log.Println("Error in creating order history", err)
 					return err
 				}
 				check.Quantity = check.Quantity - res.Quantity
-				if err = config.DB.Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
+				if err = database.GetDB().Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
 					log.Println("Error in updating holdings", err)
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
 			}
 		}
-		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 			log.Println("Error in fetching trading account", err)
 			return err
 		}
 		account.Balance = account.Balance + int64(price)
-		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in updating balance in trading account", err)
 			return err
 		}
