@@ -11,9 +11,8 @@ database:
   db_name: "first_go"
   host: "localhost"
 
-# Redis configurations
-redis:
-  host: "localhost"
-  port: 6379
-  password: ""
-  db: 0
+# StockExchange api token
+stock_exchange:
+  authentication:
+    user_name : "TradingPlatform"
+    password : "PlatformPassword"
