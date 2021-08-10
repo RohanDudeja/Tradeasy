@@ -27,21 +27,21 @@ func OrderConnection() {
 			continue
 		}
 		var orderDetails stock_exchange.OrderResponse
-		err=json.Unmarshal(orderMessage,&orderDetails)
-		if err!=nil{
-			log.Println("Error during Unmarshalling:",err)
+		err = json.Unmarshal(orderMessage, &orderDetails)
+		if err != nil {
+			log.Println("Error during Unmarshalling:", err)
 			continue
 		}
 		var p model.PendingOrders
-		if err=config.DB.Table("pending_orders").Where("order_id=?",orderDetails.OrderID).First(&p).Error;err!=nil{
-			log.Println("Order_id doesnt match with pending_orders table:",err)
+		if err = config.DB.Table("pending_orders").Where("order_id=?", orderDetails.OrderID).First(&p).Error; err != nil {
+			log.Println("Order_id doesnt match with pending_orders table:", err)
 			continue
 		}
-		if p.OrderType=="Buy"{
+		if p.OrderType == "Buy" {
 			go func() {
 				UpdateBuyOrder(&orderDetails)
 			}()
-		}else if p.OrderType=="Sell"{
+		} else if p.OrderType == "Sell" {
 			go func() {
 				UpdateSellOrder(&orderDetails)
 			}()
@@ -68,9 +68,9 @@ func StockConnection() {
 			continue
 		}
 		var stockDetails []stock_exchange.StockDetails
-		err=json.Unmarshal(stockMessage,&stockDetails)
-		if err!=nil{
-			log.Println("Error during Unmarshalling:",err)
+		err = json.Unmarshal(stockMessage, &stockDetails)
+		if err != nil {
+			log.Println("Error during Unmarshalling:", err)
 			continue
 		}
 		go func() {
@@ -78,4 +78,9 @@ func StockConnection() {
 		}()
 		log.Printf("Received the stock details from Stock Exchange Engine: %s", stockMessage)
 	}
+}
+
+func InitialiseClientSocket() {
+	go OrderConnection()
+	go StockConnection()
 }
