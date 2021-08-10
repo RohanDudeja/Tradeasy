@@ -39,20 +39,12 @@ func OrderConnection() {
 		}
 		if p.OrderType=="Buy"{
 			go func() {
-				err=UpdateBuyOrder(orderDetails)
+				_=UpdateBuyOrder(&orderDetails)
 			}()
-			if err!=nil {
-				log.Println("Error in updating buy order")
-				continue
-			}
 		}else if p.OrderType=="Sell"{
 			go func() {
-				err=UpdateSellOrder(orderDetails)
+				_=UpdateSellOrder(&orderDetails)
 			}()
-			if err!=nil {
-				log.Println("Error in updating sell order")
-				continue
-			}
 		}
 		log.Printf("Received the order details from Stock Exchange Engine: %s", orderMessage)
 	}
@@ -82,12 +74,8 @@ func StockConnection() {
 			continue
 		}
 		go func() {
-			err=UpdateStocksFeed(stockDetails)
+			_=UpdateStocksFeed(stockDetails)
 		}()
-		if err!=nil {
-			log.Println("Error during saving the stocks feed:",err)
-			continue
-		}
 		log.Printf("Received the stock details from Stock Exchange Engine: %s", stockMessage)
 	}
 }
