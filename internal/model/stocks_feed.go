@@ -5,7 +5,7 @@ import (
 )
 
 type StocksFeed struct {
-	Id        int64   `json:"id" gorm:"primary_key;column:id"`
+	Id        int64     `json:"id" gorm:"primary_key;column:id"`
 	StockName string    `json:"stock_name" gorm:"column:stock_name"`
 	LTP       int       `json:"ltp" gorm:"column:ltp"`
 	Open      int       `json:"open" gorm:"column:open"`

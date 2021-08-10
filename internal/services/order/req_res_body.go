@@ -1,16 +1,18 @@
 package order
 
-const Pending="PENDING"
-const Completed = "COMPLETED"
-const Partial = "PARTIAL"
-const Failed = "FAILED"
-const Cancelled = "CANCELLED"
-const Buy= "Buy"
-const Sell ="Sell"
-const Market = "Market"
-const Limit = "Limit"
-const BuyOrderURL = "http://localhost:8080/buy_order_book/buy_order"
-const SellOrderURL = "http://localhost:8080/sell_order_book/sell_order"
+const (
+	Pending      = "PENDING"
+	Completed    = "COMPLETED"
+	Partial      = "PARTIAL"
+	Cancelled    = "CANCELLED"
+	Failed       = "FAILED"
+	Market       = "Market"
+	Limit        = "Limit"
+	Buy          = "Buy"
+	Sell         = "Sell"
+	BuyOrderURL  = "http://localhost:8080/buy_order_book/buy_order"
+	SellOrderURL = "http://localhost:8080/sell_order_book/sell_order"
+)
 
 type BuyRequest struct {
 	UserId     string `json:"user_id"`

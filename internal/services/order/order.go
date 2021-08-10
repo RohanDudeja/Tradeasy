@@ -24,26 +24,20 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 
 	if bReq.BookType == Market {
 		if err = config.DB.Table("stocks_feed").Where("stock_name=?", bReq.StockName).Last(&stocks).Error; err != nil {
-			log.Println("Error in Fetching stock feed",err)
+			log.Println("Error in Fetching stock feed", err)
 			return bRes, err
 		}
 		bReq.LimitPrice = stocks.LTP
 	}
 
 	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).First(&account).Error; err != nil {
-		log.Println("Error in Fetching Trading account",err)
+		log.Println("Error in Fetching Trading account", err)
 		return bRes, err
 	}
 
 	if account.Balance < int64(bReq.Quantity*bReq.LimitPrice) {
 		log.Println("Balance in Trading Account is not sufficient")
 		return bRes, errors.New("balance is insufficient for the placed order")
-	}
-
-	account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
-	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
-		log.Println("Error in Updating Balance in Trading Account",err)
-		return bRes, err
 	}
 
 	orderId := uuid.New().String()
@@ -73,24 +67,29 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 
 	request, err := json.Marshal(exeOrder)
 	if err != nil {
-		log.Println("Error in Marshalling the Executive buy order",err)
+		log.Println("Error in Marshalling the Executive buy order", err)
 		return bRes, err
 	}
 	response, err := http.Post(BuyOrderURL, "application/json", bytes.NewBuffer(request))
 	if err != nil {
-		log.Println("Error in response after request",err)
+		log.Println("Error in response after request", err)
 		return bRes, err
 	}
 	body, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(body, &bRes)
 	if err != nil {
-		log.Println("Error in Unmarshalling the Executive buy order response",err)
+		log.Println("Error in Unmarshalling the Executive buy order response", err)
 		return bRes, err
 	}
 
 	if bRes.Status == Pending {
+		account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
+		if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
+			log.Println("Error in Updating Balance in Trading Account", err)
+			return bRes, err
+		}
 		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
-			log.Println("Error in Creating pending orders",err)
+			log.Println("Error in Creating pending orders", err)
 			return bRes, err
 		}
 	}
@@ -105,7 +104,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").
 		Scan(&r).Error; err != nil {
 
-		log.Println("Error in Fetching Total Quantities from Holdings",err)
+		log.Println("Error in Fetching Total Quantities from Holdings", err)
 		return sRes, err
 	} else if r.TotalQuantity < sReq.Quantity {
 		return sRes, errors.New("sell Order quantity is higher than holdings quantity")
@@ -113,7 +112,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 
 	if sReq.BookType == Market {
 		if err = config.DB.Table("stocks_feed").Where("stock_name=?", sReq.StockName).Last(&stocks).Error; err != nil {
-			log.Println("Error in Fetching Stocks feed",err)
+			log.Println("Error in Fetching Stocks feed", err)
 			return sRes, err
 		}
 		sReq.LimitPrice = stocks.LTP
@@ -146,24 +145,24 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 
 	request, err := json.Marshal(exeOrder)
 	if err != nil {
-		log.Println("Error in Marshalling the Executive sell order",err)
+		log.Println("Error in Marshalling the Executive sell order", err)
 		return sRes, err
 	}
 	response, err := http.Post(SellOrderURL, "application/json", bytes.NewBuffer(request))
 	if err != nil {
-		log.Println("Error in response after request",err)
+		log.Println("Error in response after request", err)
 		return sRes, err
 	}
 	body, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(body, &sRes)
 	if err != nil {
-		log.Println("Error in Unmarshalling the Executive buy order response",err)
+		log.Println("Error in Unmarshalling the Executive buy order response", err)
 		return sRes, err
 	}
 
 	if sRes.Status == Pending {
 		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
-			log.Println("Error in Creating Pending Orders",err)
+			log.Println("Error in Creating Pending Orders", err)
 			return sRes, err
 		}
 	}
@@ -174,7 +173,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 func CancelOrder(id string) (cRes CancelResponse, err error) {
 	var p model.PendingOrders
 	if err = config.DB.Table("pending_orders").Where("order_id=?", id).First(&p).Error; err != nil {
-		log.Println("Error in Fetching Pending Orders",err)
+		log.Println("Error in Fetching Pending Orders", err)
 		return cRes, err
 	}
 	url := ""
@@ -185,21 +184,21 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	}
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
-		log.Println("Error in Making request for cancelling order",err)
+		log.Println("Error in Making request for cancelling order", err)
 		return cRes, err
 	}
 
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
-		log.Println("Error in getting response for cancelling order",err)
+		log.Println("Error in getting response for cancelling order", err)
 		return cRes, err
 	}
 	body, _ := ioutil.ReadAll(res.Body)
 	var dRes stock_exchange.DeleteResponse
 	err = json.Unmarshal(body, &dRes)
 	if err != nil {
-		log.Println("Error in Unmarshalling the Executive cancel order",err)
+		log.Println("Error in Unmarshalling the Executive cancel order", err)
 		return cRes, err
 	}
 
@@ -213,7 +212,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 		if p.OrderType == Buy {
 			var account model.TradingAccount
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
-				log.Println("Error in fetching trading account",err)
+				log.Println("Error in fetching trading account", err)
 				return cRes, err
 			}
 			if p.BookType == Market {
@@ -222,16 +221,16 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
-				log.Println("Error in updating balance in trading account",err)
+				log.Println("Error in updating balance in trading account", err)
 				return cRes, err
 			}
 		}
 		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Updates(&p).Error; err != nil {
-			log.Println("Error in updating status in pending orders",err)
+			log.Println("Error in updating status in pending orders", err)
 			return cRes, err
 		}
 		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Delete(&p).Error; err != nil {
-			log.Println("Error in deleting order in pending orders",err)
+			log.Println("Error in deleting order in pending orders", err)
 			return cRes, err
 		}
 	} else {
