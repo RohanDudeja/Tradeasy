@@ -428,9 +428,11 @@ func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
 	err = config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", orderId).Error
 	if err != nil {
 		deleteRes.Message = "Failed"
+		deleteRes.Success = false
 		return deleteRes, err
 	}
 	deleteRes.Message = "Success"
+	deleteRes.Success = true
 	return deleteRes, nil
 }
 
@@ -438,9 +440,11 @@ func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
 func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
 	err = config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", orderId).Error
 	if err != nil {
+		deleteRes.Success = false
 		deleteRes.Message = "Failed"
 		return deleteRes, err
 	}
+	deleteRes.Success = true
 	deleteRes.Message = "Success"
 	return deleteRes, nil
 }
