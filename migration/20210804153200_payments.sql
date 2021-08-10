@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS payments
     razorpay_link_id VARCHAR(255),
     razorpay_link  VARCHAR(255),
     amount BIGINT NOT NULL,
-    payments_type  VARCHAR(10) NOT NULL,
+    payment_type  VARCHAR(255) NOT NULL,
     current_balance BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
