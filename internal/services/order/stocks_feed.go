@@ -7,9 +7,9 @@ import (
 	"log"
 )
 
-func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error){
-	for _,stock:=range res{
-		newStock:=model.StocksFeed{
+func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error) {
+	for _, stock := range res {
+		newStock := model.StocksFeed{
 			StockName: stock.StockName,
 			LTP:       stock.LTP,
 			Open:      stock.Open,
@@ -17,8 +17,8 @@ func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error){
 			Low:       stock.Low,
 			TradedAt:  stock.UpdatedAt,
 		}
-		if err=config.DB.Table("stocks_feed").Create(&newStock).Error;err!=nil{
-			log.Println("Error in Creating a stock field")
+		if err = config.DB.Table("stocks_feed").Create(&newStock).Error; err != nil {
+			log.Printf("Error in Creating %s stock field\n", newStock.StockName)
 			continue
 		}
 	}
