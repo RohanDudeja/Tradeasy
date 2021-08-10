@@ -18,8 +18,14 @@ func CreateWatchlist(Req CreateRequest) (Res CreateResponse, err error) {
 		return Res, errors.New("watchlist name already exists")
 	}
 	wl.Name = Req.WatchlistName
-	wl.Userid = Req.UserId
 	err = config.DB.Table("watchlist").Create(&wl).Error
+	if err != nil {
+		return Res, errors.New("failed to create watchlist")
+	}
+	var uwl model.UserWatchlist
+	uwl.WatchlistId = wl.Id
+	uwl.Userid = Req.UserId
+	err = config.DB.Table("user_watchlist").Create(&uwl).Error
 	if err != nil {
 		return Res, errors.New("failed to create watchlist")
 	}
@@ -30,42 +36,30 @@ func CreateWatchlist(Req CreateRequest) (Res CreateResponse, err error) {
 }
 
 func AddStockEntry(Req AddStockRequest, watchlistId int) (Res AddStockResponse, err error) {
-	var wl model.Watchlist
-	err = config.DB.Table("watchlist").Where("user_id = ?", Req.UserId).First(&wl).Error
+	var uwl model.UserWatchlist
+	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", Req.UserId, watchlistId).First(&uwl).Error
 	if err != nil {
 		return Res, errors.New("user not found")
 	}
-	err = config.DB.Table("watchlist").Where("watchlist_id = ? ", watchlistId).First(&wl).Error
-	if err != nil {
-		return Res, errors.New("watchlist not found")
-	}
-	var uwl model.UserWatchlist
 
 	err = config.DB.Table("user_watchlist").Where("stock_name = ? AND watchlist_id = ?", Req.StockName, watchlistId).First(&uwl).Error
 	if err == nil {
 		return Res, errors.New("stock name already exists")
 	}
-	uwl.Userid = Req.UserId
-	uwl.WatchlistId = watchlistId
+
 	uwl.StockName = Req.StockName
-	err = config.DB.Table("user_watchlist").Create(&uwl).Error
-	if err != nil {
-		return Res, errors.New("stock not added")
-	}
+	config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", Req.UserId, watchlistId).Update("stock_name", Req.StockName)
 	Res.Message = "Stock added"
 	return Res, nil
 }
 
 func DeleteStockEntry(Req DeleteStockRequest, watchlistId int) (Res DeleteStockResponse, err error) {
 	var uwl model.UserWatchlist
-	err = config.DB.Table("user_watchlist").Where("user_id = ?", Req.UserId).First(&uwl).Error
+	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", Req.UserId, watchlistId).First(&uwl).Error
 	if err != nil {
 		return Res, errors.New("user not found")
 	}
-	err = config.DB.Table("user_watchlist").Where("watchlist_id = ? ", watchlistId).First(&uwl).Error
-	if err != nil {
-		return Res, errors.New("watchlist not found")
-	}
+
 	err = config.DB.Table("user_watchlist").Where("stock_name = ?", Req.StockName).First(&uwl).Error
 	if err != nil {
 		return Res, errors.New("stock not found")
