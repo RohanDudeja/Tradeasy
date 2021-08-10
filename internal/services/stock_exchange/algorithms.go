@@ -160,7 +160,7 @@ func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook, re
 				if err != nil {
 					log.Println(err.Error())
 				}
-				SendResponse(resp, "COMPLETED", "Order Executed Partialy", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
+				SendResponse(resp, "COMPLETED", "Order Executed Partially", resp.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 				SendResponse(resp, "PARTIAL", "Order Executed Partially", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 				sellOrderBody.Quantity -= sellOrderBody.Quantity
 				break
