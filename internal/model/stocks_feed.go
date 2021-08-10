@@ -1,20 +1,19 @@
 package model
 
 import (
-	"math/big"
 	"time"
 )
 
 type StocksFeed struct {
-	Id        big.Int   `gorm:"primary_key;column:id" json:"id"`
-	StockName string    `gorm:"column:stock_name" json:"stock_name" `
-	LTP       int       `gorm:"column:ltp" json:"ltp" `
-	Open      int       `gorm:"column:open" json:"open" `
-	High      int       `gorm:"column:high" json:"high" `
-	Low       int       `gorm:"column:low" json:"low" `
-	TradedAt  time.Time `gorm:"column:traded_at" json:"traded_at" `
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at" `
-	DeletedAt time.Time `gorm:"column:deleted-at" json:"deleted_at" `
+	Id        int64     `json:"id" gorm:"primary_key;column:id"`
+	StockName string    `json:"stock_name" gorm:"column:stock_name"`
+	LTP       int       `json:"ltp" gorm:"column:ltp"`
+	Open      int       `json:"open" gorm:"column:open"`
+	High      int       `json:"high" gorm:"column:high"`
+	Low       int       `json:"low" gorm:"column:low"`
+	TradedAt  time.Time `json:"traded_at" gorm:"column:traded_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
+	DeletedAt time.Time `json:"deleted_at" gorm:"column:deleted_at;default:NULL"`
 }
 
 func (s *StocksFeed) TableName() string {
