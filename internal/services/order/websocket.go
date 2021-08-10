@@ -39,11 +39,11 @@ func OrderConnection() {
 		}
 		if p.OrderType=="Buy"{
 			go func() {
-				_=UpdateBuyOrder(&orderDetails)
+				UpdateBuyOrder(&orderDetails)
 			}()
 		}else if p.OrderType=="Sell"{
 			go func() {
-				_=UpdateSellOrder(&orderDetails)
+				UpdateSellOrder(&orderDetails)
 			}()
 		}
 		log.Printf("Received the order details from Stock Exchange Engine: %s", orderMessage)
@@ -74,7 +74,7 @@ func StockConnection() {
 			continue
 		}
 		go func() {
-			_=UpdateStocksFeed(stockDetails)
+			UpdateStocksFeed(stockDetails)
 		}()
 		log.Printf("Received the stock details from Stock Exchange Engine: %s", stockMessage)
 	}
