@@ -101,7 +101,10 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	var stocks model.StocksFeed
 
 	var r HoldingsQuantity
-	if err = config.DB.Table("holdings").Select("stock_name, sum(quantity) as total_quantity").Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").Scan(&r).Error; err != nil {
+	if err = config.DB.Table("holdings").Select("stock_name, sum(quantity) as total_quantity").
+		Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").
+		Scan(&r).Error; err != nil {
+
 		log.Println("Error in Fetching Total Quantities from Holdings",err)
 		return sRes, err
 	} else if r.TotalQuantity < sReq.Quantity {
