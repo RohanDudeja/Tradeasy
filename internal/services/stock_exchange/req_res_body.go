@@ -25,6 +25,7 @@ type OrderResponse struct {
 }
 
 type DeleteResponse struct {
+	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 

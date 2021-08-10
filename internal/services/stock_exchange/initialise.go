@@ -30,8 +30,9 @@ type StockFeed struct {
 	Low       float64 `json:"low"`
 }
 
-const percentChange = 0.01
-const ordersQuantityRange = 100
+const PercentChange = 0.01
+const OrdersQuantityRange = 100
+const StocksNeeded = 20
 
 func RandomizerAlgo() {
 
@@ -49,15 +50,15 @@ func RandomizerAlgo() {
 			rand.Seed(time.Now().UnixNano())
 			idx := rand.Intn(2)
 			order := orderType[idx]
-			min := stock.LTP - int(float64(stock.LTP)*percentChange)
-			max := stock.LTP + int(float64(stock.LTP)*percentChange)
+			min := stock.LTP - int(float64(stock.LTP)*PercentChange)
+			max := stock.LTP + int(float64(stock.LTP)*PercentChange)
 			buyOrderBody := OrderRequest{
 				OrderID:         orderID,
 				StockName:       stock.StockName,
 				OrderPlacedTime: time.Time{},
 				OrderType:       order,
 				LimitPrice:      rand.Intn(max-min+1) + min,
-				Quantity:        rand.Intn(ordersQuantityRange) + 1,
+				Quantity:        rand.Intn(OrdersQuantityRange) + 1,
 			}
 			_, err := BuyOrder(buyOrderBody)
 			if err != nil {
@@ -70,8 +71,8 @@ func RandomizerAlgo() {
 			rand.Seed(time.Now().UnixNano())
 			idx = rand.Intn(2)
 			order = orderType[idx]
-			min = stock.LTP - int(float64(stock.LTP)*percentChange)
-			max = stock.LTP + int(float64(stock.LTP)*percentChange)
+			min = stock.LTP - int(float64(stock.LTP)*PercentChange)
+			max = stock.LTP + int(float64(stock.LTP)*PercentChange)
 			time.Sleep(1 * time.Second)
 			sellOrderBody := OrderRequest{
 				OrderID:         orderID,
@@ -79,7 +80,7 @@ func RandomizerAlgo() {
 				OrderPlacedTime: time.Time{},
 				OrderType:       order,
 				LimitPrice:      rand.Intn(max-min+1) + min,
-				Quantity:        rand.Intn(ordersQuantityRange) + 1,
+				Quantity:        rand.Intn(OrdersQuantityRange) + 1,
 			}
 			_, err = SellOrder(sellOrderBody)
 			if err != nil {
@@ -92,17 +93,18 @@ func RandomizerAlgo() {
 	}
 }
 
-func GetTickers(limit int) (tickers []string) {
-	urlTickers := "https://api.polygon.io/v3/reference/tickers?active=true&sort=primary_exchange&order=asc&limit=" + strconv.Itoa(limit) + "&apiKey=721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
+func GetTickers(limit int) (tickers []string, err error) {
+	apiKey := "721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
+	baseURL := "https://api.polygon.io/v3/reference/tickers?active=true&sort=primary_exchange&order=asc&limit="
+	urlTickers := baseURL + strconv.Itoa(limit) + "&apiKey=" + apiKey
+	//send a get request
 	req, _ := http.NewRequest("GET", urlTickers, nil)
-
 	res, _ := http.DefaultClient.Do(req)
-
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
+		err = Body.Close()
 		if err != nil {
 			log.Println(err.Error())
-			return
+			//return tickers, err
 		}
 	}(res.Body)
 	body, _ := ioutil.ReadAll(res.Body)
@@ -110,21 +112,24 @@ func GetTickers(limit int) (tickers []string) {
 	rawResponse := bytes.NewReader(body)
 	decoder := json.NewDecoder(rawResponse)
 	parsedResponse := Response{}
-	err := decoder.Decode(&parsedResponse)
+	err = decoder.Decode(&parsedResponse)
 	if err != nil {
 		log.Println(err.Error())
-		return nil
+		return tickers, err
 	}
 
 	for _, r := range parsedResponse.Results {
 		tickers = append(tickers, r.Ticker)
 	}
-	return tickers
+	return tickers, err
 }
 
 func InitialiseStock(ticker string) {
 
-	stocksURL := "https://api.polygon.io/v1/open-close/" + ticker + "/2021-08-04?adjusted=true&apiKey=721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
+	baseURL := "https://api.polygon.io/v1/open-close/"
+	date := "/2021-08-04"
+	apiKey := "721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
+	stocksURL := baseURL + ticker + date + "?adjusted=true&apiKey=" + apiKey
 	req, _ := http.NewRequest("GET", stocksURL, nil)
 
 	res, _ := http.DefaultClient.Do(req)
@@ -163,8 +168,11 @@ func InitialiseStock(ticker string) {
 }
 
 func InitialiseAllStocks() {
-	const stocksNeeded = 20
-	tickers := GetTickers(stocksNeeded)
+	tickers, err := GetTickers(StocksNeeded)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
 	for _, ticker := range tickers {
 		InitialiseStock(ticker)
 	}
@@ -173,14 +181,22 @@ func InitialiseAllStocks() {
 func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 
 	rand.Seed(time.Now().UnixNano())
-	min := ltp - int(float64(ltp)*percentChange)
-	max := ltp + int(float64(ltp)*percentChange)
+	min := ltp - int(float64(ltp)*PercentChange)
+	max := ltp + int(float64(ltp)*PercentChange)
+	orderType := []string{"Limit", "Market"}
+	idx := rand.Intn(2)
+	order := orderType[idx]
+	quantity = rand.Intn(OrdersQuantityRange) + 1
 	newBuy := model.BuyOrderBook{
 		OrderID:           uuid.New().String(),
 		StockTickerSymbol: ticker,
 		OrderQuantity:     quantity,
 		OrderStatus:       "Pending",
 		OrderPrice:        rand.Intn(max-min+1) + min,
+		OrderType:         order,
+	}
+	if order == "Market" {
+		newBuy.OrderPrice, _ = GetLTP(ticker)
 	}
 	err := config.DB.Create(&newBuy).Error
 	if err != nil {
@@ -188,14 +204,21 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 	}
 	time.Sleep(1 * time.Millisecond)
 	rand.Seed(time.Now().UnixNano())
-	min = ltp - int(float64(ltp)*percentChange)
-	max = ltp + int(float64(ltp)*percentChange)
+	min = ltp - int(float64(ltp)*PercentChange)
+	max = ltp + int(float64(ltp)*PercentChange)
+	idx = rand.Intn(2)
+	order = orderType[idx]
+	quantity = rand.Intn(OrdersQuantityRange) + 1
 	newSell := model.SellOrderBook{
 		OrderID:           uuid.New().String(),
 		StockTickerSymbol: ticker,
 		OrderQuantity:     quantity,
 		OrderStatus:       "Pending",
 		OrderPrice:        rand.Intn(max-min+1) + min,
+		OrderType:         order,
+	}
+	if order == "Market" {
+		newBuy.OrderPrice, _ = GetLTP(ticker)
 	}
 	err = config.DB.Create(&newSell).Error
 	if err != nil {
@@ -210,9 +233,10 @@ func InitialiseBuyersAndSellers() {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	quantities := []int{100, 50, 120, 200, 280}
+	//create 20 pending orders per stock in the book
 	for _, stock := range allStocks {
-		for _, quantity := range quantities {
+		for i := 0; i < 20; i++ {
+			var quantity int
 			CreateBuyersAndSellers(stock.StockTickerSymbol, quantity, stock.LTP)
 		}
 	}
