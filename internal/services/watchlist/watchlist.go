@@ -25,6 +25,7 @@ func CreateWatchlist(req CreateRequest) (res CreateResponse, err error) {
 	var uwl model.UserWatchlist
 	uwl.WatchlistId = wl.Id
 	uwl.Userid = req.UserId
+	uwl.StockName = ""
 	err = config.DB.Table("user_watchlist").Create(&uwl).Error
 	if err != nil {
 		return res, errors.New("failed to create watchlist")
@@ -52,8 +53,19 @@ func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, 
 		return res, errors.New("stock name already exists")
 	}
 
-	uwl.StockName = req.StockName
-	config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlistId).Update("stock_name", req.StockName)
+	config.DB.Table("user_watchlist").Select("stock_name").Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlistId).Scan(&uwl)
+	if uwl.StockName == "" {
+		config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlistId).Update("stock_name", req.StockName)
+	} else {
+		uwl.Userid = req.UserId
+		uwl.WatchlistId = watchlistId
+		uwl.StockName = req.StockName
+		err = config.DB.Table("user_watchlist").Create(&uwl).Error
+
+		if err != nil {
+			return res, errors.New("stock not added")
+		}
+	}
 	res.Message = "Stock added"
 	return res, nil
 }
