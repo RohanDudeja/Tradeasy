@@ -13,9 +13,11 @@ import (
 
 func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error) {
 	addAmount := addReq.Amount
-	var tradingAcc model.TradingAccount
-	var addResponse AddResponse
-	var razorpayRes RazorpayResponse
+	var (
+		tradingAcc  model.TradingAccount
+		addResponse AddResponse
+		razorpayRes RazorpayResponse
+	)
 	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
 		return addRes, err
 	}
@@ -55,8 +57,10 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 }
 func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes WithdrawResponse, err error) {
 	withdrawAmount := withdrawReq.Amount
-	var tradingAcc model.TradingAccount
-	var withdrawResponse WithdrawResponse
+	var (
+		tradingAcc       model.TradingAccount
+		withdrawResponse WithdrawResponse
+	)
 	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
 		return withdrawRes, err
 	}
@@ -81,9 +85,11 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes Wit
 }
 
 func Callback(razorpayPaymentID string, razorpayPaymentLinkID string) (callbackRes CallbackResponse, err error) {
-	var payments model.Payments
-	var callbackResponse CallbackResponse
-	var tradingAcc model.TradingAccount
+	var (
+		payments         model.Payments
+		callbackResponse CallbackResponse
+		tradingAcc       model.TradingAccount
+	)
 	if err = config.DB.Table("payments").Where("razorpay_link_id=?", razorpayPaymentLinkID).First(&payments).Error; err != nil {
 		return callbackRes, err
 	}
