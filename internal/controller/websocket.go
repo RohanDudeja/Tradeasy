@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const TimeInterval = time.Duration(5)*time.Millisecond*1000
+const stockTimeInterval = time.Duration(5) * time.Second
 
 func StockHandler(c *gin.Context) {
 	var upgrader = websocket.Upgrader{} // use default options
@@ -21,7 +21,7 @@ func StockHandler(c *gin.Context) {
 	}
 	defer conn.Close()
 	//write stock details
-	for range time.Tick(TimeInterval) {
+	for range time.Tick(stockTimeInterval) {
 		stocks, err := stock_exchange.StockWrite()
 		stockJson, err := json.Marshal(&stocks)
 		if err != nil {
@@ -44,20 +44,5 @@ func OrderHandler(c *gin.Context) {
 		return
 	}
 	defer conn.Close()
-
-	for {
-		select {
-		case orderMsg := <-stock_exchange.OrderUpdated:
-			orderJson, err := json.Marshal(orderMsg)
-			if err != nil {
-				log.Println("Error while converting stocks to bytes", err)
-				return
-			}
-
-			if err := conn.WriteMessage(websocket.TextMessage, orderJson); err != nil {
-				log.Println("Error during writing stocks to websocket:", err)
-				return
-			}
-		}
-	}
+	stock_exchange.GetUpdates(conn)
 }

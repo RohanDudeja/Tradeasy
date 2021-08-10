@@ -2,10 +2,12 @@ package stock_exchange
 
 import (
 	"Tradeasy/config"
+	"encoding/json"
+	"github.com/gorilla/websocket"
 	"log"
 )
 
-var OrderUpdated = make(chan OrderResponse)
+var orderUpdated = make(chan OrderResponse)
 
 func BuyOrder(buyReq OrderRequest) (buyRes OrderResponse, err error) {
 	return buyRes, err
@@ -32,4 +34,22 @@ func StockWrite() (stocks []StockDetails, err error) {
 		return stocks, err
 	}
 	return stocks, nil
+}
+func GetUpdates(conn *websocket.Conn) {
+	for {
+		select {
+		case orderMsg := <-orderUpdated:
+			orderJson, err := json.Marshal(orderMsg)
+			if err != nil {
+				log.Println("Error while converting stocks to bytes", err)
+				return
+			}
+
+			if err := conn.WriteMessage(websocket.TextMessage, orderJson); err != nil {
+				log.Println("Error during writing stocks to websocket:", err)
+				return
+			}
+
+		}
+	}
 }
