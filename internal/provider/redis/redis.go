@@ -6,16 +6,16 @@ import (
 	"time"
 )
 
-func createClient() *redis.Client {
+var REDIS *redis.Client
+
+func createClient() {
 	redisConfig := config.GetConfig().Redis
-	var redisClient = redis.NewClient(&redis.Options{
+	REDIS = redis.NewClient(&redis.Options{
 		Addr:     redisConfig.Host + ":" + string(redisConfig.Port),
 		Password: redisConfig.Password,
 		DB:       redisConfig.DB,
 	})
-	return redisClient
 }
-
 func SetValue(key string, value string, expiry time.Duration) error {
 	err := createClient().Set(key, value, expiry).Err()
 	if err != nil {
