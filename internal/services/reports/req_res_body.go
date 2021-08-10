@@ -1,8 +1,8 @@
 package reports
 
 type ReportsParamRequest struct {
-	From string `json:"from" form:"from" `
-	To   string `json:"to" from:"to"`
+	From int `json:"from" form:"from" `
+	To   int `json:"to" form:"to"`
 }
 
 type DailyPendingOrderResponse struct {

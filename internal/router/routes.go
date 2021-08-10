@@ -30,7 +30,6 @@ func SetUpRouter() *gin.Engine {
 	{
 		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
 	}
-
 	//websocket:= r.Group("/socket")
 	//{
 	//	websocket.GET("/", webSocket.Home)
@@ -39,17 +38,17 @@ func SetUpRouter() *gin.Engine {
 	//}
 	payments := r.Group("/payments")
 	{
-		payments.POST(":Userid/addAmount", controller.AddAmount)
-		payments.POST(":Userid/withdrawAmount", controller.WithdrawAmount)
+		payments.POST(":Userid/add_amount", controller.AddAmount)
+		payments.POST(":Userid/withdraw_amount", controller.WithdrawAmount)
 
 	}
 
 	reports := r.Group("/reports")
 	{
-		reports.GET("pending_orders/:Userid", controller.DailyPendingOrders)
-		reports.GET("holdings/:Userid", controller.Portfolio)
-		reports.GET("order_history/:Userid", controller.OrdersHistory)
-		reports.GET("profit_loss_history/:Userid", controller.ProfitLossHistory)
+		reports.GET("pending_orders/:user_id", controller.DailyPendingOrders)
+		reports.GET("holdings/:user_id", controller.Portfolio)
+		reports.GET("order_history/:user_id", controller.OrdersHistory)
+		reports.GET("profit_loss_history/:user_id", controller.ProfitLossHistory)
 	}
 	return r
 }
