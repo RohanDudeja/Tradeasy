@@ -7,11 +7,11 @@ import (
 )
 
 func CreateWatchlist(CrReq CreateRequest) (CrRes CreateResponse, err error) {
-	//var user model.Users
-	//err = config.DB.Table("users").Where("user_id = ?", CrReq.UserId).First(&user).Error
-	//if err != nil {
-	//	return CrRes, errors.New("user not found")
-	//}
+	var user model.Users
+	err = config.DB.Table("users").Where("user_id = ?", CrReq.UserId).First(&user).Error
+	if err != nil {
+		return CrRes, errors.New("user not found")
+	}
 	var wl model.Watchlist
 	er := config.DB.Table("watchlist").Where("name = ?", CrReq.WatchlistName).First(&wl).Error
 	if er == nil {
