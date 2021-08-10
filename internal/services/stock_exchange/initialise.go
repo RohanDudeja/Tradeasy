@@ -37,7 +37,10 @@ func RandomizerAlgo() {
 
 	for {
 		var allStocks []model.Stocks
-		config.DB.Table("stocks").Find(&allStocks)
+		err := config.DB.Table("stocks").Find(&allStocks).Error
+		if err != nil {
+			log.Println(err.Error())
+		}
 		orderType := []string{"Limit", "Market"}
 		for _, stock := range allStocks {
 
@@ -152,7 +155,10 @@ func InitialiseStock(ticker string) {
 		PercentageChange:  int(100.0 * (parsedResponse.PrevClose - parsedResponse.LTP) / parsedResponse.PrevClose),
 	}
 	if parsedResponse.Ticker != "" {
-		config.DB.Create(&newStock)
+		err := config.DB.Create(&newStock).Error
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
@@ -176,8 +182,10 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 		OrderStatus:       "Pending",
 		OrderPrice:        rand.Intn(max-min+1) + min,
 	}
-	config.DB.Create(&newBuy)
-
+	err := config.DB.Create(&newBuy).Error
+	if err != nil {
+		log.Println(err.Error())
+	}
 	time.Sleep(1 * time.Millisecond)
 	rand.Seed(time.Now().UnixNano())
 	min = ltp - int(float64(ltp)*percentChange)
@@ -189,14 +197,19 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 		OrderStatus:       "Pending",
 		OrderPrice:        rand.Intn(max-min+1) + min,
 	}
-	config.DB.Create(&newSell)
+	err = config.DB.Create(&newSell).Error
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
 
 func InitialiseBuyersAndSellers() {
 
 	var allStocks []model.Stocks
-	config.DB.Raw("SELECT * FROM stocks").Scan(&allStocks)
-
+	err := config.DB.Raw("SELECT * FROM stocks").Scan(&allStocks).Error
+	if err != nil {
+		log.Println(err.Error())
+	}
 	quantities := []int{100, 50, 120, 200, 280}
 	for _, stock := range allStocks {
 		for _, quantity := range quantities {

@@ -19,6 +19,7 @@ type OrderResponse struct {
 	StockName          string    `json:"stock_name"`
 	AveragePrice       int       `json:"average_price"`
 	Status             string    `json:"status"`
+	Quantity           int       `json:"quantity"`
 	OrderExecutionTime time.Time `json:"order_execution_time"`
 	Message            string    `json:"message"`
 }
