@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+//orderUpdated is used by GetUpdates whenever matching algo updates the data for particular order
 var orderUpdated = make(chan OrderResponse)
 
 func BuyOrder(buyReq OrderRequest) (buyRes OrderResponse, err error) {
