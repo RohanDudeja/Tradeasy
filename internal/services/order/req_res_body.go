@@ -1,9 +1,16 @@
 package order
 
-const pending,completed,halfCompleted,failed,cancelled = "PENDING","COMPLETED","HALF_COMPLETED","FAILED","CANCELLED"
-const buy,sell = "Buy","Sell"
-const market, limit = "Market","Limit"
-const buyOrderURL,sellOrderURL = "http://localhost:8080/buy_order_book/buy_order","http://localhost:8080/sell_order_book/sell_order"
+const Pending="PENDING"
+const Completed = "COMPLETED"
+const Partial = "PARTIAL"
+const Failed = "FAILED"
+const Cancelled = "CANCELLED"
+const Buy= "Buy"
+const Sell ="Sell"
+const Market = "Market"
+const Limit = "Limit"
+const BuyOrderURL = "http://localhost:8080/buy_order_book/buy_order"
+const SellOrderURL = "http://localhost:8080/sell_order_book/sell_order"
 
 type BuyRequest struct {
 	UserId     string `json:"user_id"`

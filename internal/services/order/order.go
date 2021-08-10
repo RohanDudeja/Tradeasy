@@ -10,10 +10,9 @@ import (
 	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
-type result struct {
+type HoldingsQuantity struct {
 	StockName     string
 	TotalQuantity int
 }
@@ -22,7 +21,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	var stocks model.StocksFeed
 	var account model.TradingAccount
 
-	if bReq.BookType == market {
+	if bReq.BookType == Market {
 		if err = config.DB.Table("stocks_feed").Where("stock_name=?", bReq.StockName).Last(&stocks).Error; err != nil {
 			return bRes, err
 		}
@@ -38,7 +37,6 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	}
 
 	account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
-	//account.UpdatedAt=time.Now()
 	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
 		return bRes, err
 	}
@@ -48,22 +46,16 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		UserId:    bReq.UserId,
 		OrderId:   orderId,
 		StockName: bReq.StockName,
-		OrderType: buy,
+		OrderType: Buy,
 		BookType:  bReq.BookType,
 		Quantity:  bReq.Quantity,
-		Status:    pending,
+		Status:    Pending,
 	}
 
-	if bReq.BookType == market {
+	if bReq.BookType == Market {
 		p.OrderPrice = bReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
-			return bRes, err
-		}
-	} else {
+	} else if bReq.BookType == Limit {
 		p.LimitPrice = bReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
-			return bRes, err
-		}
 	}
 
 	exeOrder := stock_exchange.OrderRequest{
@@ -78,7 +70,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	if err != nil {
 		return bRes, err
 	}
-	response, err := http.Post(buyOrderURL, "application/json", bytes.NewBuffer(request))
+	response, err := http.Post(BuyOrderURL, "application/json", bytes.NewBuffer(request))
 	if err != nil {
 		return bRes, err
 	}
@@ -87,20 +79,27 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	if err != nil {
 		return bRes, err
 	}
+
+	if bRes.Status == Pending {
+		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
+			return bRes, err
+		}
+	}
+
 	return bRes, nil
 }
 
 func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) {
 	var stocks model.StocksFeed
 
-	var r result
+	var r HoldingsQuantity
 	if err = config.DB.Table("holdings").Select("stock_name, sum(quantity) as total_quantity").Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").Scan(&r).Error; err != nil {
 		return sRes, err
 	} else if r.TotalQuantity < sReq.Quantity {
 		return sRes, errors.New("sell Order quantity is higher than holdings quantity")
 	}
 
-	if sReq.BookType == "Market" {
+	if sReq.BookType == Market {
 		if err = config.DB.Table("stocks_feed").Where("stock_name=?", sReq.StockName).Last(&stocks).Error; err != nil {
 			return sRes, err
 		}
@@ -112,22 +111,16 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		UserId:    sReq.UserId,
 		OrderId:   orderId,
 		StockName: sReq.StockName,
-		OrderType: sell,
+		OrderType: Sell,
 		BookType:  sReq.BookType,
 		Quantity:  sReq.Quantity,
-		Status:    pending,
+		Status:    Pending,
 	}
 
-	if sReq.BookType == market {
+	if sReq.BookType == Market {
 		p.OrderPrice = sReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
-			return sRes, err
-		}
-	} else {
+	} else if sReq.BookType == Limit {
 		p.LimitPrice = sReq.LimitPrice
-		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
-			return sRes, err
-		}
 	}
 
 	exeOrder := stock_exchange.OrderRequest{
@@ -142,7 +135,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	if err != nil {
 		return sRes, err
 	}
-	response, err := http.Post(sellOrderURL, "application/json", bytes.NewBuffer(request))
+	response, err := http.Post(SellOrderURL, "application/json", bytes.NewBuffer(request))
 	if err != nil {
 		return sRes, err
 	}
@@ -151,6 +144,13 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	if err != nil {
 		return sRes, err
 	}
+
+	if sRes.Status == Pending {
+		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
+			return sRes, err
+		}
+	}
+
 	return sRes, nil
 }
 
@@ -159,11 +159,11 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	if err = config.DB.Table("pending_orders").Where("order_id=?", id).First(&p).Error; err != nil {
 		return cRes, err
 	}
-	url:=""
-	if p.OrderType == "Buy" {
-		url= buyOrderURL + id
+	url := ""
+	if p.OrderType == Buy {
+		url = BuyOrderURL + "/" + id
 	} else {
-		url= sellOrderURL + id
+		url = SellOrderURL + "/" + id
 	}
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
@@ -186,25 +186,23 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	cRes.OrderId = p.OrderId
 	cRes.StockName = p.StockName
 	if dRes.Success == true {
-		p.Status = cancelled
-		cRes.Status = cancelled
+		p.Status = Cancelled
+		cRes.Status = Cancelled
 		cRes.Message = dRes.Message
-		if p.OrderType == buy {
+		if p.OrderType == Buy {
 			var account model.TradingAccount
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return cRes, err
 			}
-			if p.BookType == market {
+			if p.BookType == Market {
 				account.Balance = account.Balance + int64(p.Quantity*p.OrderPrice)
-			} else {
+			} else if p.BookType == Limit {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
-			account.UpdatedAt = time.Now()
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return cRes, err
 			}
 		}
-		p.UpdatedAt = time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Updates(&p).Error; err != nil {
 			return cRes, err
 		}
@@ -213,7 +211,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 		}
 	} else {
 		cRes.Message = dRes.Message
-		cRes.Status = failed
+		cRes.Status = Failed
 	}
 	return cRes, nil
 }

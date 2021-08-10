@@ -11,19 +11,24 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 	var p model.PendingOrders
 	var account model.TradingAccount
 
-	if res.Status == failed {
+	if res.Status == Failed {
 		//Buy order Failed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
-		p.Status = failed
+		p.Status = Failed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
 		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 			return err
 		}
-		account.Balance = account.Balance + int64(p.Quantity*p.OrderPrice)
+
+		if p.BookType == Market {
+			account.Balance = account.Balance + int64(p.Quantity*p.OrderPrice)
+		} else if p.BookType == Limit {
+			account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
+		}
 		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			return err
 		}
@@ -31,12 +36,12 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		return nil
-	} else if res.Status == completed {
+	} else if res.Status == Completed {
 		//Buy order completed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
-		p.Status = completed
+		p.Status = Completed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
 		}
@@ -48,7 +53,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			BuyPrice:  res.AveragePrice,
 			OrderedAt: res.OrderExecutionTime,
 		}
-		if p.BookType == market {
+		if p.BookType == Market {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
@@ -57,7 +62,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
-		} else {
+		} else if p.BookType == Limit {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
@@ -74,12 +79,12 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Delete(&p).Error; err != nil {
 			return err
 		}
-	} else if res.Status == halfCompleted {
+	} else if res.Status == Partial {
 		//Buy order Half Completed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
-		p.Status = halfCompleted
+		p.Status = Partial
 		p.Quantity = p.Quantity - res.Quantity
 		p.UpdatedAt = time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
@@ -94,7 +99,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			BuyPrice:  res.AveragePrice,
 			OrderedAt: res.OrderExecutionTime,
 		}
-		if p.BookType == market {
+		if p.BookType == Market {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
@@ -103,7 +108,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				return err
 			}
-		} else {
+		} else if p.BookType == Limit {
 			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				return err
 			}
@@ -124,12 +129,12 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 	var p model.PendingOrders
 	var account model.TradingAccount
 
-	if res.Status == failed {
+	if res.Status == Failed {
 		//Sell order failed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
-		p.Status = failed
+		p.Status = Failed
 		p.UpdatedAt = time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
@@ -138,12 +143,12 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		return nil
-	} else if res.Status == completed {
+	} else if res.Status == Completed {
 		//Sell order Completed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
-		p.Status = completed
+		p.Status = Completed
 		p.UpdatedAt = time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			return err
@@ -214,12 +219,12 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 
-	} else if res.Status == halfCompleted {
+	} else if res.Status == Partial {
 		//Sell Order Half completed
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).First(&p).Error; err != nil {
 			return err
 		}
-		p.Status = halfCompleted
+		p.Status = Partial
 		p.Quantity = p.Quantity - res.Quantity
 		p.UpdatedAt = time.Now()
 		if err = config.DB.Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
