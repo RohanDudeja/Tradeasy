@@ -1,7 +1,7 @@
 package stock_exchange
 
 import (
-	"Tradeasy/config"
+	"Tradeasy/internal/provider/database"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
@@ -52,7 +52,7 @@ func GetOrderUpdates(conn *websocket.Conn) {
 func GetStockUpdates(conn *websocket.Conn, timeInterval time.Duration) {
 	for range time.Tick(timeInterval) {
 		var stocks []StockDetails
-		if err := config.DB.Table("stocks").Find(&stocks).Error; err != nil {
+		if err := database.GetDB().Table("stocks").Find(&stocks).Error; err != nil {
 			log.Println("Error while pulling stocks from stock exchange:", err)
 			continue
 		}

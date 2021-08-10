@@ -1,8 +1,8 @@
 package order
 
 import (
-	"Tradeasy/config"
 	"Tradeasy/internal/model"
+	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/services/stock_exchange"
 	"log"
 )
@@ -17,7 +17,7 @@ func UpdateStocksFeed(res []stock_exchange.StockDetails) (err error) {
 			Low:       stock.Low,
 			TradedAt:  stock.UpdatedAt,
 		}
-		if err = config.DB.Table("stocks_feed").Create(&newStock).Error; err != nil {
+		if err = database.GetDB().Table("stocks_feed").Create(&newStock).Error; err != nil {
 			log.Printf("Error in Creating %s stock field\n", newStock.StockName)
 			continue
 		}
