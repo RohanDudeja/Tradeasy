@@ -9,12 +9,12 @@ import (
 
 func AddAmount(c *gin.Context) {
 	var addReq payments.AddRequest
-	id := c.Params.ByName("user_id")
+	userId := c.Params.ByName("user_id")
 	if err := c.BindJSON(&addReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	addRes, err := payments.AddAmount(addReq, id)
+	addRes, err := payments.AddAmount(addReq, userId)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -24,12 +24,12 @@ func AddAmount(c *gin.Context) {
 }
 func WithdrawAmount(c *gin.Context) {
 	var withdrawReq payments.WithdrawRequest
-	id := c.Params.ByName("user_id")
+	userId := c.Params.ByName("user_id")
 	if err := c.BindJSON(&withdrawReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	withdrawRes, err := payments.WithdrawAmount(withdrawReq, id)
+	withdrawRes, err := payments.WithdrawAmount(withdrawReq, userId)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
