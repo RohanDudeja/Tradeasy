@@ -2,8 +2,8 @@ package controller
 
 import (
 	"Tradeasy/internal/services/user_management"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -15,7 +15,7 @@ func SignUp(c *gin.Context) {
 	}
 	res, err := user_management.SignUp(req)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
@@ -31,7 +31,7 @@ func UserDetails(c *gin.Context) {
 	}
 	res, err := user_management.UserDetails(req, userid)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
@@ -46,7 +46,7 @@ func SignIn(c *gin.Context) {
 	}
 	res, err := user_management.UserSignIn(req)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
@@ -60,7 +60,7 @@ func ForgetPassword(c *gin.Context) {
 	}
 	res, err := user_management.ForgetPassword(req)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
@@ -75,7 +75,7 @@ func VerificationForPasswordChange(c *gin.Context) {
 	}
 	res, err := user_management.VerificationForPasswordChange(req)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
 		c.JSON(http.StatusOK, res)
