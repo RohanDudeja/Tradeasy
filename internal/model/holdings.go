@@ -5,16 +5,16 @@ import (
 )
 
 type Holdings struct {
-	UserId    string    `gorm:"column:user_id" json:"user_id"`
-	OrderId   string    `gorm:"column:order_id" json:"order_id"`
-	Id        int       `gorm:"primary_key; column:id" json:"id"`
-	StockName string    `gorm:"column:stock_name" json:"stock_name"`
-	Quantity  int       `gorm:"column:quantity" json:"quantity"`
-	BuyPrice  int       `gorm:"column:buy_price" json:"buy_price"`
-	OrderedAt time.Time `gorm:"column:ordered_at" json:"ordered_at" `
-	CreatedAt time.Time `gorm:"column:created_at" json:"created_at" `
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at" `
-	DeletedAt time.Time `gorm:"column:deleted_at" json:"deleted_at" `
+	UserId    string    `json:"user_id" gorm:"column:user_id"`
+	OrderId   string    `json:"order_id" gorm:"column:order_id"`
+	Id        int       `json:"id" gorm:"primary_key; column:id"`
+	StockName string    `json:"stock_name" gorm:"column:stock_name"`
+	Quantity  int       `json:"quantity" gorm:"column:quantity"`
+	BuyPrice  int       `json:"buy_price" gorm:"column:buy_price"`
+	OrderedAt time.Time `json:"ordered_at" gorm:"column:ordered_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at"`
+	DeletedAt time.Time `json:"deleted_at" gorm:"column:deleted_at;default:NULL"`
 }
 
 func (h *Holdings) TableName() string {

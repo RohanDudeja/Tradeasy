@@ -1,5 +1,19 @@
 package order
 
+const (
+	Pending      = "PENDING"
+	Completed    = "COMPLETED"
+	Partial      = "PARTIAL"
+	Cancelled    = "CANCELLED"
+	Failed       = "FAILED"
+	Market       = "Market"
+	Limit        = "Limit"
+	Buy          = "Buy"
+	Sell         = "Sell"
+	BuyOrderURL  = "http://localhost:8080/buy_order_book/buy_order"
+	SellOrderURL = "http://localhost:8080/sell_order_book/sell_order"
+)
+
 type BuyRequest struct {
 	UserId     string `json:"user_id"`
 	StockName  string `json:"stock_name"`
