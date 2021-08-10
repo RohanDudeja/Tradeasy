@@ -7,12 +7,18 @@ import (
 )
 
 func CreateWatchlist(CrReq CreateRequest) (CrRes CreateResponse, err error) {
+	//var user model.Users
+	//err = config.DB.Table("users").Where("user_id = ?", CrReq.UserId).First(&user).Error
+	//if err != nil {
+	//	return CrRes, errors.New("user not found")
+	//}
 	var wl model.Watchlist
-	wl.Name = CrReq.WatchlistName
 	er := config.DB.Table("watchlist").Where("name = ?", CrReq.WatchlistName).First(&wl).Error
 	if er == nil {
 		return CrRes, errors.New("watchlist name already exists")
 	}
+	wl.Name = CrReq.WatchlistName
+	wl.Userid = CrReq.UserId
 	err = config.DB.Table("watchlist").Create(&wl).Error
 	if err != nil {
 		return CrRes, errors.New("failed to create watchlist")
@@ -24,15 +30,20 @@ func CreateWatchlist(CrReq CreateRequest) (CrRes CreateResponse, err error) {
 }
 
 func AddStockEntry(AddReq AddStockRequest, watchlistId int) (AddRes AddStockResponse, err error) {
+	var wl model.Watchlist
+	err = config.DB.Table("watchlist").Where("user_id = ? AND watchlist_id = ? ", AddReq.UserId, watchlistId).First(&wl).Error
+	if err != nil {
+		return AddRes, errors.New("user not found")
+	}
 	var uwl model.UserWatchlist
-	uwl.Userid = AddReq.UserId
-	uwl.WatchlistId = watchlistId
-	uwl.StockName = AddReq.StockName
 
-	er := config.DB.Table("user_watchlist").Where("stock_name = ? AND watchlist_id = ? AND user_id = ?", AddReq.StockName, watchlistId, AddReq.UserId).First(&uwl).Error
+	er := config.DB.Table("user_watchlist").Where("stock_name = ? AND watchlist_id = ?", AddReq.StockName, watchlistId).First(&uwl).Error
 	if er == nil {
 		return AddRes, errors.New("stock name already exists")
 	}
+	uwl.Userid = AddReq.UserId
+	uwl.WatchlistId = watchlistId
+	uwl.StockName = AddReq.StockName
 	err = config.DB.Table("user_watchlist").Create(&uwl).Error
 	if err != nil {
 		return AddRes, errors.New("stock not added")
@@ -43,8 +54,12 @@ func AddStockEntry(AddReq AddStockRequest, watchlistId int) (AddRes AddStockResp
 
 func DeleteStockEntry(DelReq DeleteStockRequest, watchlistId int) (DelRes DeleteStockResponse, err error) {
 	var uwl model.UserWatchlist
-	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", DelReq.UserId, watchlistId, DelReq.StockName).Delete(&uwl).Error
+	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", DelReq.UserId, watchlistId, DelReq.StockName).First(&uwl).Error
+	if err != nil {
+		return DelRes, errors.New("stock not found")
+	}
 
+	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", DelReq.UserId, watchlistId, DelReq.StockName).Delete(&uwl).Error
 	if err != nil {
 		return DelRes, errors.New("stock not deleted")
 	}
@@ -53,7 +68,7 @@ func DeleteStockEntry(DelReq DeleteStockRequest, watchlistId int) (DelRes Delete
 }
 func SortWatchlist(SortReq SortRequest) (SortRes SortResponse, err error) {
 	var wl []model.UserWatchlist
-	err = config.DB.Raw("SELECT * FROM user_watchlist ORDER BY stock_name").Scan(&wl).Error
+	err = config.DB.Raw("SELECT * FROM user_watchlist ORDER BY stock_name ASC").Scan(&wl).Error
 	if err != nil {
 		return SortRes, errors.New("watchlist not sorted")
 	}
