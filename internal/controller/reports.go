@@ -24,7 +24,7 @@ func Portfolio(c *gin.Context) {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	PortfolioRes, err := reports.Portfolio(id, reportsParamRequest.From, reportsParamRequest.To)
+	PortfolioRes, err := reports.Portfolio(id, reportsParamRequest)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -39,7 +39,7 @@ func OrdersHistory(c *gin.Context) {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	ordHisRes, err := reports.OrdersHistory(id, reportsParamRequest.From, reportsParamRequest.To)
+	ordHisRes, err := reports.OrdersHistory(id, reportsParamRequest)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -54,7 +54,7 @@ func ProfitLossHistory(c *gin.Context) {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
-	proLosRes, err := reports.ProfitLossHistory(id, reportsParamRequest.From, reportsParamRequest.To)
+	proLosRes, err := reports.ProfitLossHistory(id, reportsParamRequest)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)

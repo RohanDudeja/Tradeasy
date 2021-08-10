@@ -29,13 +29,13 @@ func DailyPendingOrders(Userid string) (penOrderRes []DailyPendingOrderResponse,
 	}
 	return penOrderResponse, nil
 }
-func Portfolio(Userid string, from int, to int) (portfolioRes []PortfolioResponse, err error) {
+func Portfolio(Userid string, request ReportsParamRequest) (portfolioRes []PortfolioResponse, err error) {
 	var (
 		portfolio         []model.Holdings
 		portfolioResponse []PortfolioResponse
 	)
-	fromTime := time.Unix(int64(from), 0)
-	toTime := time.Unix(int64(to), 0)
+	fromTime := time.Unix(int64(request.From), 0)
+	toTime := time.Unix(int64(request.To), 0)
 
 	if err := config.DB.Table("holdings").Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&portfolio).Error; err != nil {
 		return nil, err
@@ -51,14 +51,14 @@ func Portfolio(Userid string, from int, to int) (portfolioRes []PortfolioRespons
 	}
 	return portfolioResponse, nil
 }
-func OrdersHistory(Userid string, from int, to int) (ordHisRes []OrderHistoryResponse, err error) {
+func OrdersHistory(Userid string, request ReportsParamRequest) (ordHisRes []OrderHistoryResponse, err error) {
 	var (
 		orderHistory   []model.OrderHistory
 		holdings       []model.Holdings
 		ordHisResponse []OrderHistoryResponse
 	)
-	fromTime := time.Unix(int64(from), 0)
-	toTime := time.Unix(int64(to), 0)
+	fromTime := time.Unix(int64(request.From), 0)
+	toTime := time.Unix(int64(request.To), 0)
 	if err = config.DB.Table("order_history").Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistory).Error; err != nil {
 		return nil, err
 	}
@@ -89,13 +89,13 @@ func OrdersHistory(Userid string, from int, to int) (ordHisRes []OrderHistoryRes
 	return ordHisResponse, nil
 
 }
-func ProfitLossHistory(Userid string, from int, to int) (proLosRes []ProfitLossHistoryResponse, err error) {
+func ProfitLossHistory(Userid string, request ReportsParamRequest) (proLosRes []ProfitLossHistoryResponse, err error) {
 	var (
 		profitLossHistory  []model.OrderHistory
 		profitLossResponse []ProfitLossHistoryResponse
 	)
-	fromTime := time.Unix(int64(from), 0)
-	toTime := time.Unix(int64(to), 0)
+	fromTime := time.Unix(int64(request.From), 0)
+	toTime := time.Unix(int64(request.To), 0)
 	if err = config.DB.Table("order_history").Where("user_id = ?  AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&profitLossHistory).Error; err != nil {
 		return nil, err
 	}
