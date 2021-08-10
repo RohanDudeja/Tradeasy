@@ -4,13 +4,13 @@ import (
 	"Tradeasy/config"
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/provider/redis"
-	"crypto/rand"
+	"Tradeasy/internal/utils"
 	"errors"
-	"math/big"
-	"strconv"
 	"strings"
 	"time"
 )
+
+var ExpiryTime = 5 * time.Minute
 
 func SignUp(SUpReq SignUpRequest) (SUpRes SignUpResponse, err error) {
 	email := SUpReq.EmailId
@@ -68,20 +68,18 @@ func UserDetails(detReq UserDetailsRequest, userid string) (detRes UserDetailsRe
 func UserSignIn(SInReq SignInRequest) (SInRes SignInResponse, err error) {
 
 	var user model.Users
-	err = config.DB.Table("users").Where("user_id = ? AND password = ?", SInReq.UserId, SInReq.Password).First(&user).Error
+	err = config.DB.Table("users").Where("user_id = ?", SInReq.UserId).First(&user).Error
 	if err != nil {
-		return SInRes, errors.New("sign in Failed")
+		return SInRes, errors.New("user not found")
+	}
+	err = config.DB.Table("users").Where("password = ?", SInReq.Password).First(&user).Error
+	if err != nil {
+		return SInRes, errors.New("incorrect password")
 	}
 	SInRes.Message = "Signed in successfully"
 	return SInRes, nil
 }
-func GetRandNum() (string, error) {
-	nBig, e := rand.Int(rand.Reader, big.NewInt(8999))
-	if e != nil {
-		return "", e
-	}
-	return strconv.FormatInt(nBig.Int64()+1000, 10), nil
-}
+
 func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse, err error) {
 
 	var user model.Users
@@ -89,12 +87,12 @@ func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse, 
 	if err != nil {
 		return FPRes, errors.New("user not found")
 	}
-	otp, err_ := GetRandNum()
+	otp, err_ := utils.GetRandNum()
 	if err_ != nil {
 		return FPRes, errors.New("otp not generated")
 	}
-	er := redis.SetValue(FPReq.EmailId, otp, 5*time.Minute)
-	if er != nil {
+	err = redis.SetValue(FPReq.EmailId, ExpiryTime)
+	if err != nil {
 		return FPRes, errors.New("otp not generated")
 	}
 	FPRes.Otp = otp
@@ -102,8 +100,8 @@ func ForgetPassword(FPReq ForgetPasswordRequest) (FPRes ForgetPasswordResponse, 
 }
 
 func VerificationForPasswordChange(VerReq VerifyRequest) (VerRes VerifyResponse, err error) {
-	originalOtp, e := redis.GetValue(VerReq.EmailId)
-	if e != nil {
+	originalOtp, err := redis.GetValue(VerReq.EmailId)
+	if err != nil {
 		return VerRes, errors.New("verification failed")
 	}
 	if VerReq.Otp != originalOtp {
