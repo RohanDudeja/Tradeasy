@@ -13,7 +13,7 @@ func CreateWatchlist(Req CreateRequest) (Res CreateResponse, err error) {
 		return Res, errors.New("user not found")
 	}
 	var wl model.Watchlist
-	err = config.DB.Table("watchlist").Where("name = ?", Req.WatchlistName).First(&wl).Error
+	err = config.DB.Table("watchlist").Where("name = ? AND user_id = ?", Req.WatchlistName, Req.UserId).First(&wl).Error
 	if err == nil {
 		return Res, errors.New("watchlist name already exists")
 	}
