@@ -2,7 +2,6 @@ package controller
 
 import (
 	"Tradeasy/internal/services/stock_exchange"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
@@ -21,19 +20,7 @@ func StockHandler(c *gin.Context) {
 	}
 	defer conn.Close()
 	//write stock details
-	for range time.Tick(stockTimeInterval) {
-		stocks, err := stock_exchange.StockWrite()
-		stockJson, err := json.Marshal(&stocks)
-		if err != nil {
-			log.Println("Error while converting stocks to bytes", err)
-			return
-		}
-
-		if err := conn.WriteMessage(websocket.TextMessage, stockJson); err != nil {
-			log.Println("Error during writing stocks to websocket:", err)
-			return
-		}
-	}
+	stock_exchange.GetStockUpdates(conn, stockTimeInterval)
 }
 func OrderHandler(c *gin.Context) {
 	var upgrader = websocket.Upgrader{} // use default options
@@ -44,5 +31,5 @@ func OrderHandler(c *gin.Context) {
 		return
 	}
 	defer conn.Close()
-	stock_exchange.GetUpdates(conn)
+	stock_exchange.GetOrderUpdates(conn)
 }
