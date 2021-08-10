@@ -1,6 +1,5 @@
 package config
 
-var REDIS
 type Redis struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`

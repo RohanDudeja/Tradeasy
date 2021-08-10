@@ -17,7 +17,7 @@ func createClient() {
 	})
 }
 func SetValue(key string, value string, expiry time.Duration) error {
-	err := createClient().Set(key, value, expiry).Err()
+	err := REDIS.Set(key, value, expiry).Err()
 	if err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func SetValue(key string, value string, expiry time.Duration) error {
 }
 
 func GetValue(key string) (string, error) {
-	value, err := createClient().Get(key).Result()
+	value, err := REDIS.Get(key).Result()
 	if err != nil {
 		return "", err
 	}
