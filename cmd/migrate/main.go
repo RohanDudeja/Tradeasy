@@ -12,7 +12,7 @@ import (
 
 var (
 	flags = flag.NewFlagSet("migrate", flag.ExitOnError)
-	dir   = flags.String("dir", "../../migration", "directory with migration files")
+	dir   = flags.String("dir", "./migration", "directory with migration files")
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	}
 	command := args[0] // command like up, down
 
-	dbstring := config.DbURL(config.BuildConfig())
+	dbstring := config.DbURL(config.GetConfig())
 	//fmt.Println(dbstring)
 	db, err := goose.OpenDBWithDriver("mysql", dbstring)
 	if err != nil {
