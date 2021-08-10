@@ -16,11 +16,10 @@ func AddAmount(addReq AddRequest, Userid string) (addRes *AddResponse, err error
 	var addResponse AddResponse
 	var razorpayRes RazorpayResponse
 	var payments model.Payments
-	var callbackResponse CallbackResponse
 	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
 		return nil, err
 	}
-	razorRequest := RazorpayRequest{Amount: addAmount, CallbackURL: "http://localhost:8080/payments/payment_status", CallbackMethod: "get"}
+	razorRequest := RazorpayRequest{Amount: addAmount, CallbackURL: "http://localhost:8080/payments/payment_status", CallbackMethod: "get", AcceptPartial: false}
 	jsonReq, err := json.Marshal(razorRequest)
 	resp, err := http.Post("https://api.razorpay.com/v1/payment_links", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
 	if err != nil {
@@ -31,30 +30,14 @@ func AddAmount(addReq AddRequest, Userid string) (addRes *AddResponse, err error
 	if err != nil {
 		return nil, err
 	}
-	pay := model.Payments{UserId: Userid, Amount: addAmount, RazorpayLink: razorpayRes.ShortURL, RazorpayLinkId: razorpayRes.ID}
+	pay := model.Payments{UserId: Userid, Amount: addAmount, RazorpayLink: razorpayRes.ShortURL, RazorpayLinkId: razorpayRes.ID, PaymentType: "add"}
 	if err = config.DB.Create(pay).Error; err != nil {
-		return nil, err
-	}
-	if err = config.DB.Where("user_id = ?, razorpay_link_id=? ,razorpay_link=?", Userid, razorpayRes.ShortURL, razorpayRes.ID).First(&callbackResponse).Error; err != nil {
-		return nil, err
-	}
-	if err = config.DB.Where("razorpay_link_id=? ,razorpay_link=?", payments.RazorpayLinkId, payments.RazorpayLink).First(&callbackResponse).Error; err != nil {
-		return nil, err
-	}
-	if callbackResponse.RazorpayPaymentLinkStatus == "success" {
-		tradingAcc.Balance += addAmount
-	}
-	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
-		return nil, err
-	}
-	if err = config.DB.Table("payments").Where("user_id = ?, razorpay_link_id=? ,razorpay_link=?", Userid, razorpayRes.ShortURL, razorpayRes.ID).UpdateColumn("current_balance", tradingAcc.Balance).Error; err != nil {
 		return nil, err
 	}
 	addResponse.Userid = payments.UserId
 	addResponse.Amount = payments.Amount
 	addResponse.Type = "add"
-	addResponse.CurrentBalance = payments.CurrentBalance
-	addResponse.Message = "Process Successful"
+	addResponse.PaymentLink = razorpayRes.ShortURL
 	return &addResponse, err
 
 }
@@ -73,8 +56,8 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes *Wi
 	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
 		return nil, err
 	}
-	pay := model.Payments{UserId: Userid, Amount: withdrawAmount, CurrentBalance: tradingAcc.Balance}
-	if err = config.DB.Table("payments").Create(pay).Error; err != nil {
+	pay := model.Payments{UserId: Userid, Amount: withdrawAmount, CurrentBalance: tradingAcc.Balance, PaymentType: "withdraw"}
+	if err = config.DB.Create(pay).Error; err != nil {
 		return nil, err
 	}
 	withdrawResponse.Userid = pay.UserId
@@ -85,17 +68,24 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes *Wi
 	return &withdrawResponse, err
 }
 
-func Callback() (callbackRes *CallbackResponse, err error) {
+func Callback(razorpayPaymentID string, razorpayPaymentLinkID string) (callbackRes *CallbackResponse, err error) {
 	var payments model.Payments
 	var callbackResponse CallbackResponse
-	if err = config.DB.Table("payments").Where("razorpay_link_id=? ,razorpay_link=?", payments.RazorpayLinkId, payments.RazorpayLink).First(&payments).Error; err != nil {
+	var tradingAcc model.TradingAccount
+	if err = config.DB.Table("trading_account").Where("razorpay_link_id=? ,razorpay_link=?", razorpayPaymentID, razorpayPaymentLinkID).First(&tradingAcc).Error; err != nil {
 		return nil, err
 	}
-	callbackResponse.RazorpayPaymentID = payments.RazorpayLinkId
-	callbackResponse.RazorpayPaymentLinkID = payments.RazorpayLink
-	callbackResponse.RazorpayPaymentLinkStatus = "success"
-	if err = config.DB.Create(callbackResponse).Error; err != nil {
+	if err = config.DB.Table("payments").Where("razorpay_link_id=? ,razorpay_link=?", razorpayPaymentID, razorpayPaymentLinkID).First(&payments).Error; err != nil {
 		return nil, err
 	}
+	tradingAcc.Balance += payments.Amount
+	userId := tradingAcc.UserId
+	if err = config.DB.Table("trading_account").Where("user_id = ?", userId).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
+		return nil, err
+	}
+	if err = config.DB.Table("payments").Where("user_id = ?, razorpay_link_id=? ,razorpay_link=?", razorpayPaymentID, razorpayPaymentLinkID).UpdateColumn("current_balance", tradingAcc.Balance).Error; err != nil {
+		return nil, err
+	}
+	callbackResponse.Status = "success"
 	return &callbackResponse, nil
 }

@@ -9,7 +9,7 @@ import (
 
 func AddAmount(c *gin.Context) {
 	var addReq payments.AddRequest
-	id := c.Params.ByName("Userid")
+	id := c.Params.ByName("user_id")
 	if err := c.BindJSON(&addReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -24,7 +24,7 @@ func AddAmount(c *gin.Context) {
 }
 func WithdrawAmount(c *gin.Context) {
 	var withdrawReq payments.WithdrawRequest
-	id := c.Params.ByName("Userid")
+	id := c.Params.ByName("user_id")
 	if err := c.BindJSON(&withdrawReq); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -39,7 +39,12 @@ func WithdrawAmount(c *gin.Context) {
 }
 
 func Callback(c *gin.Context) {
-	callBackResponse, err := payments.Callback()
+	var callbackParamRequest payments.CallbackParamRequest
+	if err := c.BindQuery(&callbackParamRequest); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusBadRequest)
+	}
+	callBackResponse, err := payments.Callback(callbackParamRequest.RazorpayPaymentID, callbackParamRequest.RazorpayPaymentLinkID)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)

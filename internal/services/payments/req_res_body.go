@@ -4,11 +4,10 @@ type AddRequest struct {
 	Amount int64 `json:"amount"`
 }
 type AddResponse struct {
-	Userid         string `json:"user_id"`
-	Amount         int64  `json:"amount"`
-	Type           string `json:"type"`
-	CurrentBalance int64  `json:"current_balance"`
-	Message        string `json:"message"`
+	Userid      string `json:"user_id"`
+	Amount      int64  `json:"amount"`
+	Type        string `json:"type"`
+	PaymentLink string `json:"payment_link"`
 }
 type WithdrawRequest struct {
 	Amount int64 `json:"amount"`
@@ -83,10 +82,14 @@ type RazorpayResponse struct {
 	UserID         string        `json:"user_id"`
 }
 
+type CallbackParamRequest struct {
+	RazorpayPaymentID              string `json:"razorpay_payment_id" form:"razorpay_payment_id"`
+	RazorpayPaymentLinkID          string `json:"razorpay_payment_link_id" form:"razorpay_payment_link_id"`
+	RazorpayPaymentLinkReferenceID string `json:"razorpay_payment_link_reference_id" form:"razorpay_payment_link_reference_id"`
+	RazorpayPaymentLinkStatus      string `json:"razorpay_payment_link_status" form:"razorpay_payment_link_status"`
+	RazorpaySignature              string `json:"razorpay_signature" form:"razorpay_signature"`
+}
+
 type CallbackResponse struct {
-	RazorpayPaymentID              string `json:"razorpay_payment_id"`
-	RazorpayPaymentLinkID          string `json:"razorpay_payment_link_id"`
-	RazorpayPaymentLinkReferenceID string `json:"razorpay_payment_link_reference_id"`
-	RazorpayPaymentLinkStatus      string `json:"razorpay_payment_link_status"`
-	RazorpaySignature              string `json:"razorpay_signature"`
+	Status string `json:"status"`
 }
