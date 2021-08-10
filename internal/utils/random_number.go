@@ -7,7 +7,7 @@ import (
 )
 
 func GetRandNum() (string, error) {
-	nBig, e := rand.Int(rand.Reader, big.NewInt(8999))
+	nBig, e := rand.Int(rand.Reader, big.NewInt(9999))
 	if e != nil {
 		return "", e
 	}

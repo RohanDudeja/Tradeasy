@@ -12,104 +12,104 @@ import (
 
 var OTPExpiryTime = 5 * time.Minute
 
-func SignUp(Req SignUpRequest) (Res SignUpResponse, err error) {
-	email := Req.EmailId
+func SignUp(req SignUpRequest) (res SignUpResponse, err error) {
+	email := req.EmailId
 
 	var user model.Users
-	err = config.DB.Table("users").Where("email_id = ?", Req.EmailId).First(&user).Error
+	err = config.DB.Table("users").Where("email_id = ?", req.EmailId).First(&user).Error
 	if err == nil {
-		return Res, errors.New("email id already registered")
+		return res, errors.New("email id already registered")
 	}
-	err = config.DB.Table("users").Where("password = ?", Res.Password).First(&user).Error
+	err = config.DB.Table("users").Where("password = ?", res.Password).First(&user).Error
 	if err == nil {
-		return Res, errors.New("password already taken")
+		return res, errors.New("password already taken")
 	}
 	user.UserId = strings.Split(email, "@")[0]
-	user.EmailId = Req.EmailId
-	user.Password = Req.Password
+	user.EmailId = req.EmailId
+	user.Password = req.Password
 	err = config.DB.Table("users").Create(&user).Error
 	if err != nil {
-		return Res, errors.New("signUp failed")
+		return res, errors.New("signUp failed")
 	}
-	Res.UserId = strings.Split(email, "@")[0]
-	Res.Password = Req.Password
-	Res.Message = "User registered"
-	return Res, nil
+	res.UserId = user.UserId
+	res.Password = user.Password
+	res.Message = "User registered"
+	return res, nil
 }
 
-func UserDetails(Req UserDetailsRequest, userid string) (Res UserDetailsResponse, err error) {
+func UserDetails(req UserDetailsRequest, userid string) (res UserDetailsResponse, err error) {
 
 	var user model.Users
 	var tradingAcc model.TradingAccount
 
 	err = config.DB.Table("users").Where("user_id = ? ", userid).First(&user).Error
 	if err != nil {
-		return Res, errors.New("user not found")
+		return res, errors.New("user not found")
 	}
-	err = config.DB.Table("trading_account").Where("user_id = ? OR pan_card_no = ? OR bank_acc_no = ?", userid, Req.PanCardNo, Req.BankAccNo).First(&tradingAcc).Error
+	err = config.DB.Table("trading_account").Where("user_id = ? OR pan_card_no = ? OR bank_acc_no = ?", userid, req.PanCardNo, req.BankAccNo).First(&tradingAcc).Error
 	if err == nil {
-		return Res, errors.New("user details already registered")
+		return res, errors.New("user details already registered")
 	}
 	tradingAcc.UserId = userid
-	tradingAcc.PanCardNo = Req.PanCardNo
-	tradingAcc.BankAccNo = Req.BankAccNo
+	tradingAcc.PanCardNo = req.PanCardNo
+	tradingAcc.BankAccNo = req.BankAccNo
 	tradingAcc.TradingAccId = "TRA" + userid
 	tradingAcc.Balance = 0
 
 	err = config.DB.Table("trading_account").Create(&tradingAcc).Error
 	if err != nil {
-		return Res, errors.New("user details failed to enter")
+		return res, errors.New("user details failed to enter")
 	}
-	Res.TradingAccId = "TRA" + userid
-	Res.Balance = 0
-	Res.Message = "User Details registered"
-	return Res, nil
+	res.TradingAccId = tradingAcc.TradingAccId
+	res.Balance = tradingAcc.Balance
+	res.Message = "User Details registered"
+	return res, nil
 }
-func UserSignIn(Req SignInRequest) (Res SignInResponse, err error) {
+func UserSignIn(req SignInRequest) (res SignInResponse, err error) {
 
 	var user model.Users
-	err = config.DB.Table("users").Where("user_id = ?", Req.UserId).First(&user).Error
+	err = config.DB.Table("users").Where("user_id = ?", req.UserId).First(&user).Error
 	if err != nil {
-		return Res, errors.New("user not found")
+		return res, errors.New("user not found")
 	}
-	err = config.DB.Table("users").Where("user_id = ? AND password = ?", Req.UserId, Req.Password).First(&user).Error
+	err = config.DB.Table("users").Where("user_id = ? AND password = ?", req.UserId, req.Password).First(&user).Error
 	if err != nil {
-		return Res, errors.New("incorrect password")
+		return res, errors.New("incorrect password")
 	}
-	Res.Message = "Signed in successfully"
-	return Res, nil
+	res.Message = "Signed in successfully"
+	return res, nil
 }
 
-func ForgetPassword(Req ForgetPasswordRequest) (Res ForgetPasswordResponse, err error) {
+func ForgetPassword(req ForgetPasswordRequest) (res ForgetPasswordResponse, err error) {
 
 	var user model.Users
-	err = config.DB.Table("users").Where("user_id = ? AND email_id = ?", Req.UserId, Req.EmailId).First(&user).Error
+	err = config.DB.Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).First(&user).Error
 	if err != nil {
-		return Res, errors.New("user not found")
+		return res, errors.New("user not found")
 	}
 	otp, err := utils.GetRandNum()
 	if err != nil {
-		return Res, errors.New("otp not generated")
+		return res, errors.New("otp not generated")
 	}
-	err = redis.SetValue(Req.EmailId, OTPExpiryTime)
+	err = redis.SetValue(req.EmailId, OTPExpiryTime)
 	if err != nil {
-		return Res, errors.New("otp not generated")
+		return res, errors.New("otp not generated")
 	}
-	Res.Otp = otp
-	return Res, nil
+	res.Otp = otp
+	return res, nil
 }
 
-func VerificationForPasswordChange(Req VerifyRequest) (Res VerifyResponse, err error) {
-	originalOtp, err := redis.GetValue(Req.EmailId)
+func VerificationForPasswordChange(req VerifyRequest) (res VerifyResponse, err error) {
+	originalOtp, err := redis.GetValue(req.EmailId)
 	if err != nil {
-		return Res, errors.New("verification failed")
+		return res, errors.New("verification failed")
 	}
-	if Req.Otp != originalOtp {
-		return Res, errors.New("verification failed")
+	if req.Otp != originalOtp {
+		return res, errors.New("verification failed")
 	}
-	config.DB.Table("users").Where("user_id = ? AND email_id = ?", Req.UserId, Req.EmailId).Update("password", Res.NewPassword)
-	Res.UserId = Req.UserId
-	Res.NewPassword = Req.NewPassword
-	Res.Message = "Password changed successfully"
-	return Res, nil
+	config.DB.Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).Update("password", res.NewPassword)
+	res.UserId = req.UserId
+	res.NewPassword = req.NewPassword
+	res.Message = "Password changed successfully"
+	return res, nil
 }
