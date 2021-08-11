@@ -11,6 +11,7 @@ type Config struct {
 	Database      Database      `yaml:"database"`
 	Server        Server        `yaml:"server"`
 	StockExchange StockExchange `yaml:"stock_exchange"`
+	Redis         Redis         `yaml:"redis"`
 }
 
 //readFile for reading development.yaml file
