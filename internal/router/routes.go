@@ -16,6 +16,7 @@ func SetUpRouter() *gin.Engine {
 		trade.POST(":Userid/sell", controller.SellOrder)
 		trade.PATCH(":OrderId/cancel", controller.CancelOrder)
 	}
+
 	exchangeBuy := r.Group("/buy_order_book")
 	exchangeBuy.Use(middleware.ExchangeBasicAuth())
 	{
@@ -40,5 +41,13 @@ func SetUpRouter() *gin.Engine {
 	//	websocket.GET("/stocks", webSocket.StockHandler)
 	//	websocket.GET("/orders", webSocket.OrderHandler)
 	//}
+	watchlist := r.Group("/user_watchlist")
+	watchlist.Use(middleware.UserBasicAuth())
+	{
+		watchlist.POST("", controller.CreateWatchlist)
+		watchlist.POST("/:watchlist_id/add", controller.AddStockEntry)
+		watchlist.DELETE("/:watchlist_id", controller.DeleteStockEntry)
+		watchlist.PATCH("/sort", controller.SortWatchlist)
+	}
 	return r
 }
