@@ -203,10 +203,10 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
-				if res.Quantity==0{
+				if res.Quantity == 0 {
 					break
 				}
-			} else if res.Quantity<check.Quantity && res.Quantity>0{
+			} else if res.Quantity < check.Quantity && res.Quantity > 0 {
 				orderHist := model.OrderHistory{
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
@@ -289,10 +289,10 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
-				if res.Quantity==0{
+				if res.Quantity == 0 {
 					break
 				}
-			} else if res.Quantity<check.Quantity && res.Quantity>0{
+			} else if res.Quantity < check.Quantity && res.Quantity > 0 {
 				orderHist := model.OrderHistory{
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
