@@ -9,12 +9,12 @@ import (
 
 func DailyPendingOrders(c *gin.Context) {
 	id := c.Params.ByName("user_id")
-	pendingOrderResponse, err := reports.DailyPendingOrders(id)
+	response, err := reports.DailyPendingOrders(id)
 	if err != nil {
 		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, pendingOrderResponse)
+		c.JSON(http.StatusOK, response)
 	}
 }
 func Portfolio(c *gin.Context) {
@@ -24,12 +24,12 @@ func Portfolio(c *gin.Context) {
 		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	}
-	PortfolioResponse, err := reports.Portfolio(id, reportsParamRequest)
+	response, err := reports.Portfolio(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, PortfolioResponse)
+		c.JSON(http.StatusOK, response)
 	}
 }
 func OrdersHistory(c *gin.Context) {
@@ -39,12 +39,12 @@ func OrdersHistory(c *gin.Context) {
 		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	}
-	orderHisResponse, err := reports.OrdersHistory(id, reportsParamRequest)
+	response, err := reports.OrdersHistory(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, orderHisResponse)
+		c.JSON(http.StatusOK, response)
 	}
 }
 func ProfitLossHistory(c *gin.Context) {
@@ -54,11 +54,11 @@ func ProfitLossHistory(c *gin.Context) {
 		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	}
-	profitLossResponse, err := reports.ProfitLossHistory(id, reportsParamRequest)
+	response, err := reports.ProfitLossHistory(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, profitLossResponse)
+		c.JSON(http.StatusOK, response)
 	}
 }

@@ -12,7 +12,7 @@ const (
 	Sell = "sell"
 )
 
-func DailyPendingOrders(Userid string) (penOrderRes []DailyPendingOrderResponse, err error) {
+func DailyPendingOrders(Userid string) (response []DailyPendingOrderResponse, err error) {
 	var (
 		pendingOrders             []model.PendingOrders
 		dailyPendingOrderResponse []DailyPendingOrderResponse
@@ -35,10 +35,10 @@ func DailyPendingOrders(Userid string) (penOrderRes []DailyPendingOrderResponse,
 	}
 	return dailyPendingOrderResponse, nil
 }
-func Portfolio(Userid string, request ReportsParamRequest) (portfolioRes []PortfolioResponse, err error) {
+func Portfolio(Userid string, request ReportsParamRequest) (response []PortfolioResponse, err error) {
 	var (
 		holdings          []model.Holdings
-		portfolioResponse []PortfolioResponse
+		portfolioResponses []PortfolioResponse
 	)
 	fromTime := time.Unix(int64(request.From), 0)
 	toTime := time.Unix(int64(request.To), 0)
@@ -47,26 +47,26 @@ func Portfolio(Userid string, request ReportsParamRequest) (portfolioRes []Portf
 		return nil, errors.New("no holdings found")
 	}
 	for _, holding := range holdings {
-		var portResponse PortfolioResponse
-		portResponse.Userid = holding.UserId
-		portResponse.OrderId = holding.OrderId
-		portResponse.StockName = holding.StockName
-		portResponse.Quantity = holding.Quantity
-		portResponse.BuyPrice = holding.BuyPrice
-		portfolioResponse = append(portfolioResponse, portResponse)
+		var portfolioResponse PortfolioResponse
+		portfolioResponse.Userid = holding.UserId
+		portfolioResponse.OrderId = holding.OrderId
+		portfolioResponse.StockName = holding.StockName
+		portfolioResponse.Quantity = holding.Quantity
+		portfolioResponse.BuyPrice = holding.BuyPrice
+		portfolioResponses = append(portfolioResponses, portfolioResponse)
 	}
-	return portfolioResponse, nil
+	return portfolioResponses, nil
 }
-func OrdersHistory(Userid string, request ReportsParamRequest) (ordHisRes []OrderHistoryResponse, err error) {
+func OrdersHistory(Userid string, request ReportsParamRequest) (response []OrderHistoryResponse, err error) {
 	var (
-		orderHistory   []model.OrderHistory
+		orderHistories   []model.OrderHistory
 		holdings       []model.Holdings
-		ordHisResponse []OrderHistoryResponse
+		orderHistoryResponses []OrderHistoryResponse
 	)
 	fromTime := time.Unix(int64(request.From), 0)
 	toTime := time.Unix(int64(request.To), 0)
 	if err = config.DB.Table("order_history").
-		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistory).Error; err != nil {
+		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistories).Error; err != nil {
 		return nil, errors.New("no orders found")
 	}
 	if err = config.DB.Table("holdings").
@@ -75,72 +75,72 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (ordHisRes []Orde
 		return nil, errors.New("no orders found")
 
 	}
-	for _, ordHis := range orderHistory {
+	for _, orderHistory := range orderHistories {
 
-		var ordHistoryRes OrderHistoryResponse
-		ordHistoryRes.Userid = ordHis.UserId
-		ordHistoryRes.OrderId = ordHis.OrderId
-		ordHistoryRes.StockName = ordHis.StockName
-		ordHistoryRes.Quantity = ordHis.Quantity
-		ordHistoryRes.BuySellType = Sell
-		ordHisResponse = append(ordHisResponse, ordHistoryRes)
+		var orderHistoryResponse OrderHistoryResponse
+		orderHistoryResponse.Userid = orderHistory.UserId
+		orderHistoryResponse.OrderId = orderHistory.OrderId
+		orderHistoryResponse.StockName = orderHistory.StockName
+		orderHistoryResponse.Quantity = orderHistory.Quantity
+		orderHistoryResponse.BuySellType = Sell
+		orderHistoryResponses = append(orderHistoryResponses, orderHistoryResponse)
 	}
-	for _, hold := range holdings {
-		var orderHisRes OrderHistoryResponse
-		orderHisRes.Userid = hold.UserId
-		orderHisRes.OrderId = hold.OrderId
+	for _, holding := range holdings {
+		var orderHistoryResponse OrderHistoryResponse
+		orderHistoryResponse.Userid = holding.UserId
+		orderHistoryResponse.OrderId = holding.OrderId
 		type HoldingsQuantity struct {
 			TotalQuantity int
 		}
 		var holdingsQuantity HoldingsQuantity
 		if err = config.DB.Table("holdings").Select("sum(quantity) as total_quantity").
-			Where("user_id=? AND order_id=?", hold.UserId, hold.OrderId).Group("stock_name").
+			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).Group("stock_name").
 			Scan(&holdingsQuantity).Error; err != nil {
 			return nil, errors.New("problem fetching quantity")
 		}
 
 		var orderHistoryQuantity HoldingsQuantity
 		if err = config.DB.Table("order_history").Select("sum(quantity) as total_quantity").
-			Where("user_id=? AND order_id=?", hold.UserId, hold.OrderId).Group("stock_name").
+			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).Group("stock_name").
 			Scan(&orderHistoryQuantity).Error; err != nil {
 			return nil, errors.New("problem fetching quantity")
 		}
-		orderHisRes.StockName = hold.StockName
-		orderHisRes.Quantity = holdingsQuantity.TotalQuantity + orderHistoryQuantity.TotalQuantity
-		orderHisRes.BuySellType = Buy
-		ordHisResponse = append(ordHisResponse, orderHisRes)
+		orderHistoryResponse.StockName = holding.StockName
+		orderHistoryResponse.Quantity = holdingsQuantity.TotalQuantity + orderHistoryQuantity.TotalQuantity
+		orderHistoryResponse.BuySellType = Buy
+		orderHistoryResponses = append(orderHistoryResponses, orderHistoryResponse)
 	}
-	return ordHisResponse, nil
+	return orderHistoryResponses, nil
 
 }
-func ProfitLossHistory(Userid string, request ReportsParamRequest) (proLosRes []ProfitLossHistoryResponse, err error) {
+func ProfitLossHistory(Userid string, request ReportsParamRequest) (response []ProfitLossHistoryResponse, err error) {
 	var (
-		profitLossHistory  []model.OrderHistory
-		profitLossResponse []ProfitLossHistoryResponse
+		profitLossHistories  []model.OrderHistory
+		profitLossResponses []ProfitLossHistoryResponse
 	)
 	fromTime := time.Unix(int64(request.From), 0)
 	toTime := time.Unix(int64(request.To), 0)
 	if err = config.DB.Table("order_history").
 		Where("user_id = ?  AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).
-		Find(&profitLossHistory).Error; err != nil {
+		Find(&profitLossHistories).Error; err != nil {
 		return nil, errors.New("no orders found")
 	}
-	for _, profitLoss := range profitLossHistory {
-		var proLosResponse ProfitLossHistoryResponse
-		proLosResponse.Userid = profitLoss.UserId
-		proLosResponse.OrderId = profitLoss.OrderId
-		proLosResponse.StockName = profitLoss.StockName
-		proLosResponse.Quantity = profitLoss.Quantity
-		proLosResponse.BuyPrice = profitLoss.BuyPrice
-		proLosResponse.SellPrice = profitLoss.SellPrice
-		proLosResponse.ProfitLoss = profitLoss.Quantity * (profitLoss.SellPrice - profitLoss.BuyPrice)
-		if len(profitLossResponse) == 0 {
-			proLosResponse.CumulatedProfit = profitLoss.Quantity * (profitLoss.SellPrice - profitLoss.BuyPrice)
+	for _, profitLossHistory := range profitLossHistories {
+		var profitLossResponse ProfitLossHistoryResponse
+		profitLossResponse.Userid = profitLossHistory.UserId
+		profitLossResponse.OrderId = profitLossHistory.OrderId
+		profitLossResponse.StockName = profitLossHistory.StockName
+		profitLossResponse.Quantity = profitLossHistory.Quantity
+		profitLossResponse.BuyPrice = profitLossHistory.BuyPrice
+		profitLossResponse.SellPrice = profitLossHistory.SellPrice
+		profitLossResponse.ProfitLoss = profitLossHistory.Quantity * (profitLossHistory.SellPrice - profitLossHistory.BuyPrice)
+		if len(profitLossResponses) == 0 {
+			profitLossResponse.CumulatedProfit = profitLossHistory.Quantity * (profitLossHistory.SellPrice - profitLossHistory.BuyPrice)
 		} else {
-			proLosResponse.CumulatedProfit = profitLoss.Quantity*(profitLoss.SellPrice-profitLoss.BuyPrice) + profitLossResponse[len(profitLossResponse)-1].CumulatedProfit
+			profitLossResponse.CumulatedProfit = profitLossHistory.Quantity*(profitLossHistory.SellPrice-profitLossHistory.BuyPrice) + profitLossResponses[len(profitLossResponses)-1].CumulatedProfit
 		}
-		profitLossResponse = append(profitLossResponse, proLosResponse)
+		profitLossResponses = append(profitLossResponses, profitLossResponse)
 	}
-	return profitLossResponse, nil
+	return profitLossResponses, nil
 
 }
