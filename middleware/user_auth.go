@@ -21,8 +21,8 @@ func UserBasicAuth() gin.HandlerFunc {
 		}
 		//use User SignIn API
 		req := user_management.SignInRequest{
-			userID,
-			password,
+			UserId:   userID,
+			Password: password,
 		}
 		_, err := user_management.UserSignIn(req)
 		if err != nil {

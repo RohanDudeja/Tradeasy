@@ -1,8 +1,9 @@
 package order
 
 import (
-	"Tradeasy/config"
+	_ "Tradeasy/config"
 	"Tradeasy/internal/model"
+	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/services/stock_exchange"
 	"bytes"
 	"encoding/json"
@@ -23,14 +24,14 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	var account model.TradingAccount
 
 	if bReq.BookType == Market {
-		if err = config.DB.Table("stocks_feed").Where("stock_name=?", bReq.StockName).Last(&stocks).Error; err != nil {
+		if err = database.GetDB().Table("stocks_feed").Where("stock_name=?", bReq.StockName).Last(&stocks).Error; err != nil {
 			log.Println("Error in Fetching stock feed", err)
 			return bRes, err
 		}
 		bReq.LimitPrice = stocks.LTP
 	}
 
-	if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).First(&account).Error; err != nil {
+	if err = database.GetDB().Table("trading_account").Where("user_id=?", bReq.UserId).First(&account).Error; err != nil {
 		log.Println("Error in Fetching Trading account", err)
 		return bRes, err
 	}
@@ -93,11 +94,11 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 
 	if bRes.Status == Pending {
 		account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
-		if err = config.DB.Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
+		if err = database.GetDB().Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in Updating Balance in Trading Account", err)
 			return bRes, err
 		}
-		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Create(&p).Error; err != nil {
 			log.Println("Error in Creating pending orders", err)
 			return bRes, err
 		}
@@ -109,7 +110,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	var stocks model.StocksFeed
 
 	var r HoldingsQuantity
-	if err = config.DB.Table("holdings").Select("stock_name, sum(quantity) as total_quantity").
+	if err = database.GetDB().Table("holdings").Select("stock_name, sum(quantity) as total_quantity").
 		Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").
 		Scan(&r).Error; err != nil {
 
@@ -120,7 +121,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	}
 
 	if sReq.BookType == Market {
-		if err = config.DB.Table("stocks_feed").Where("stock_name=?", sReq.StockName).Last(&stocks).Error; err != nil {
+		if err = database.GetDB().Table("stocks_feed").Where("stock_name=?", sReq.StockName).Last(&stocks).Error; err != nil {
 			log.Println("Error in Fetching Stocks feed", err)
 			return sRes, err
 		}
@@ -179,7 +180,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	}
 
 	if sRes.Status == Pending {
-		if err = config.DB.Table("pending_orders").Create(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Create(&p).Error; err != nil {
 			log.Println("Error in Creating Pending Orders", err)
 			return sRes, err
 		}
@@ -190,7 +191,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 
 func CancelOrder(id string) (cRes CancelResponse, err error) {
 	var p model.PendingOrders
-	if err = config.DB.Table("pending_orders").Where("order_id=?", id).First(&p).Error; err != nil {
+	if err = database.GetDB().Table("pending_orders").Where("order_id=?", id).First(&p).Error; err != nil {
 		log.Println("Error in Fetching Pending Orders", err)
 		return cRes, err
 	}
@@ -232,7 +233,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 		cRes.Message = dRes.Message
 		if p.OrderType == Buy {
 			var account model.TradingAccount
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
 				log.Println("Error in fetching trading account", err)
 				return cRes, err
 			}
@@ -241,16 +242,16 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			} else if p.BookType == Limit {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
-			if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
+			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return cRes, err
 			}
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Updates(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", id).Updates(&p).Error; err != nil {
 			log.Println("Error in updating status in pending orders", err)
 			return cRes, err
 		}
-		if err = config.DB.Table("pending_orders").Where("order_id=?", id).Delete(&p).Error; err != nil {
+		if err = database.GetDB().Table("pending_orders").Where("order_id=?", id).Delete(&p).Error; err != nil {
 			log.Println("Error in deleting order in pending orders", err)
 			return cRes, err
 		}

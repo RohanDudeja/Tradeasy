@@ -39,7 +39,7 @@ type StockDetails struct {
 	StockName string    `json:"stock_name"`
 	LTP       int       `json:"ltp"`
 	UpdatedAt time.Time `json:"updated_at"`
-	High      int       `json:"high"`
-	Open      int       `json:"open"`
-	Low       int       `json:"low"`
+	HighPrice int       `json:"high_price"`
+	OpenPrice int       `json:"open_price"`
+	LowPrice  int       `json:"low_price"`
 }
