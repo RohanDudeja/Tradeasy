@@ -1,9 +1,8 @@
 package order
 
 import (
-	_ "Tradeasy/config"
+	"Tradeasy/config"
 	"Tradeasy/internal/model"
-	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/services/stock_exchange"
 	"encoding/json"
 	"github.com/gorilla/websocket"
@@ -79,4 +78,9 @@ func StockConnection() {
 		}()
 		log.Printf("Received the stock details from Stock Exchange Engine: %s", stockMessage)
 	}
+}
+
+func InitialiseClientSocket() {
+	go OrderConnection()
+	go StockConnection()
 }

@@ -1,6 +1,7 @@
 package stock_exchange
 
 import (
+	model "Tradeasy/internal/model/stock_exchange"
 	"time"
 )
 
@@ -17,8 +18,8 @@ type OrderResponse struct {
 	OrderID            string    `json:"order_id"`
 	StockName          string    `json:"stock_name"`
 	AveragePrice       int       `json:"average_price"`
-	Status             string    `json:"status"`
 	Quantity           int       `json:"quantity"`
+	Status             string    `json:"status"`
 	OrderExecutionTime time.Time `json:"order_execution_time"`
 	Message            string    `json:"message"`
 }
@@ -29,8 +30,8 @@ type DeleteResponse struct {
 }
 
 type ViewDepthResponse struct {
-	BuyOrders  []string //top 5 buy order details
-	SellOrders []string
+	BuyOrders  []model.BuyOrderBook //top 5 buy order details
+	SellOrders []model.SellOrderBook
 	Message    string
 }
 
