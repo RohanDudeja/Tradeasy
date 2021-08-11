@@ -34,65 +34,7 @@ const PercentChange = 0.01
 const OrdersQuantityRange = 100
 const StocksNeeded = 20
 
-func RandomizerAlgo() {
-
-	for {
-		var allStocks []model.Stocks
-		err := config.DB.Table("stocks").Find(&allStocks).Error
-		if err != nil {
-			log.Println(err.Error())
-		}
-		orderType := []string{"Limit", "Market"}
-		for _, stock := range allStocks {
-
-			//placing buy order
-			orderID := uuid.New().String()
-			rand.Seed(time.Now().UnixNano())
-			idx := rand.Intn(2)
-			order := orderType[idx]
-			min := stock.LTP - int(float64(stock.LTP)*PercentChange)
-			max := stock.LTP + int(float64(stock.LTP)*PercentChange)
-			buyOrderBody := OrderRequest{
-				OrderID:         orderID,
-				StockName:       stock.StockName,
-				OrderPlacedTime: time.Time{},
-				OrderType:       order,
-				LimitPrice:      rand.Intn(max-min+1) + min,
-				Quantity:        rand.Intn(OrdersQuantityRange) + 1,
-			}
-			_, err := BuyOrder(buyOrderBody)
-			if err != nil {
-				log.Println(err.Error())
-				return
-			}
-
-			//placing sell order
-			orderID = uuid.New().String()
-			rand.Seed(time.Now().UnixNano())
-			idx = rand.Intn(2)
-			order = orderType[idx]
-			min = stock.LTP - int(float64(stock.LTP)*PercentChange)
-			max = stock.LTP + int(float64(stock.LTP)*PercentChange)
-			time.Sleep(1 * time.Second)
-			sellOrderBody := OrderRequest{
-				OrderID:         orderID,
-				StockName:       stock.StockName,
-				OrderPlacedTime: time.Time{},
-				OrderType:       order,
-				LimitPrice:      rand.Intn(max-min+1) + min,
-				Quantity:        rand.Intn(OrdersQuantityRange) + 1,
-			}
-			_, err = SellOrder(sellOrderBody)
-			if err != nil {
-				log.Println(err.Error())
-				return
-			}
-		}
-		// sleep and run again
-		time.Sleep(5 * time.Second)
-	}
-}
-
+// GetTickers ...Get tickers as per requirement to be usedfor stocks initialisation
 func GetTickers(limit int) (tickers []string, err error) {
 	apiKey := "721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
 	baseURL := "https://api.polygon.io/v3/reference/tickers?active=true&sort=primary_exchange&order=asc&limit="
@@ -104,7 +46,6 @@ func GetTickers(limit int) (tickers []string, err error) {
 		err = Body.Close()
 		if err != nil {
 			log.Println(err.Error())
-			//return tickers, err
 		}
 	}(res.Body)
 	body, _ := ioutil.ReadAll(res.Body)
@@ -124,10 +65,11 @@ func GetTickers(limit int) (tickers []string, err error) {
 	return tickers, err
 }
 
+// InitialiseStock ...fetch data for a given stock in arguments
 func InitialiseStock(ticker string) {
 
 	baseURL := "https://api.polygon.io/v1/open-close/"
-	date := "/2021-08-04"
+	date := "/2021-08-08"
 	apiKey := "721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
 	stocksURL := baseURL + ticker + date + "?adjusted=true&apiKey=" + apiKey
 	req, _ := http.NewRequest("GET", stocksURL, nil)
@@ -167,6 +109,7 @@ func InitialiseStock(ticker string) {
 	}
 }
 
+// InitialiseAllStocks ...initialise all data points in the database for every stock
 func InitialiseAllStocks() {
 	tickers, err := GetTickers(StocksNeeded)
 	if err != nil {
@@ -226,6 +169,7 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 	}
 }
 
+// InitialiseBuyersAndSellers ...create initial dummybuyers and sellers
 func InitialiseBuyersAndSellers() {
 
 	var allStocks []model.Stocks

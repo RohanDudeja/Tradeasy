@@ -3,8 +3,10 @@ package stock_exchange
 import (
 	"Tradeasy/config"
 	model "Tradeasy/internal/model/stock_exchange"
+	"github.com/google/uuid"
 	"log"
 	"math"
+	"math/rand"
 	"time"
 )
 
@@ -365,145 +367,62 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest) {
 	return
 }
 
-// BuyOrder ...Update Buy Order actions on the StockExchange database
-func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
+// RandomizerAlgo ...Generates Random traffic to fluctuate ltp of stocks
+func RandomizerAlgo() {
 
-	resp.Status = "PENDING"
-	resp.OrderID = buyOrderBody.OrderID
-	resp.StockName = buyOrderBody.StockName
-	resp.Message = "Order Received"
-	newEntry := model.BuyOrderBook{
-		OrderID:           buyOrderBody.OrderID,
-		StockTickerSymbol: buyOrderBody.StockName,
-		OrderQuantity:     buyOrderBody.Quantity,
-		OrderStatus:       "PENDING",
-		OrderPrice:        buyOrderBody.LimitPrice,
-		OrderType:         buyOrderBody.OrderType,
-		CreatedAt:         buyOrderBody.OrderPlacedTime,
-		UpdatedAt:         time.Now(),
-	}
-	if buyOrderBody.OrderType != "Market" && buyOrderBody.OrderType != "Limit" {
-		resp.Status = "CANCELLED"
-		resp.Message = "Incorrect order type"
-		return resp, nil
-	}
-	if buyOrderBody.OrderType == "Limit" && buyOrderBody.LimitPrice == 0 {
-		resp.Status = "CANCELLED"
-		resp.Message = "Incorrect order price"
-		return resp, nil
-	}
-	ltp, err := GetLTP(buyOrderBody.StockName)
-	if err != nil {
-		log.Println(err.Error())
-		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
-		return resp, nil
-	}
-	if buyOrderBody.OrderType == "Market" {
-		newEntry.OrderPrice = ltp
-	}
-	err = config.DB.Create(&newEntry).Error
-	if err != nil {
-		log.Println(err.Error())
-		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
-		return resp, err
-	}
-	go BuyOrderMatchingAlgo(buyOrderBody)
-	return resp, nil
-}
+	for {
+		var allStocks []model.Stocks
+		err := config.DB.Table("stocks").Find(&allStocks).Error
+		if err != nil {
+			log.Println(err.Error())
+		}
+		orderType := []string{"Limit", "Market"}
+		for _, stock := range allStocks {
 
-// SellOrder ...Update Sell Order actions on the StockExchange database
-func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
+			//placing buy order
+			orderID := uuid.New().String()
+			rand.Seed(time.Now().UnixNano())
+			idx := rand.Intn(2)
+			order := orderType[idx]
+			min := stock.LTP - int(float64(stock.LTP)*PercentChange)
+			max := stock.LTP + int(float64(stock.LTP)*PercentChange)
+			buyOrderBody := OrderRequest{
+				OrderID:         orderID,
+				StockName:       stock.StockName,
+				OrderPlacedTime: time.Time{},
+				OrderType:       order,
+				LimitPrice:      rand.Intn(max-min+1) + min,
+				Quantity:        rand.Intn(OrdersQuantityRange) + 1,
+			}
+			_, err := BuyOrder(buyOrderBody)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
 
-	resp.Status = "PENDING"
-	resp.OrderID = sellOrderBody.OrderID
-	resp.StockName = sellOrderBody.StockName
-	resp.Message = "Order Received"
-	newEntry := model.SellOrderBook{
-		OrderID:           sellOrderBody.OrderID,
-		StockTickerSymbol: sellOrderBody.StockName,
-		OrderQuantity:     sellOrderBody.Quantity,
-		OrderStatus:       "PENDING",
-		OrderPrice:        sellOrderBody.LimitPrice,
-		OrderType:         sellOrderBody.OrderType,
-		CreatedAt:         sellOrderBody.OrderPlacedTime,
-		UpdatedAt:         time.Now(),
+			//placing sell order
+			orderID = uuid.New().String()
+			rand.Seed(time.Now().UnixNano())
+			idx = rand.Intn(2)
+			order = orderType[idx]
+			min = stock.LTP - int(float64(stock.LTP)*PercentChange)
+			max = stock.LTP + int(float64(stock.LTP)*PercentChange)
+			time.Sleep(1 * time.Second)
+			sellOrderBody := OrderRequest{
+				OrderID:         orderID,
+				StockName:       stock.StockName,
+				OrderPlacedTime: time.Time{},
+				OrderType:       order,
+				LimitPrice:      rand.Intn(max-min+1) + min,
+				Quantity:        rand.Intn(OrdersQuantityRange) + 1,
+			}
+			_, err = SellOrder(sellOrderBody)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+		}
+		// sleep and run again
+		time.Sleep(5 * time.Second)
 	}
-	if sellOrderBody.OrderType != "Market" && sellOrderBody.OrderType != "Limit" {
-		resp.Status = "CANCELLED"
-		resp.Message = "Incorrect order type"
-		return resp, nil
-	}
-	if sellOrderBody.OrderType == "Limit" && sellOrderBody.LimitPrice == 0 {
-		resp.Status = "CANCELLED"
-		resp.Message = "Incorrect order price"
-		return resp, nil
-	}
-	ltp, err := GetLTP(sellOrderBody.StockName)
-	if err != nil {
-		log.Println(err.Error())
-		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
-		return resp, nil
-	}
-	if sellOrderBody.OrderType == "Market" {
-		newEntry.OrderPrice = ltp
-	}
-	err = config.DB.Create(&newEntry).Error
-	if err != nil {
-		log.Println(err.Error())
-		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
-		return resp, err
-	}
-	go SellOrderMatchingAlgo(sellOrderBody)
-	return resp, nil
-}
-
-// DeleteBuyOrder ...Update Delete Buy Order actions on the StockExchange database
-func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", orderId).Error
-	if err != nil {
-		deleteRes.Message = "Failed"
-		deleteRes.Success = false
-		return deleteRes, err
-	}
-	deleteRes.Message = "Success"
-	deleteRes.Success = true
-	return deleteRes, nil
-}
-
-// DeleteSellOrder ...Update Delete Sell Order actions on the StockExchange database
-func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", orderId).Error
-	if err != nil {
-		deleteRes.Success = false
-		deleteRes.Message = "Failed"
-		return deleteRes, err
-	}
-	deleteRes.Success = true
-	deleteRes.Message = "Success"
-	return deleteRes, nil
-}
-
-// ViewMarketDepth ...Returns 5 depth orders from order book
-func ViewMarketDepth(stock string) (vdRes ViewDepthResponse, err error) {
-
-	var buyBook []model.BuyOrderBook
-	err = config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
-	vdRes.Message = "Error in fetching data"
-	if err != nil {
-		return vdRes, err
-	}
-	var sellBook []model.SellOrderBook
-	err = config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
-	if err != nil {
-		return vdRes, err
-	}
-
-	vdRes.SellOrders = sellBook
-	vdRes.BuyOrders = buyBook
-	vdRes.Message = "Success"
-	return vdRes, nil
 }
