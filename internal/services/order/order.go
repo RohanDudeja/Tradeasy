@@ -1,6 +1,7 @@
 package order
 
 import (
+	"Tradeasy/config"
 	_ "Tradeasy/config"
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/provider/database"

@@ -1,8 +1,8 @@
 package payments
 
 import (
-	"Tradeasy/config"
 	"Tradeasy/internal/model"
+	"Tradeasy/internal/provider/database"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -27,7 +27,7 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 		addResponse AddResponse
 		razorpayRes RazorpayResponse
 	)
-	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
+	if err = database.GetDB().Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
 		return addRes, errors.New("trading account not found")
 	}
 	razorRequest := RazorpayRequest{
@@ -64,7 +64,7 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 		Status:         Pending,
 		PaymentType:    Add,
 		CreatedAt:      time.Now()}
-	if err = config.DB.Table("payments").Create(&pay).Error; err != nil {
+	if err = database.GetDB().Table("payments").Create(&pay).Error; err != nil {
 		return addRes, errors.New("payment failed")
 	}
 	addResponse.Message = "Click the payment link for payment"
@@ -78,7 +78,7 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes Wit
 		tradingAcc       model.TradingAccount
 		withdrawResponse WithdrawResponse
 	)
-	if err = config.DB.Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
+	if err = database.GetDB().Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
 		return withdrawRes, errors.New("trading account not found")
 	}
 	if tradingAcc.Balance < withdrawAmount {
@@ -86,7 +86,7 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes Wit
 	} else {
 		tradingAcc.Balance -= withdrawAmount
 	}
-	if err = config.DB.Table("trading_account").
+	if err = database.GetDB().Table("trading_account").
 		Where("user_id = ?", Userid).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
 		return withdrawRes, errors.New("unable to update the balance")
 	}
@@ -96,7 +96,7 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes Wit
 		Status:      Success,
 		PaymentType: Withdraw,
 		CreatedAt:   time.Now()}
-	if err = config.DB.Create(&pay).Error; err != nil {
+	if err = database.GetDB().Create(&pay).Error; err != nil {
 		return withdrawRes, errors.New("payment  failed")
 	}
 	withdrawResponse.Userid = pay.UserId
@@ -113,17 +113,17 @@ func Callback(request CallbackParamRequest) (callbackRes CallbackResponse, err e
 		callbackResponse CallbackResponse
 		tradingAcc       model.TradingAccount
 	)
-	if err = config.DB.Table("payments").Where("razorpay_link_id=?", request.RazorpayPaymentLinkID).First(&payments).Error; err != nil {
+	if err = database.GetDB().Table("payments").Where("razorpay_link_id=?", request.RazorpayPaymentLinkID).First(&payments).Error; err != nil {
 		return callbackRes, errors.New("invalid payment link")
 	}
-	if err = config.DB.Table("trading_account").Where("user_id=?", payments.UserId).First(&tradingAcc).Error; err != nil {
+	if err = database.GetDB().Table("trading_account").Where("user_id=?", payments.UserId).First(&tradingAcc).Error; err != nil {
 		return callbackRes, errors.New("trading account not found")
 	}
 	finalBalance := tradingAcc.Balance + payments.Amount
-	if err = config.DB.Table("trading_account").Update("balance", finalBalance).Error; err != nil {
+	if err = database.GetDB().Table("trading_account").Update("balance", finalBalance).Error; err != nil {
 		return callbackRes, errors.New("update balance failed")
 	}
-	if err = config.DB.Table("payments").
+	if err = database.GetDB().Table("payments").
 		Where("user_id = ? AND razorpay_link_id=?", payments.UserId, request.RazorpayPaymentLinkID).
 		Update("status", Success).Error; err != nil {
 		return callbackRes, errors.New("status not updated")

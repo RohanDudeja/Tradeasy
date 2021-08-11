@@ -24,7 +24,7 @@ func SignUp(c *gin.Context) {
 
 func UserDetails(c *gin.Context) {
 	var req user_management.UserDetailsRequest
-	userid := c.Params.ByName("Userid")
+	userid := c.Params.ByName("user_id")
 	err := c.BindJSON(&req)
 	if err != nil {
 		return

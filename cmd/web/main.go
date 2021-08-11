@@ -6,6 +6,7 @@ import (
 	"Tradeasy/internal/provider/redis"
 	"Tradeasy/internal/router"
 	"Tradeasy/internal/services/order"
+	"Tradeasy/internal/services/stock_exchange"
 	"log"
 )
 
@@ -19,6 +20,12 @@ func main() {
 	}
 	//Initializing Redis Client
 	redis.CreateClient()
+
+	//Initializing stocks
+	stock_exchange.InitialiseAllStocks()
+
+	//Initializing Randomizer
+	stock_exchange.InitialiseRandomizer()
 
 	//setup router
 	r := router.SetUpRouter()

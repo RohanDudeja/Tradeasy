@@ -2,6 +2,7 @@ package router
 
 import (
 	"Tradeasy/internal/controller"
+	webSocket "Tradeasy/internal/controller"
 	"Tradeasy/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -13,9 +14,9 @@ func SetUpRouter() *gin.Engine {
 	trade.Use(middleware.UserBasicAuth())
 	{
 
-		trade.POST(":Userid/buy", controller.BuyOrder)
-		trade.POST(":Userid/sell", controller.SellOrder)
-		trade.PATCH(":OrderId/cancel", controller.CancelOrder)
+		trade.POST(":user_id/buy", controller.BuyOrder)
+		trade.POST(":user_id/sell", controller.SellOrder)
+		trade.PATCH(":order_id/cancel", controller.CancelOrder)
 	}
 
 	exchangeBuy := r.Group("/buy_order_book")
@@ -38,12 +39,11 @@ func SetUpRouter() *gin.Engine {
 		exchangeFetch.GET(":stock_name/depth", controller.ViewMarketDepth)
 	}
 
-	//websocket:= r.Group("/socket")
-	//{
-	//	websocket.GET("/", webSocket.Home)
-	//	websocket.GET("/stocks", webSocket.StockHandler)
-	//	websocket.GET("/orders", webSocket.OrderHandler)
-	//}
+	websocket := r.Group("/socket")
+	{
+		websocket.GET("/stocks", webSocket.StockHandler)
+		websocket.GET("/orders", webSocket.OrderHandler)
+	}
 
 	watchlist := r.Group("/user_watchlist")
 	watchlist.Use(middleware.UserBasicAuth())
@@ -54,18 +54,19 @@ func SetUpRouter() *gin.Engine {
 		watchlist.PATCH("/sort", controller.SortWatchlist)
 	}
 
-	userSignUp := r.Group("/users")
+	//userSign no auth needed
+	userSign := r.Group("/users")
 	{
-		userSignUp.POST("/signup", controller.SignUp)
+		userSign.POST("/signup", controller.SignUp)
+		userSign.POST("/sign_in", controller.SignIn)
+		userSign.POST("/forgot", controller.ForgetPassword)
+		userSign.PATCH("/verify", controller.VerificationForPasswordChange)
 	}
 
 	users := r.Group("/users")
 	users.Use(middleware.UserBasicAuth())
 	{
 		users.POST("/:user_id/details", controller.UserDetails)
-		users.POST("/sign_in", controller.SignIn)
-		users.POST("/forgot", controller.ForgetPassword)
-		users.PATCH("/verify", controller.VerificationForPasswordChange)
 	}
 	payments := r.Group("/payments")
 	payments.Use(middleware.UserBasicAuth())

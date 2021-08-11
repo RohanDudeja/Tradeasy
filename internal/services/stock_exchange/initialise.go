@@ -68,7 +68,7 @@ func GetTickers(limit int) (tickers []string, err error) {
 func InitialiseStock(ticker string) {
 
 	baseURL := "https://api.polygon.io/v1/open-close/"
-	date := "/2021-08-08"
+	date := "/2021-08-04"
 	apiKey := "721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
 	stocksURL := baseURL + ticker + date + "?adjusted=true&apiKey=" + apiKey
 	req, _ := http.NewRequest("GET", stocksURL, nil)
@@ -118,4 +118,7 @@ func InitialiseAllStocks() {
 	for _, ticker := range tickers {
 		InitialiseStock(ticker)
 	}
+}
+func InitialiseRandomizer() {
+	go RandomizerAlgo()
 }

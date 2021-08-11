@@ -9,7 +9,7 @@ import (
 
 func BuyOrder(c *gin.Context) {
 	var bReq order.BuyRequest
-	id := c.Params.ByName("Userid")
+	id := c.Params.ByName("user_id")
 	c.BindJSON(&bReq)
 	bReq.UserId = id
 	bRes, err := order.BuyOrder(bReq)
@@ -24,7 +24,7 @@ func BuyOrder(c *gin.Context) {
 
 func SellOrder(c *gin.Context) {
 	var sReq order.SellRequest
-	id := c.Params.ByName("Userid")
+	id := c.Params.ByName("user_id")
 	c.BindJSON(&sReq)
 	sReq.UserId = id
 
@@ -39,7 +39,7 @@ func SellOrder(c *gin.Context) {
 }
 
 func CancelOrder(c *gin.Context) {
-	id := c.Params.ByName("OrderId")
+	id := c.Params.ByName("order_id")
 	cRes, err := order.CancelOrder(id)
 
 	if err != nil {
