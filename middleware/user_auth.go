@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"Tradeasy/config"
 	"Tradeasy/internal/services/user_management"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -27,7 +26,7 @@ func UserBasicAuth() gin.HandlerFunc {
 		}
 		_, err := user_management.UserSignIn(req)
 		if err != nil {
-			log.Fatalf("%s",err)
+			log.Fatalf("%s", err)
 			c.AbortWithStatusJSON(401, gin.H{"error": "Credentials didn't matched"})
 		}
 		c.Next()
