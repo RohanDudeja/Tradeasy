@@ -12,11 +12,10 @@ import (
 )
 
 func TestDeleteBuyOrder(t *testing.T) {
-	mysql.NewMock()
-	db, err := gorm.Open("mysql", mysql.GetSqlDB())
+	sqlDB, mock := mysql.NewMock()
+	db, err := gorm.Open("mysql", sqlDB)
 	database.SetDB(db)
 	assert.NoError(t, err)
-	mock := mysql.GetSqlMock()
 
 	query := "DELETE FROM buy_order_book WHERE order_id = ?"
 
@@ -30,11 +29,10 @@ func TestDeleteBuyOrder(t *testing.T) {
 	}
 }
 func TestDeleteSellOrder(t *testing.T) {
-	mysql.NewMock()
-	db, err := gorm.Open("mysql", mysql.GetSqlDB())
+	sqlDB, mock := mysql.NewMock()
+	db, err := gorm.Open("mysql", sqlDB)
 	database.SetDB(db)
 	assert.NoError(t, err)
-	mock := mysql.GetSqlMock()
 
 	query := "DELETE FROM sell_order_book WHERE order_id = ?"
 	mock.ExpectExec(query).WithArgs("ord123").WillReturnResult(sqlmock.NewResult(0, 1))
@@ -48,11 +46,10 @@ func TestDeleteSellOrder(t *testing.T) {
 }
 
 func TestGetLTP(t *testing.T) {
-	mysql.NewMock()
-	db, err := gorm.Open("mysql", mysql.GetSqlDB())
+	sqlDB, mock := mysql.NewMock()
+	db, err := gorm.Open("mysql", sqlDB)
 	database.SetDB(db)
 	assert.NoError(t, err)
-	mock := mysql.GetSqlMock()
 	query := "SELECT * FROM stocks WHERE stock_ticker_symbol = ?"
 	stocksTable := model.Stocks{
 		ID:                1,
