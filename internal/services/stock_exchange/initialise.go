@@ -5,14 +5,11 @@ import (
 	model "Tradeasy/internal/model/stock_exchange"
 	"bytes"
 	"encoding/json"
-	"github.com/google/uuid"
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type Response struct {
@@ -120,70 +117,5 @@ func InitialiseAllStocks() {
 	}
 	for _, ticker := range tickers {
 		InitialiseStock(ticker)
-	}
-}
-
-func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
-
-	rand.Seed(time.Now().UnixNano())
-	min := ltp - int(float64(ltp)*PercentChange)
-	max := ltp + int(float64(ltp)*PercentChange)
-	orderType := []string{Limit, Market}
-	idx := rand.Intn(2)
-	order := orderType[idx]
-	quantity = rand.Intn(OrdersQuantityRange) + 1
-	newBuy := model.BuyOrderBook{
-		OrderID:           uuid.New().String(),
-		StockTickerSymbol: ticker,
-		OrderQuantity:     quantity,
-		OrderStatus:       Pending,
-		OrderPrice:        rand.Intn(max-min+1) + min,
-		OrderType:         order,
-	}
-	if order == Market {
-		newBuy.OrderPrice, _ = GetLTP(ticker)
-	}
-	err := config.DB.Create(&newBuy).Error
-	if err != nil {
-		log.Println(err.Error())
-	}
-	time.Sleep(1 * time.Millisecond)
-	rand.Seed(time.Now().UnixNano())
-	min = ltp - int(float64(ltp)*PercentChange)
-	max = ltp + int(float64(ltp)*PercentChange)
-	idx = rand.Intn(2)
-	order = orderType[idx]
-	quantity = rand.Intn(OrdersQuantityRange) + 1
-	newSell := model.SellOrderBook{
-		OrderID:           uuid.New().String(),
-		StockTickerSymbol: ticker,
-		OrderQuantity:     quantity,
-		OrderStatus:       Pending,
-		OrderPrice:        rand.Intn(max-min+1) + min,
-		OrderType:         order,
-	}
-	if order == Market {
-		newBuy.OrderPrice, _ = GetLTP(ticker)
-	}
-	err = config.DB.Create(&newSell).Error
-	if err != nil {
-		log.Println(err.Error())
-	}
-}
-
-// InitialiseBuyersAndSellers ...create initial dummybuyers and sellers
-func InitialiseBuyersAndSellers() {
-
-	var allStocks []model.Stocks
-	err := config.DB.Raw("SELECT * FROM stocks").Scan(&allStocks).Error
-	if err != nil {
-		log.Println(err.Error())
-	}
-	//create 20 pending orders per stock in the book
-	for _, stock := range allStocks {
-		for i := 0; i < 20; i++ {
-			var quantity int
-			CreateBuyersAndSellers(stock.StockTickerSymbol, quantity, stock.LTP)
-		}
 	}
 }
