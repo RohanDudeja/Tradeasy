@@ -4,9 +4,7 @@ type AddRequest struct {
 	Amount int64 `json:"amount"`
 }
 type AddResponse struct {
-	Userid      string `json:"user_id"`
-	Amount      int64  `json:"amount"`
-	Type        string `json:"type"`
+	Message     string `json:"message"`
 	PaymentLink string `json:"payment_link"`
 }
 type WithdrawRequest struct {
@@ -62,5 +60,6 @@ type CallbackParamRequest struct {
 }
 
 type CallbackResponse struct {
-	Status string `json:"status"`
+	Balance int64  `json:"balance"`
+	Status  string `json:"status"`
 }

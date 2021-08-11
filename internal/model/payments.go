@@ -11,7 +11,7 @@ type Payments struct {
 	RazorpayLink   string    `json:"razorpay_link" gorm:"column:razorpay_link"`
 	Amount         int64     `json:"amount" gorm:"column:amount"`
 	PaymentType    string    `json:"payment_type" gorm:"column:payment_type"`
-	CurrentBalance int64     `json:"current_balance" gorm:"column:current_balance"`
+	Status         string    `json:"status" gorm:"column:status"`
 	CreatedAt      time.Time `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt      time.Time `json:"updated_at" gorm:"column:updated_at"`
 	DeletedAt      time.Time `json:"deleted_at" gorm:"column:deleted_at;default:NULL"`
