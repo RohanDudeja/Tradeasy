@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"Tradeasy/config"
 	"Tradeasy/internal/services/user_management"
 	"github.com/gin-gonic/gin"
 	"log"
