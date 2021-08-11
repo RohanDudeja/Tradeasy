@@ -7,94 +7,105 @@ import (
 )
 
 func CreateWatchlist(req CreateRequest) (res CreateResponse, err error) {
-	var user model.Users
+	var (
+		user          model.Users
+		watchlist     model.Watchlist
+		userWatchlist model.UserWatchlist
+	)
+
 	err = config.DB.Table("users").Where("user_id = ?", req.UserId).First(&user).Error
 	if err != nil {
 		return res, errors.New("user not found")
 	}
-	type Result struct {
-		Userid      string `json:"user_id"`
-		Name        string `json:"name"`
-		WatchlistId int    `json:"watchlist_id"`
-	}
-	var result []Result
-	err = config.DB.Raw("SELECT user_watchlist.user_id,user_watchlist.watchlist_id,watchlist.name FROM user_watchlist INNER JOIN watchlist ON user_watchlist.watchlist_id = watchlist.watchlist_id WHERE user_watchlist.user_id = ? AND watchlist.name = ?", req.UserId, req.WatchlistName).Scan(&result).Error
+	err = config.DB.Table("watchlist").Where("name = ?", req.WatchlistName).First(&watchlist).Error
 	if err != nil {
-		return res, err
+		watchlist.Name = req.WatchlistName
+		err = config.DB.Table("watchlist").Create(&watchlist).Error
+		if err != nil {
+			return res, errors.New("watchlist not created")
+		}
 	}
-	if len(result) != 0 {
-		return res, errors.New("watchlist name already found")
+	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlist.Id).
+		First(&userWatchlist).Error
+	if err == nil {
+		return res, errors.New("watchlist name already exists")
 	}
-	var wl model.Watchlist
-	wl.Name = req.WatchlistName
-	err = config.DB.Table("watchlist").Create(&wl).Error
+	userWatchlist.Userid = req.UserId
+	userWatchlist.WatchlistId = watchlist.Id
+
+	err = config.DB.Table("user_watchlist").Create(&userWatchlist).Error
 	if err != nil {
-		return res, errors.New("failed to create watchlist")
+		return res, errors.New("user watchlist not created")
 	}
-	var uwl model.UserWatchlist
-	uwl.WatchlistId = wl.Id
-	uwl.Userid = req.UserId
-	err = config.DB.Table("user_watchlist").Create(&uwl).Error
-	if err != nil {
-		return res, errors.New("failed to create watchlist")
-	}
+
 	res.Message = "Watchlist created"
-	res.WatchlistId = wl.Id
+	res.WatchlistId = watchlist.Id
 
 	return res, nil
 }
 
 func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, err error) {
-	var uwl model.UserWatchlist
-	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlistId).First(&uwl).Error
+	var userWatchlist model.UserWatchlist
+	err = config.DB.Table("user_watchlist").
+		Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlistId).
+		First(&userWatchlist).Error
 	if err != nil {
 		return res, errors.New("user not found")
 	}
 
-	err = config.DB.Table("user_watchlist").Where("user_id = ? AND stock_name = ? AND watchlist_id = ?", req.UserId, req.StockName, watchlistId).First(&uwl).Error
+	err = config.DB.Table("user_watchlist").
+		Where("user_id = ? AND stock_name = ? AND watchlist_id = ?", req.UserId, req.StockName, watchlistId).
+		First(&userWatchlist).Error
 	if err == nil {
 		return res, errors.New("stock name already exists")
 	}
 
-	var stockNames []string
-	err = config.DB.Table("user_watchlist").Select("stock_name").Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, "").Scan(&stockNames).Error
+	err = config.DB.Table("user_watchlist").
+		Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, "").
+		First(&userWatchlist).Error
 	if err != nil {
 		return res, err
 	}
-	if len(stockNames) == 0 {
-		uwl.Userid = req.UserId
-		uwl.WatchlistId = watchlistId
-		uwl.StockName = req.StockName
-		err = config.DB.Table("user_watchlist").Create(&uwl).Error
-
+	if userWatchlist.StockName != "" {
+		var newUserWatchlist model.UserWatchlist
+		newUserWatchlist.Userid = req.UserId
+		newUserWatchlist.WatchlistId = watchlistId
+		newUserWatchlist.StockName = req.StockName
+		err = config.DB.Table("user_watchlist").Create(&newUserWatchlist).Error
 		if err != nil {
 			return res, errors.New("stock not added")
 		}
 	} else {
-		config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, "").Update("stock_name", req.StockName)
+		userWatchlist.StockName = req.StockName
+		err = config.DB.Table("user_watchlist").
+			Update(&userWatchlist).Error
+		if err != nil {
+			return res, errors.New("stock not added")
+		}
 	}
 	res.Message = "Stock added"
 	return res, nil
 }
 
 func DeleteStockEntry(req DeleteStockRequest, watchlistId int) (res DeleteStockResponse, err error) {
-	var wl model.Watchlist
-	err = config.DB.Table("watchlist").Where("watchlist_id = ?", watchlistId).First(&wl).Error
-	if err != nil {
-		return res, errors.New("watchlist not found")
-	}
-	var uwl model.UserWatchlist
-	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlistId).First(&uwl).Error
+
+	var userWatchlist model.UserWatchlist
+	err = config.DB.Table("user_watchlist").
+		Where("user_id = ? AND watchlist_id = ?", req.UserId, watchlistId).First(&userWatchlist).Error
 	if err != nil {
 		return res, errors.New("user not found")
 	}
 
-	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, req.StockName).First(&uwl).Error
+	err = config.DB.Table("user_watchlist").
+		Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, req.StockName).
+		First(&userWatchlist).Error
 	if err != nil {
 		return res, errors.New("stock not found")
 	}
 
-	err = config.DB.Table("user_watchlist").Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, req.StockName).Delete(&uwl).Error
+	err = config.DB.Table("user_watchlist").
+		Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, req.StockName).
+		Delete(&userWatchlist).Error
 	if err != nil {
 		return res, errors.New("stock not deleted")
 	}
