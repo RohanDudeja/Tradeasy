@@ -70,12 +70,21 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		log.Println("Error in Marshalling the Executive buy order", err)
 		return bRes, err
 	}
-	response, err := http.Post(BuyOrderURL, "application/json", bytes.NewBuffer(request))
+	req, err := http.NewRequest("POST", BuyOrderURL, bytes.NewBuffer(request))
 	if err != nil {
 		log.Println("Error in response after request", err)
 		return bRes, err
 	}
-	body, _ := ioutil.ReadAll(response.Body)
+	userName := config.GetConfig().StockExchange.Authentication.UserName
+	password := config.GetConfig().StockExchange.Authentication.Password
+	req.SetBasicAuth(userName, password)
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Println("Error in getting response for buying order", err)
+		return bRes, err
+	}
+	body, _ := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &bRes)
 	if err != nil {
 		log.Println("Error in Unmarshalling the Executive buy order response", err)
@@ -148,15 +157,24 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		log.Println("Error in Marshalling the Executive sell order", err)
 		return sRes, err
 	}
-	response, err := http.Post(SellOrderURL, "application/json", bytes.NewBuffer(request))
+	req, err := http.NewRequest("POST", SellOrderURL, bytes.NewBuffer(request))
 	if err != nil {
 		log.Println("Error in response after request", err)
 		return sRes, err
 	}
-	body, _ := ioutil.ReadAll(response.Body)
+	userName := config.GetConfig().StockExchange.Authentication.UserName
+	password := config.GetConfig().StockExchange.Authentication.Password
+	req.SetBasicAuth(userName, password)
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Println("Error in getting response for selling order", err)
+		return sRes, err
+	}
+	body, _ := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &sRes)
 	if err != nil {
-		log.Println("Error in Unmarshalling the Executive buy order response", err)
+		log.Println("Error in Unmarshalling the Executive sell order response", err)
 		return sRes, err
 	}
 
@@ -182,12 +200,15 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	} else {
 		url = SellOrderURL + "/" + id
 	}
+
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		log.Println("Error in Making request for cancelling order", err)
 		return cRes, err
 	}
-
+	userName := config.GetConfig().StockExchange.Authentication.UserName
+	password := config.GetConfig().StockExchange.Authentication.Password
+	req.SetBasicAuth(userName, password)
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {

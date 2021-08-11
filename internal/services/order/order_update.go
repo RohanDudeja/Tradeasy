@@ -202,7 +202,10 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
-			} else {
+				if res.Quantity==0{
+					break
+				}
+			} else if res.Quantity<check.Quantity && res.Quantity>0{
 				orderHist := model.OrderHistory{
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
@@ -224,6 +227,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
+				break
 			}
 		}
 
@@ -284,7 +288,10 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
-			} else {
+				if res.Quantity==0{
+					break
+				}
+			} else if res.Quantity<check.Quantity && res.Quantity>0{
 				orderHist := model.OrderHistory{
 					UserId:        check.UserId,
 					OrderId:       check.OrderId,
@@ -306,6 +313,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				price = price + orderHist.Quantity*orderHist.SellPrice - orderHist.CommissionFee
+				break
 			}
 		}
 		if err = config.DB.Table("trading_account").Where("user_id=?", p.UserId).First(&account).Error; err != nil {
