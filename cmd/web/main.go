@@ -14,12 +14,8 @@ func main() {
 	if err_ != nil {
 		log.Fatalf("Gorm: failed to open DB: %v\n", err_)
 	}
+	//Initializing Redis Client
 	redis.CreateClient()
-	pong, err := redis.TestClient()
-	if err != nil {
-		log.Fatalf("Redis: failed to create client: %v\n", err)
-	}
-	log.Println(pong)
 
 	//setup router
 	r := router.SetUpRouter()

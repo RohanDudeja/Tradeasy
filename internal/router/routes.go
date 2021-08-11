@@ -8,6 +8,7 @@ import (
 
 func SetUpRouter() *gin.Engine {
 	r := gin.Default()
+
 	trade := r.Group("/pending_orders")
 	trade.Use(middleware.UserBasicAuth())
 	{
@@ -23,12 +24,14 @@ func SetUpRouter() *gin.Engine {
 		exchangeBuy.POST("buy_order", controller.ExecuteBuyOrder)
 		exchangeBuy.DELETE("buy_order/:order_id", controller.DeleteBuyOrder)
 	}
+
 	exchangeSell := r.Group("/sell_order_book")
 	exchangeSell.Use(middleware.ExchangeBasicAuth())
 	{
 		exchangeSell.POST("sell_order", controller.ExecuteSellOrder)
 		exchangeSell.DELETE("sell_order/:order_id", controller.DeleteSellOrder)
 	}
+
 	exchangeFetch := r.Group("/order_book")
 	exchangeFetch.Use(middleware.ExchangeBasicAuth())
 	{
@@ -50,10 +53,15 @@ func SetUpRouter() *gin.Engine {
 		watchlist.DELETE("/:watchlist_id", controller.DeleteStockEntry)
 		watchlist.PATCH("/sort", controller.SortWatchlist)
 	}
+
+	userSignUp := r.Group("/users")
+	{
+		userSignUp.POST("/signup", controller.SignUp)
+	}
+
 	users := r.Group("/users")
 	users.Use(middleware.UserBasicAuth())
 	{
-		users.POST("/signup", controller.SignUp)
 		users.POST("/:user_id/details", controller.UserDetails)
 		users.POST("/sign_in", controller.SignIn)
 		users.POST("/forgot", controller.ForgetPassword)
