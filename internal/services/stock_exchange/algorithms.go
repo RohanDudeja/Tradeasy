@@ -329,7 +329,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest) {
 	// db lock
 	err := config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC", buyOrderBody.StockName).Scan(&sellBook).Error
 
-	if err != nil || len(sellBook) == 0 {
+	if err != nil {
 		// abort
 		err := config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", buyOrderBody.OrderID).Error
 		if err != nil {
@@ -341,8 +341,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest) {
 
 	if buyOrderBody.OrderType == Limit {
 		BuyLimitOrder(buyOrderBody, sellBook)
-	} else {
-		//Market  order
+	} else if buyOrderBody.OrderType == Market {
 		BuyMarketOrder(buyOrderBody, sellBook)
 	}
 	//order complete
@@ -355,7 +354,7 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest) {
 	// db lock
 	err := config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC ", sellOrderBody.StockName).Scan(&buyBook).Error
 
-	if err != nil || len(buyBook) == 0 {
+	if err != nil {
 		// abort
 		err := config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", sellOrderBody.OrderID).Error
 		if err != nil {
@@ -367,8 +366,7 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest) {
 
 	if sellOrderBody.OrderType == Limit {
 		SellLimitOrder(sellOrderBody, buyBook)
-	} else {
-		//Market  order
+	} else if sellOrderBody.OrderType == Market {
 		SellMarketOrder(sellOrderBody, buyBook)
 	}
 	//order complete
