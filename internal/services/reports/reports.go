@@ -3,6 +3,7 @@ package reports
 import (
 	"Tradeasy/config"
 	"Tradeasy/internal/model"
+	"errors"
 	"time"
 )
 
@@ -12,7 +13,7 @@ func DailyPendingOrders(Userid string) (penOrderRes []DailyPendingOrderResponse,
 		dailyPendingOrderResponse []DailyPendingOrderResponse
 	)
 	if err = config.DB.Table("pending_orders").Where("user_id = ?", Userid).Find(&pendingOrders).Error; err != nil {
-		return nil, err
+		return nil, errors.New("no pending orders found")
 	}
 	for _, pendingOrder := range pendingOrders {
 		var pendingOrderResponse DailyPendingOrderResponse
@@ -38,7 +39,7 @@ func Portfolio(Userid string, request ReportsParamRequest) (portfolioRes []Portf
 	toTime := time.Unix(int64(request.To), 0)
 
 	if err := config.DB.Table("holdings").Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&holdings).Error; err != nil {
-		return nil, err
+		return nil, errors.New("no holdings found")
 	}
 	for _, holding := range holdings {
 		var portResponse PortfolioResponse
@@ -61,12 +62,12 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (ordHisRes []Orde
 	toTime := time.Unix(int64(request.To), 0)
 	if err = config.DB.Table("order_history").
 		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistory).Error; err != nil {
-		return nil, err
+		return nil, errors.New("no orders found")
 	}
 	if err = config.DB.Table("holdings").
 		Where("user_id = ? AND created_at BETWEEN ? AND ? ", Userid, fromTime, toTime).
 		Group("order_id").Unscoped().Find(&holdings).Error; err != nil {
-		return nil, err
+		return nil, errors.New("no orders found")
 
 	}
 	for _, ordHis := range orderHistory {
@@ -84,12 +85,14 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (ordHisRes []Orde
 		orderHisRes.Userid = hold.UserId
 		orderHisRes.OrderId = hold.OrderId
 		var holdingsQuantity int
-		if err = config.DB.Raw("SELECT SUM(quantity) FROM holdings WHERE user_id = ? AND order_id ", hold.UserId, hold.OrderId).Scan(&holdingsQuantity).Error; err != nil {
-			return nil, err
+		if err = config.DB.Raw("SELECT SUM(quantity) FROM holdings WHERE user_id = ? AND order_id ", hold.UserId, hold.OrderId).
+			Scan(&holdingsQuantity).Error; err != nil {
+			return nil, errors.New("problem fetching quantity")
 		}
 		var orderHistoryQuantity int
-		if err = config.DB.Raw("SELECT SUM(quantity) FROM order_history WHERE user_id = ? AND order_id ", hold.UserId, hold.OrderId).Scan(&orderHistoryQuantity).Error; err != nil {
-			return nil, err
+		if err = config.DB.Raw("SELECT SUM(quantity) FROM order_history WHERE user_id = ? AND order_id ", hold.UserId, hold.OrderId).
+			Scan(&orderHistoryQuantity).Error; err != nil {
+			return nil, errors.New("problem fetching quantity")
 		}
 		orderHisRes.StockName = hold.StockName
 		orderHisRes.Quantity = holdingsQuantity + orderHistoryQuantity
@@ -106,8 +109,10 @@ func ProfitLossHistory(Userid string, request ReportsParamRequest) (proLosRes []
 	)
 	fromTime := time.Unix(int64(request.From), 0)
 	toTime := time.Unix(int64(request.To), 0)
-	if err = config.DB.Table("order_history").Where("user_id = ?  AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&profitLossHistory).Error; err != nil {
-		return nil, err
+	if err = config.DB.Table("order_history").
+		Where("user_id = ?  AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).
+		Find(&profitLossHistory).Error; err != nil {
+		return nil, errors.New("no orders found")
 	}
 	for _, profitLoss := range profitLossHistory {
 		var proLosResponse ProfitLossHistoryResponse
