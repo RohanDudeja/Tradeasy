@@ -16,3 +16,10 @@ stock_exchange:
   authentication:
     user_name : "TradingPlatform"
     password : "PlatformPassword"
+
+# Redis configuration
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
