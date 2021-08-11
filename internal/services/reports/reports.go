@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+const (
+	Buy  = "buy"
+	Sell = "sell"
+)
+
 func DailyPendingOrders(Userid string) (penOrderRes []DailyPendingOrderResponse, err error) {
 	var (
 		pendingOrders             []model.PendingOrders
@@ -77,35 +82,32 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (ordHisRes []Orde
 		ordHistoryRes.OrderId = ordHis.OrderId
 		ordHistoryRes.StockName = ordHis.StockName
 		ordHistoryRes.Quantity = ordHis.Quantity
-		ordHistoryRes.BuySellType = "SELL"
+		ordHistoryRes.BuySellType = Sell
 		ordHisResponse = append(ordHisResponse, ordHistoryRes)
 	}
 	for _, hold := range holdings {
 		var orderHisRes OrderHistoryResponse
 		orderHisRes.Userid = hold.UserId
 		orderHisRes.OrderId = hold.OrderId
-		//type Quantity struct {
-		//	Quantity int `json:"quantity"`
-		//}
-		//var holdingsQuantity Quantity
-		//if err = config.DB.Raw("SELECT SUM(quantity) FROM holdings WHERE user_id = ? AND order_id =? ", hold.UserId, hold.OrderId).
-		//	Scan(&holdingsQuantity).Error; err != nil {
-		//	return nil, errors.New("problem fetching quantity")
-		//}
-		var holdingsQuantity int
-		if err := config.DB.Table("holdings").Select("sum(quantity)").
-			Where("user_id = ? AND order_id =? ", hold.UserId, hold.OrderId).
-			Row().Scan(&holdingsQuantity).Error; err != nil {
-			return nil, nil
+		type HoldingsQuantity struct {
+			TotalQuantity int
 		}
-		var orderHistoryQuantity int
-		if err = config.DB.Raw("SELECT SUM(quantity) FROM order_history WHERE user_id = ? AND order_id=? ", hold.UserId, hold.OrderId).
+		var holdingsQuantity HoldingsQuantity
+		if err = config.DB.Table("holdings").Select("sum(quantity) as total_quantity").
+			Where("user_id=? AND order_id=?", hold.UserId, hold.OrderId).Group("stock_name").
+			Scan(&holdingsQuantity).Error; err != nil {
+			return nil, errors.New("problem fetching quantity")
+		}
+
+		var orderHistoryQuantity HoldingsQuantity
+		if err = config.DB.Table("order_history").Select("sum(quantity) as total_quantity").
+			Where("user_id=? AND order_id=?", hold.UserId, hold.OrderId).Group("stock_name").
 			Scan(&orderHistoryQuantity).Error; err != nil {
 			return nil, errors.New("problem fetching quantity")
 		}
 		orderHisRes.StockName = hold.StockName
-		//orderHisRes.Quantity = holdingsQuantity + orderHistoryQuantity
-		orderHisRes.BuySellType = "BUY"
+		orderHisRes.Quantity = holdingsQuantity.TotalQuantity + orderHistoryQuantity.TotalQuantity
+		orderHisRes.BuySellType = Buy
 		ordHisResponse = append(ordHisResponse, orderHisRes)
 	}
 	return ordHisResponse, nil
