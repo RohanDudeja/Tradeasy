@@ -3,10 +3,9 @@ package model
 import (
 	"time"
 )
-
 // Stocks ... schema for stocks data in stock exchange
 type Stocks struct {
-	ID                int       `gorm:"primary_key;column:id" json:"id"`
+	ID                int       `gorm:"primary_key;auto_increment;column:id" json:"id"`
 	StockTickerSymbol string    `gorm:"column:stock_ticker_symbol" json:"stock_ticker_symbol,omitempty"`
 	StockName         string    `json:"stock_name,omitempty" gorm:"column:stock_name"`
 	LTP               int       `json:"ltp,omitempty" gorm:"column:ltp"`
@@ -17,7 +16,7 @@ type Stocks struct {
 	PercentageChange  int       `json:"percentage_change,omitempty" gorm:"column:percentage_change"`
 	CreatedAt         time.Time `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt         time.Time `json:"updated_at" gorm:"column:updated_at"`
-	DeletedAt         time.Time `json:"deleted_at" gorm:"column:deleted_at"`
+	DeletedAt         time.Time `json:"deleted_at" gorm:"column:deleted_at; default:NULL"`
 }
 
 func (s *Stocks) TableName() string {

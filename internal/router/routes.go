@@ -42,7 +42,16 @@ func SetUpRouter() *gin.Engine {
 	//	websocket.GET("/orders", webSocket.OrderHandler)
 	//}
 
+	watchlist := r.Group("/user_watchlist")
+	watchlist.Use(middleware.UserBasicAuth())
+	{
+		watchlist.POST("", controller.CreateWatchlist)
+		watchlist.POST("/:watchlist_id/add", controller.AddStockEntry)
+		watchlist.DELETE("/:watchlist_id", controller.DeleteStockEntry)
+		watchlist.PATCH("/sort", controller.SortWatchlist)
+	}
 	users := r.Group("/users")
+	users.Use(middleware.UserBasicAuth())
 	{
 		users.POST("/signup", controller.SignUp)
 		users.POST("/:user_id/details", controller.UserDetails)

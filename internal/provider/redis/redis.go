@@ -8,7 +8,7 @@ import (
 
 var REDIS *redis.Client
 
-func createClient() {
+func CreateClient() {
 	redisConfig := config.GetConfig().Redis
 	REDIS = redis.NewClient(&redis.Options{
 		Addr:     redisConfig.Host + ":" + string(redisConfig.Port),
@@ -16,7 +16,10 @@ func createClient() {
 		DB:       redisConfig.DB,
 	})
 }
-
+func TestClient() (pong string, err error) {
+	pong, err = REDIS.Ping().Result()
+	return pong, err
+}
 func SetValue(key string, value string, expiry time.Duration) error {
 	err := REDIS.Set(key, value, expiry).Err()
 	if err != nil {
