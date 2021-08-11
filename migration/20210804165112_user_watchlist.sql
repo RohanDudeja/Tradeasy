@@ -1,8 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS watchlist(
+CREATE TABLE IF NOT EXISTS user_watchlist(
     id int not null AUTO_INCREMENT primary key,
-    name varchar(255) not null,
+    user_id varchar(255) not null,
+    watchlist_id varchar(255) not null,
+    stock_name varchar(255) not null,
     created_at timestamp  not null,
     updated_at timestamp  not null,
     deleted_at timestamp default null
@@ -11,6 +13,5 @@ CREATE TABLE IF NOT EXISTS watchlist(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE watchlist;
+DROP TABLE user_watchlist;
 -- +goose StatementEnd
-
