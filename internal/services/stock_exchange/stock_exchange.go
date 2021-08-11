@@ -49,7 +49,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 	if err != nil {
 		log.Println(err.Error())
 		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
+		resp.Message = "Internal Error"
 		return resp, nil
 	}
 	if buyOrderBody.OrderType == "Market" {
@@ -59,7 +59,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 	if err != nil {
 		log.Println(err.Error())
 		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
+		resp.Message = "Internal Error"
 		return resp, err
 	}
 	go BuyOrderMatchingAlgo(buyOrderBody)
@@ -97,7 +97,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 	if err != nil {
 		log.Println(err.Error())
 		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
+		resp.Message = "Internal Error"
 		return resp, nil
 	}
 	if sellOrderBody.OrderType == "Market" {
@@ -107,7 +107,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 	if err != nil {
 		log.Println(err.Error())
 		resp.Status = "FAILED"
-		resp.Message = "Error in db fetch"
+		resp.Message = "Internal Error"
 		return resp, err
 	}
 	go SellOrderMatchingAlgo(sellOrderBody)
@@ -145,7 +145,7 @@ func ViewMarketDepth(stock string) (vdRes ViewDepthResponse, err error) {
 
 	var buyBook []model.BuyOrderBook
 	err = config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
-	vdRes.Message = "Error in fetching data"
+	vdRes.Message = "Internal Error"
 	if err != nil {
 		return vdRes, err
 	}

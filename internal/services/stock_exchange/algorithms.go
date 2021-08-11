@@ -12,6 +12,7 @@ import (
 
 var orderResponse = make(chan OrderResponse, 2)
 
+// UpdateLTP ...Updates ltp, high and low price for a stock
 func UpdateLTP(ltp int, stock string) {
 	currentStock := model.Stocks{}
 	err := config.DB.Table("stocks").Where("stock_ticker_symbol = ?", stock).Find(&currentStock).Error
@@ -28,6 +29,7 @@ func UpdateLTP(ltp int, stock string) {
 	}
 }
 
+// GetLTP ...FetchesLTP of a stock
 func GetLTP(stock string) (int, error) {
 	var currStockLTP []model.Stocks
 	err := config.DB.Raw("SELECT * FROM stocks WHERE stock_ticker_symbol = ?", stock).Scan(&currStockLTP).Error
@@ -38,6 +40,7 @@ func GetLTP(stock string) (int, error) {
 	return currStockLTP[0].LTP, nil
 }
 
+// UpdateMarketOrderPrices ...Updates prices of market orders
 func UpdateMarketOrderPrices(stock string) {
 
 	ltp, err := GetLTP(stock)
@@ -54,6 +57,7 @@ func UpdateMarketOrderPrices(stock string) {
 	}
 }
 
+// SendResponse ...Sends responseto response channel
 func SendResponse(stock string, status string, message string, orderId string, price int, quantity int) {
 	resp := OrderResponse{}
 	resp.StockName = stock
@@ -66,6 +70,7 @@ func SendResponse(stock string, status string, message string, orderId string, p
 	orderResponse <- resp
 }
 
+// CancelAtExpiry ...Cancels all book orders at expiry
 func CancelAtExpiry() {
 	var buyOrders []model.BuyOrderBook
 	err := config.DB.Raw("SELECT * FROM buy_order_book").Scan(&buyOrders).Error
@@ -204,6 +209,7 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 		}
 	}
 }
+
 func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 
 	ltp := 0
@@ -260,8 +266,8 @@ func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 			}
 		}
 	}
-
 }
+
 func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 
 	ltp := 0
@@ -316,6 +322,7 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 	}
 }
 
+// BuyOrderMatchingAlgo  ...Matching algorithm for buy orders
 func BuyOrderMatchingAlgo(buyOrderBody OrderRequest) {
 
 	var sellBook []model.SellOrderBook
@@ -342,6 +349,7 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest) {
 	return
 }
 
+// SellOrderMatchingAlgo  ...Matching algorithm for sell orders
 func SellOrderMatchingAlgo(sellOrderBody OrderRequest) {
 	var buyBook []model.BuyOrderBook
 	// db lock
