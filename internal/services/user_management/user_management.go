@@ -91,7 +91,7 @@ func ForgetPassword(req ForgetPasswordRequest) (res ForgetPasswordResponse, err 
 	if err != nil {
 		return res, errors.New("otp not generated")
 	}
-	err = redis.SetValue(req.EmailId, otp, OTPExpiryTime)
+	err = redis.SetValue(req.EmailId,otp,OTPExpiryTime)
 	if err != nil {
 		return res, errors.New("otp not generated")
 	}
