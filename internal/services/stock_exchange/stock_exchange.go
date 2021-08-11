@@ -7,21 +7,23 @@ import (
 	"time"
 )
 
-//import (
-//	"Tradeasy/config"
-//	"encoding/json"
-//	"github.com/gorilla/websocket"
-//	"log"
-//	"time"
-//)
-
 //orderUpdated is used by GetUpdates whenever matching algo updates the data for particular order
 //var orderUpdated = make(chan OrderResponse)
+
+const (
+	Pending   = "PENDING"
+	Completed = "COMPLETED"
+	Partial   = "PARTIAL"
+	Cancelled = "CANCELLED"
+	Failed    = "FAILED"
+	Market    = "Market"
+	Limit     = "Limit"
+)
 
 // BuyOrder ...Update Buy Order actions on the StockExchange database
 func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 
-	resp.Status = "PENDING"
+	resp.Status = Pending
 	resp.OrderID = buyOrderBody.OrderID
 	resp.StockName = buyOrderBody.StockName
 	resp.Message = "Order Received"
@@ -29,36 +31,36 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 		OrderID:           buyOrderBody.OrderID,
 		StockTickerSymbol: buyOrderBody.StockName,
 		OrderQuantity:     buyOrderBody.Quantity,
-		OrderStatus:       "PENDING",
+		OrderStatus:       Pending,
 		OrderPrice:        buyOrderBody.LimitPrice,
 		OrderType:         buyOrderBody.OrderType,
 		CreatedAt:         buyOrderBody.OrderPlacedTime,
 		UpdatedAt:         time.Now(),
 	}
-	if buyOrderBody.OrderType != "Market" && buyOrderBody.OrderType != "Limit" {
-		resp.Status = "CANCELLED"
+	if buyOrderBody.OrderType != Market && buyOrderBody.OrderType != Limit {
+		resp.Status = Cancelled
 		resp.Message = "Incorrect order type"
 		return resp, nil
 	}
-	if buyOrderBody.OrderType == "Limit" && buyOrderBody.LimitPrice == 0 {
-		resp.Status = "CANCELLED"
+	if buyOrderBody.OrderType == Limit && buyOrderBody.LimitPrice == 0 {
+		resp.Status = Cancelled
 		resp.Message = "Incorrect order price"
 		return resp, nil
 	}
 	ltp, err := GetLTP(buyOrderBody.StockName)
 	if err != nil {
 		log.Println(err.Error())
-		resp.Status = "FAILED"
+		resp.Status = Failed
 		resp.Message = "Internal Error"
 		return resp, nil
 	}
-	if buyOrderBody.OrderType == "Market" {
+	if buyOrderBody.OrderType == Market {
 		newEntry.OrderPrice = ltp
 	}
 	err = config.DB.Create(&newEntry).Error
 	if err != nil {
 		log.Println(err.Error())
-		resp.Status = "FAILED"
+		resp.Status = Failed
 		resp.Message = "Internal Error"
 		return resp, err
 	}
@@ -69,7 +71,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 // SellOrder ...Update Sell Order actions on the StockExchange database
 func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
-	resp.Status = "PENDING"
+	resp.Status = Pending
 	resp.OrderID = sellOrderBody.OrderID
 	resp.StockName = sellOrderBody.StockName
 	resp.Message = "Order Received"
@@ -77,36 +79,36 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 		OrderID:           sellOrderBody.OrderID,
 		StockTickerSymbol: sellOrderBody.StockName,
 		OrderQuantity:     sellOrderBody.Quantity,
-		OrderStatus:       "PENDING",
+		OrderStatus:       Pending,
 		OrderPrice:        sellOrderBody.LimitPrice,
 		OrderType:         sellOrderBody.OrderType,
 		CreatedAt:         sellOrderBody.OrderPlacedTime,
 		UpdatedAt:         time.Now(),
 	}
-	if sellOrderBody.OrderType != "Market" && sellOrderBody.OrderType != "Limit" {
-		resp.Status = "CANCELLED"
+	if sellOrderBody.OrderType != Market && sellOrderBody.OrderType != Limit {
+		resp.Status = Cancelled
 		resp.Message = "Incorrect order type"
 		return resp, nil
 	}
-	if sellOrderBody.OrderType == "Limit" && sellOrderBody.LimitPrice == 0 {
-		resp.Status = "CANCELLED"
+	if sellOrderBody.OrderType == Limit && sellOrderBody.LimitPrice == 0 {
+		resp.Status = Cancelled
 		resp.Message = "Incorrect order price"
 		return resp, nil
 	}
 	ltp, err := GetLTP(sellOrderBody.StockName)
 	if err != nil {
 		log.Println(err.Error())
-		resp.Status = "FAILED"
+		resp.Status = Failed
 		resp.Message = "Internal Error"
 		return resp, nil
 	}
-	if sellOrderBody.OrderType == "Market" {
+	if sellOrderBody.OrderType == Market {
 		newEntry.OrderPrice = ltp
 	}
 	err = config.DB.Create(&newEntry).Error
 	if err != nil {
 		log.Println(err.Error())
-		resp.Status = "FAILED"
+		resp.Status = Failed
 		resp.Message = "Internal Error"
 		return resp, err
 	}

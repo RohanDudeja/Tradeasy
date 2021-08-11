@@ -30,11 +30,13 @@ type StockFeed struct {
 	Low       float64 `json:"low"`
 }
 
-const PercentChange = 0.01
-const OrdersQuantityRange = 100
-const StocksNeeded = 20
+const (
+	PercentChange       = 0.01
+	OrdersQuantityRange = 100
+	StocksNeeded        = 20
+)
 
-// GetTickers ...Get tickers as per requirement to be usedfor stocks initialisation
+// GetTickers ...Get tickers as per requirement to be used stocks initialisation
 func GetTickers(limit int) (tickers []string, err error) {
 	apiKey := "721mkXq0CBNvCMi5iyJ9E1gBRDiFcT8b"
 	baseURL := "https://api.polygon.io/v3/reference/tickers?active=true&sort=primary_exchange&order=asc&limit="
@@ -126,7 +128,7 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 	rand.Seed(time.Now().UnixNano())
 	min := ltp - int(float64(ltp)*PercentChange)
 	max := ltp + int(float64(ltp)*PercentChange)
-	orderType := []string{"Limit", "Market"}
+	orderType := []string{Limit, Market}
 	idx := rand.Intn(2)
 	order := orderType[idx]
 	quantity = rand.Intn(OrdersQuantityRange) + 1
@@ -134,11 +136,11 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 		OrderID:           uuid.New().String(),
 		StockTickerSymbol: ticker,
 		OrderQuantity:     quantity,
-		OrderStatus:       "Pending",
+		OrderStatus:       Pending,
 		OrderPrice:        rand.Intn(max-min+1) + min,
 		OrderType:         order,
 	}
-	if order == "Market" {
+	if order == Market {
 		newBuy.OrderPrice, _ = GetLTP(ticker)
 	}
 	err := config.DB.Create(&newBuy).Error
@@ -156,11 +158,11 @@ func CreateBuyersAndSellers(ticker string, quantity int, ltp int) {
 		OrderID:           uuid.New().String(),
 		StockTickerSymbol: ticker,
 		OrderQuantity:     quantity,
-		OrderStatus:       "Pending",
+		OrderStatus:       Pending,
 		OrderPrice:        rand.Intn(max-min+1) + min,
 		OrderType:         order,
 	}
-	if order == "Market" {
+	if order == Market {
 		newBuy.OrderPrice, _ = GetLTP(ticker)
 	}
 	err = config.DB.Create(&newSell).Error
@@ -184,5 +186,4 @@ func InitialiseBuyersAndSellers() {
 			CreateBuyersAndSellers(stock.StockTickerSymbol, quantity, stock.LTP)
 		}
 	}
-
 }
