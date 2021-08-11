@@ -16,6 +16,7 @@ func createClient() {
 		DB:       redisConfig.DB,
 	})
 }
+
 func SetValue(key string, value string, expiry time.Duration) error {
 	err := REDIS.Set(key, value, expiry).Err()
 	if err != nil {
