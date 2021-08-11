@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS sell_order_book(
     order_quantity int not null,
     order_status varchar(255) not null,
     order_price int not null,
+    order_type varchar(255) not null,
     created_at timestamp not null,
     updated_at timestamp not null,
     deleted_at timestamp default null
