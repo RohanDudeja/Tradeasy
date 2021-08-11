@@ -84,18 +84,27 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (ordHisRes []Orde
 		var orderHisRes OrderHistoryResponse
 		orderHisRes.Userid = hold.UserId
 		orderHisRes.OrderId = hold.OrderId
+		//type Quantity struct {
+		//	Quantity int `json:"quantity"`
+		//}
+		//var holdingsQuantity Quantity
+		//if err = config.DB.Raw("SELECT SUM(quantity) FROM holdings WHERE user_id = ? AND order_id =? ", hold.UserId, hold.OrderId).
+		//	Scan(&holdingsQuantity).Error; err != nil {
+		//	return nil, errors.New("problem fetching quantity")
+		//}
 		var holdingsQuantity int
-		if err = config.DB.Raw("SELECT SUM(quantity) FROM holdings WHERE user_id = ? AND order_id ", hold.UserId, hold.OrderId).
-			Scan(&holdingsQuantity).Error; err != nil {
-			return nil, errors.New("problem fetching quantity")
+		if err := config.DB.Table("holdings").Select("sum(quantity)").
+			Where("user_id = ? AND order_id =? ", hold.UserId, hold.OrderId).
+			Row().Scan(&holdingsQuantity).Error; err != nil {
+			return nil, nil
 		}
 		var orderHistoryQuantity int
-		if err = config.DB.Raw("SELECT SUM(quantity) FROM order_history WHERE user_id = ? AND order_id ", hold.UserId, hold.OrderId).
+		if err = config.DB.Raw("SELECT SUM(quantity) FROM order_history WHERE user_id = ? AND order_id=? ", hold.UserId, hold.OrderId).
 			Scan(&orderHistoryQuantity).Error; err != nil {
 			return nil, errors.New("problem fetching quantity")
 		}
 		orderHisRes.StockName = hold.StockName
-		orderHisRes.Quantity = holdingsQuantity + orderHistoryQuantity
+		//orderHisRes.Quantity = holdingsQuantity + orderHistoryQuantity
 		orderHisRes.BuySellType = "BUY"
 		ordHisResponse = append(ordHisResponse, orderHisRes)
 	}
