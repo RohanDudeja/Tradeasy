@@ -9,49 +9,56 @@ import (
 
 func DailyPendingOrders(c *gin.Context) {
 	id := c.Params.ByName("user_id")
-	penOrderRes, err := reports.DailyPendingOrders(id)
+	pendingOrderResponse, err := reports.DailyPendingOrders(id)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, penOrderRes)
+		c.JSON(http.StatusOK, pendingOrderResponse)
 	}
 }
 func Portfolio(c *gin.Context) {
 	var reportsParamRequest reports.ReportsParamRequest
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
 	}
-	PortfolioRes, err := reports.Portfolio(id, reportsParamRequest)
+	PortfolioResponse, err := reports.Portfolio(id, reportsParamRequest)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, PortfolioRes)
+		c.JSON(http.StatusOK, PortfolioResponse)
 	}
 }
 func OrdersHistory(c *gin.Context) {
 	var reportsParamRequest reports.ReportsParamRequest
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
 	}
-	ordHisRes, err := reports.OrdersHistory(id, reportsParamRequest)
+	orderHisResponse, err := reports.OrdersHistory(id, reportsParamRequest)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, ordHisRes)
+		c.JSON(http.StatusOK, orderHisResponse)
 	}
 }
 func ProfitLossHistory(c *gin.Context) {
 	var reportsParamRequest reports.ReportsParamRequest
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
 	}
-	proLosRes, err := reports.ProfitLossHistory(id, reportsParamRequest)
+	profitLossResponse, err := reports.ProfitLossHistory(id, reportsParamRequest)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, proLosRes)
+		c.JSON(http.StatusOK, profitLossResponse)
 	}
 }

@@ -24,19 +24,21 @@ type PortfolioResponse struct {
 	BuyPrice  int    `json:"buy_price"`
 }
 type OrderHistoryResponse struct {
-	Userid    string `json:"user_id"`
-	OrderId   string `json:"order_id"`
-	StockName string `json:"stock_name"`
-	Quantity  int    `json:"quantity"`
-	BuyPrice  int    `json:"buy_price"`
-	SellPrice int    `json:"sell_price"`
+	Userid      string `json:"user_id"`
+	OrderId     string `json:"order_id"`
+	StockName   string `json:"stock_name"`
+	Quantity    int    `json:"quantity"`
+	BuySellType string `json:"buy_sell_type"`
+	//BuyPrice    int    `json:"buy_price"`
+	//SellPrice   int    `json:"sell_price"`
 }
 type ProfitLossHistoryResponse struct {
-	Userid     string `json:"user_id"`
-	OrderId    string `json:"order_id"`
-	StockName  string `json:"stock_name"`
-	Quantity   int    `json:"quantity"`
-	BuyPrice   int    `json:"buy_price"`
-	SellPrice  int    `json:"sell_price"`
-	ProfitLoss int    `json:"profit_loss"`
+	Userid          string `json:"user_id"`
+	OrderId         string `json:"order_id"`
+	StockName       string `json:"stock_name"`
+	Quantity        int    `json:"quantity"`
+	BuyPrice        int    `json:"buy_price"`
+	SellPrice       int    `json:"sell_price"`
+	ProfitLoss      int    `json:"profit_loss"`
+	CumulatedProfit int    `json:"cumulated_profit"`
 }
