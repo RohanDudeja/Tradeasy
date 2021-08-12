@@ -94,14 +94,14 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 		}
 		var holdingsQuantity HoldingsQuantity
 		if err = database.GetDB().Table("holdings").Select("sum(quantity) as total_quantity").
-			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).Group("stock_name").
+			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).
 			Scan(&holdingsQuantity).Error; err != nil {
 			return nil, errors.New("problem fetching quantity")
 		}
 
 		var orderHistoryQuantity HoldingsQuantity
 		if err = database.GetDB().Table("order_history").Select("sum(quantity) as total_quantity").
-			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).Group("stock_name").
+			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).
 			Scan(&orderHistoryQuantity).Error; err != nil {
 			return nil, errors.New("problem fetching quantity")
 		}
