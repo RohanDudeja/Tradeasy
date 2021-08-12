@@ -39,6 +39,7 @@ func SetUpRouter() *gin.Engine {
 	}
 
 	websocket := r.Group("/socket")
+	websocket.Use(middleware.ExchangeBasicAuth())
 	{
 		websocket.GET("/stocks", controller.StockHandler)
 		websocket.GET("/orders", controller.OrderHandler)
