@@ -115,7 +115,8 @@ func VerificationForPasswordChange(req VerifyRequest) (res VerifyResponse, err e
 }
 
 func CheckUserDetails(userid string) error {
-	err := database.GetDB().Table("trading_account").Where("user_id = ? ", userid).Error
+	var details model.TradingAccount
+	err := database.GetDB().Table("trading_account").Where("user_id = ? ", userid).First(&details).Error
 	if err != nil {
 		return errors.New("add your details first")
 	}

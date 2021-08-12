@@ -62,7 +62,7 @@ func UserVerificationAuth() gin.HandlerFunc {
 		err = user_management.CheckUserDetails(userID)
 		if err != nil {
 			log.Println(err)
-			c.AbortWithStatusJSON(401, gin.H{"error": err})
+			c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
 		}
 		c.Next()
 	}
