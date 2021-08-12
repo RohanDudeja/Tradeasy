@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type HoldingsQuantity struct {
@@ -94,6 +95,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 
 	if bRes.Status == Pending {
 		account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
+		account.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in Updating Balance in Trading Account", err)
 			return bRes, errors.New("error in Updating Balance in Trading Account")
@@ -229,6 +231,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	cRes.StockName = p.StockName
 	if dRes.Success == true {
 		p.Status = Cancelled
+		p.UpdatedAt=time.Now()
 		cRes.Status = Cancelled
 		cRes.Message = dRes.Message
 		if p.OrderType == Buy {
@@ -242,6 +245,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			} else if p.BookType == Limit {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
+			account.UpdatedAt=time.Now()
 			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return cRes, errors.New("error in updating the balance for trading account")
