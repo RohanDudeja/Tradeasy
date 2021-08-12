@@ -96,7 +96,7 @@ func DeleteStockEntry(req DeleteStockRequest, watchlistId int) (res DeleteStockR
 	if err != nil {
 		return res, errors.New("user not found")
 	}
-
+	userWatchlist = model.UserWatchlist{}
 	err = database.GetDB().Table("user_watchlist").
 		Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, req.StockName).
 		First(&userWatchlist).Error
