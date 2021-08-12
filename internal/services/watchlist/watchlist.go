@@ -4,6 +4,7 @@ import (
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/provider/database"
 	"errors"
+	"log"
 )
 
 func CreateWatchlist(req CreateRequest) (res CreateResponse, err error) {
@@ -63,10 +64,7 @@ func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, 
 	err = database.GetDB().Table("user_watchlist").
 		Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, "").
 		First(&userWatchlist).Error
-	if err != nil {
-		return res, err
-	}
-	if userWatchlist.StockName != "" {
+	if err != nil && userWatchlist.StockName != "" {
 		var newUserWatchlist model.UserWatchlist
 		newUserWatchlist.Userid = req.UserId
 		newUserWatchlist.WatchlistId = watchlistId
@@ -75,13 +73,16 @@ func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, 
 		if err != nil {
 			return res, errors.New("stock not added")
 		}
-	} else {
+	} else if err == nil {
 		userWatchlist.StockName = req.StockName
 		err = database.GetDB().Table("user_watchlist").
 			Update(&userWatchlist).Error
 		if err != nil {
 			return res, errors.New("stock not added")
 		}
+	} else {
+		log.Println(err)
+		return res, err
 	}
 	res.Message = "Stock added"
 	return res, nil

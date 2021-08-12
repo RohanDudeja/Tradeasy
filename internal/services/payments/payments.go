@@ -58,7 +58,7 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 	}
 	pay := model.Payments{
 		UserId:         Userid,
-		Amount:         addAmount / 100,
+		Amount:         addAmount,
 		RazorpayLink:   razorpayRes.ShortURL,
 		RazorpayLinkId: razorpayRes.ID,
 		Status:         Pending,
@@ -120,7 +120,7 @@ func Callback(request CallbackParamRequest) (callbackRes CallbackResponse, err e
 		return callbackRes, errors.New("trading account not found")
 	}
 	finalBalance := tradingAcc.Balance + payments.Amount
-	if err = database.GetDB().Table("trading_account").Update("balance", finalBalance).Error; err != nil {
+	if err = database.GetDB().Table("trading_account").Where("user_id=?", payments.UserId).Update("balance", finalBalance).Error; err != nil {
 		return callbackRes, errors.New("update balance failed")
 	}
 	if err = database.GetDB().Table("payments").
