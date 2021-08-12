@@ -6,6 +6,7 @@ import (
 	"log"
 )
 
+//UserBasicAuth is just checking if account exists for user
 func UserBasicAuth() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
@@ -33,6 +34,8 @@ func UserBasicAuth() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+//UserVerificationAuth checks if user had added PAN details or not
 func UserVerificationAuth() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
