@@ -1,8 +1,8 @@
 package stock_exchange
 
 import (
-	"Tradeasy/config"
 	model "Tradeasy/internal/model/stock_exchange"
+	"Tradeasy/internal/provider/database"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -101,7 +101,7 @@ func InitialiseStock(ticker string) {
 		PercentageChange:  int(100.0 * (parsedResponse.PrevClose - parsedResponse.LTP) / parsedResponse.PrevClose),
 	}
 	if parsedResponse.Ticker != "" {
-		err := config.DB.Create(&newStock).Error
+		err := database.GetDB().Create(&newStock).Error
 		if err != nil {
 			log.Println(err.Error())
 		}
