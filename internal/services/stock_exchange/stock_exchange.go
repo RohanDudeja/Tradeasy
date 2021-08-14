@@ -120,7 +120,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
 // DeleteBuyOrder ...Update Delete Buy Order actions on the StockExchange database
 func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = database.GetDB().Exec("DELETE FROM buy_order_book WHERE order_id = ?", orderId).Error
+	err = database.GetDB().Table("buy_order_book").Where("order_id= ?", orderId).Delete(model.BuyOrderBook{}).Error
 	if err != nil {
 		deleteRes.Message = "Failed"
 		deleteRes.Success = false
@@ -133,7 +133,7 @@ func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
 
 // DeleteSellOrder ...Update Delete Sell Order actions on the StockExchange database
 func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = database.GetDB().Exec("DELETE FROM sell_order_book WHERE order_id = ?", orderId).Error
+	err = database.GetDB().Table("sell_order_book").Where("order_id= ?", orderId).Delete(model.SellOrderBook{}).Error
 	if err != nil {
 		deleteRes.Success = false
 		deleteRes.Message = "Failed"
@@ -148,13 +148,13 @@ func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
 func ViewMarketDepth(stock string) (vdRes ViewDepthResponse, err error) {
 
 	var buyBook []model.BuyOrderBook
-	err = database.GetDB().Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
+	err = database.GetDB().Raw("SELECT * FROM buy_order_book WHERE deleted_at IS NULL AND stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
 	vdRes.Message = "Internal Error"
 	if err != nil {
 		return vdRes, err
 	}
 	var sellBook []model.SellOrderBook
-	err = database.GetDB().Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
+	err = database.GetDB().Raw("SELECT * FROM sell_order_book WHERE deleted_at IS NULL AND stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
 	if err != nil {
 		return vdRes, err
 	}
