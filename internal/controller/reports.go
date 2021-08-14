@@ -12,7 +12,7 @@ func DailyPendingOrders(c *gin.Context) {
 	response, err := reports.DailyPendingOrders(id)
 	if err != nil {
 		log.Println(err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
@@ -22,12 +22,12 @@ func Portfolio(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusBadRequest, gin.H{"Message": "Error in binding query parameters"})
 	}
 	response, err := reports.Portfolio(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
@@ -37,12 +37,12 @@ func OrdersHistory(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusBadRequest, gin.H{"Message": "Error in binding query parameters"})
 	}
 	response, err := reports.OrdersHistory(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
@@ -52,12 +52,12 @@ func ProfitLossHistory(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusBadRequest, gin.H{"Message": "Error in binding query parameters"})
 	}
 	response, err := reports.ProfitLossHistory(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
-		c.AbortWithStatus(http.StatusNotFound)
+		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
