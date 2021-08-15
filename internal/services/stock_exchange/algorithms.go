@@ -20,6 +20,7 @@ func UpdateLTP(ltp int, stock string) {
 	}
 	currentStock.HighPrice = int(math.Max(float64(ltp), float64(currentStock.HighPrice)))
 	currentStock.LowPrice = int(math.Min(float64(ltp), float64(currentStock.LowPrice)))
+	currentStock.PercentageChange = int(100.0 * (float64(currentStock.PreviousDayClose) - float64(ltp)) / float64(currentStock.PreviousDayClose))
 	currentStock.LTP = ltp
 	currentStock.UpdatedAt = time.Now()
 	err = database.GetDB().Table("stocks").Where("id = ?", currentStock.ID).Updates(&currentStock).Error
@@ -97,6 +98,13 @@ func CancelAtExpiry() {
 			log.Println(err.Error())
 		} else {
 			SendResponse(false, order.StockTickerSymbol, Cancelled, "Expiry Time Reached", order.OrderID, order.OrderPrice, order.OrderQuantity)
+		}
+	}
+	//reset all prices of a stock at midnight
+	if time.Now().Hour() >= 0 && time.Now().Hour() < 9 {
+		err = database.GetDB().Exec("UPDATE stocks SET open_price = ltp, high_price = ltp, low_price = ltp, previous_day_close = ltp, percentage_change = ? ", 0).Error
+		if err != nil {
+			log.Println(err.Error())
 		}
 	}
 }
@@ -378,7 +386,7 @@ func RandomizerAlgo() {
 
 	for {
 		currentHour := time.Now().Hour()
-		if currentHour >= 3 && currentHour < 9 {
+		if currentHour >= ExpiryTime || currentHour < StartTime {
 			CancelAtExpiry()
 			time.Sleep(1 * time.Minute)
 			continue

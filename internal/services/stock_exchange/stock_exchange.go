@@ -13,13 +13,15 @@ import (
 var orderUpdated = make(chan OrderResponse)
 
 const (
-	Pending   = "PENDING"
-	Completed = "COMPLETED"
-	Partial   = "PARTIAL"
-	Cancelled = "CANCELLED"
-	Failed    = "FAILED"
-	Market    = "Market"
-	Limit     = "Limit"
+	Pending    = "PENDING"
+	Completed  = "COMPLETED"
+	Partial    = "PARTIAL"
+	Cancelled  = "CANCELLED"
+	Failed     = "FAILED"
+	Market     = "Market"
+	Limit      = "Limit"
+	ExpiryTime = 22 // 22:00 IST expiry time
+	StartTime  = 9  // trades begin at 09:00 IST
 )
 
 // BuyOrder ...Update Buy Order actions on the StockExchange database
@@ -28,7 +30,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 	resp.OrderID = buyOrderBody.OrderID
 	resp.StockName = buyOrderBody.StockName
 	currentTime := time.Now().Hour()
-	if currentTime >= 3 && currentTime < 9 {
+	if currentTime >= ExpiryTime || currentTime < StartTime {
 		resp.Status = Cancelled
 		resp.Message = "Cannot place orders at this time. Market closed."
 		return resp, nil
@@ -82,7 +84,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 	resp.OrderID = sellOrderBody.OrderID
 	resp.StockName = sellOrderBody.StockName
 	currentTime := time.Now().Hour()
-	if currentTime >= 3 && currentTime < 9 {
+	if currentTime >= ExpiryTime || currentTime < StartTime {
 		resp.Status = Cancelled
 		resp.Message = "Cannot place orders at this time. Market closed."
 		return resp, nil
