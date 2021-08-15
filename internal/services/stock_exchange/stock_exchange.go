@@ -25,9 +25,15 @@ const (
 // BuyOrder ...Update Buy Order actions on the StockExchange database
 func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 
-	resp.Status = Pending
 	resp.OrderID = buyOrderBody.OrderID
 	resp.StockName = buyOrderBody.StockName
+	currentTime := time.Now().Hour()
+	if currentTime >= 3 && currentTime < 9 {
+		resp.Status = Cancelled
+		resp.Message = "Cannot place orders at this time. Market closed."
+		return resp, nil
+	}
+	resp.Status = Pending
 	resp.Message = "Order Received"
 	newEntry := model.BuyOrderBook{
 		OrderID:           buyOrderBody.OrderID,
@@ -73,9 +79,15 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 // SellOrder ...Update Sell Order actions on the StockExchange database
 func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
-	resp.Status = Pending
 	resp.OrderID = sellOrderBody.OrderID
 	resp.StockName = sellOrderBody.StockName
+	currentTime := time.Now().Hour()
+	if currentTime >= 3 && currentTime < 9 {
+		resp.Status = Cancelled
+		resp.Message = "Cannot place orders at this time. Market closed."
+		return resp, nil
+	}
+	resp.Status = Pending
 	resp.Message = "Order Received"
 	newEntry := model.SellOrderBook{
 		OrderID:           sellOrderBody.OrderID,

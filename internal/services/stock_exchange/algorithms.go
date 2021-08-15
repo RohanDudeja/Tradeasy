@@ -330,7 +330,6 @@ func BuyOrderMatchingAlgo(buyOrderBody OrderRequest) {
 	var sellBook []model.SellOrderBook
 	// db lock
 	err := database.GetDB().Raw("SELECT * FROM sell_order_book WHERE deleted_at IS NULL AND stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC", buyOrderBody.StockName).Scan(&sellBook).Error
-
 	if err != nil {
 		// abort
 		err := database.GetDB().Table("buy_order_book").Where("order_id= ?", buyOrderBody.OrderID).Delete(model.BuyOrderBook{}).Error
@@ -355,7 +354,6 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest) {
 	var buyBook []model.BuyOrderBook
 	// db lock
 	err := database.GetDB().Raw("SELECT * FROM buy_order_book WHERE deleted_at IS NULL AND stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC ", sellOrderBody.StockName).Scan(&buyBook).Error
-
 	if err != nil {
 		// abort
 		err := database.GetDB().Table("sell_order_book").Where("order_id= ?", sellOrderBody.OrderID).Delete(model.SellOrderBook{}).Error
@@ -379,6 +377,12 @@ func SellOrderMatchingAlgo(sellOrderBody OrderRequest) {
 func RandomizerAlgo() {
 
 	for {
+		currentHour := time.Now().Hour()
+		if currentHour >= 3 && currentHour < 9 {
+			CancelAtExpiry()
+			time.Sleep(1 * time.Minute)
+			continue
+		}
 		var allStocks []model.Stocks
 		err := database.GetDB().Table("stocks").Find(&allStocks).Error
 		if err != nil {
