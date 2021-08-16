@@ -6,6 +6,7 @@ import (
 	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/services/stock_exchange"
 	"log"
+	"time"
 )
 
 func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
@@ -19,6 +20,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		p.Status = Failed
+		p.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating status in pending orders", err)
 			return err
@@ -33,6 +35,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		} else if p.BookType == Limit {
 			account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 		}
+		account.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in updating balance in trading account", err)
 			return err
@@ -49,6 +52,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		p.Status = Completed
+		p.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating status in pending orders", err)
 			return err
@@ -67,6 +71,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
+			account.UpdatedAt=time.Now()
 			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
@@ -77,6 +82,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
+			account.UpdatedAt=time.Now()
 			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
@@ -99,6 +105,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 		}
 		p.Status = Partial
 		p.Quantity = p.Quantity - res.Quantity
+		p.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating orders in pending orders", err)
 			return err
@@ -118,6 +125,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.OrderPrice-res.AveragePrice)*res.Quantity)
+			account.UpdatedAt=time.Now()
 			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
@@ -128,6 +136,7 @@ func UpdateBuyOrder(res *stock_exchange.OrderResponse) (err error) {
 				return err
 			}
 			account.Balance = account.Balance + int64((p.LimitPrice-res.AveragePrice)*res.Quantity)
+			account.UpdatedAt=time.Now()
 			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return err
@@ -152,6 +161,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		p.Status = Failed
+		p.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating status in pending orders", err)
 			return err
@@ -168,6 +178,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		p.Status = Completed
+		p.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating order in pending orders", err)
 			return err
@@ -223,6 +234,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				check.Quantity = check.Quantity - res.Quantity
+				check.UpdatedAt=time.Now()
 				if err = database.GetDB().Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
 					log.Println("Error in updating holdings", err)
 					return err
@@ -237,6 +249,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		account.Balance = account.Balance + int64(price)
+		account.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in updating balance in trading account", err)
 			return err
@@ -255,6 +268,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 		}
 		p.Status = Partial
 		p.Quantity = p.Quantity - res.Quantity
+		p.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("pending_orders").Where("order_id=?", res.OrderID).Updates(&p).Error; err != nil {
 			log.Println("Error in updating order in pending orders", err)
 			return err
@@ -309,6 +323,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 					return err
 				}
 				check.Quantity = check.Quantity - res.Quantity
+				check.UpdatedAt=time.Now()
 				if err = database.GetDB().Table("holdings").Where("id=?", check.Id).Updates(&check).Error; err != nil {
 					log.Println("Error in updating holdings", err)
 					return err
@@ -322,6 +337,7 @@ func UpdateSellOrder(res *stock_exchange.OrderResponse) (err error) {
 			return err
 		}
 		account.Balance = account.Balance + int64(price)
+		account.UpdatedAt=time.Now()
 		if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in updating balance in trading account", err)
 			return err
