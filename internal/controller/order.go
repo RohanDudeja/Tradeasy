@@ -13,14 +13,20 @@ func BuyOrder(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	err:=c.BindJSON(&bReq)
 	if err!=nil{
-		c.JSON(http.StatusBadRequest,gin.H{"Message":"Error in the Given Order Request Body"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusBadRequest,
+		})
 	}
 	bReq.UserId = id
 	bRes, err := order.BuyOrder(bReq)
 
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError,gin.H{"Error Message":err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
 	} else {
 		c.JSON(http.StatusOK, bRes)
 	}
@@ -31,7 +37,10 @@ func SellOrder(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	err:=c.BindJSON(&sReq)
 	if err!=nil{
-		c.JSON(http.StatusBadRequest,gin.H{"Message":"Error in the Given Order Request Body"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusBadRequest,
+		})
 	}
 	sReq.UserId = id
 
@@ -39,7 +48,10 @@ func SellOrder(c *gin.Context) {
 
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError,gin.H{"Error Message":err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
 	} else {
 		c.JSON(http.StatusOK, sRes)
 	}
@@ -51,7 +63,10 @@ func CancelOrder(c *gin.Context) {
 
 	if err != nil {
 		fmt.Println(err.Error())
-		c.JSON(http.StatusInternalServerError,gin.H{"Error Message":err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
 	} else {
 		c.JSON(http.StatusOK, cRes)
 	}

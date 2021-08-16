@@ -12,7 +12,10 @@ func DailyPendingOrders(c *gin.Context) {
 	response, err := reports.DailyPendingOrders(id)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
@@ -22,12 +25,18 @@ func Portfolio(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"Message": "Error in binding query parameters"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusBadRequest,
+		})
 	}
 	response, err := reports.Portfolio(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
@@ -37,12 +46,18 @@ func OrdersHistory(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"Message": "Error in binding query parameters"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusBadRequest,
+		})
 	}
 	response, err := reports.OrdersHistory(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
@@ -52,12 +67,18 @@ func ProfitLossHistory(c *gin.Context) {
 	id := c.Params.ByName("user_id")
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"Message": "Error in binding query parameters"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusBadRequest,
+		})
 	}
 	response, err := reports.ProfitLossHistory(id, reportsParamRequest)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"Error Message": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "json decoding : " + err.Error(),
+			"status": http.StatusInternalServerError,
+		})
 	} else {
 		c.JSON(http.StatusOK, response)
 	}
