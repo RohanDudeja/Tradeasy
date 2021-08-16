@@ -4,6 +4,7 @@ import (
 	"Tradeasy/config"
 	"github.com/go-redis/redis"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -12,7 +13,7 @@ var redisClient *redis.Client
 func CreateClient() {
 	redisConfig := config.GetConfig().Redis
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     redisConfig.Host + ":" + string(redisConfig.Port),
+		Addr:     redisConfig.Host + ":" + strconv.Itoa(redisConfig.Port),
 		Password: redisConfig.Password,
 		DB:       redisConfig.DB,
 	})

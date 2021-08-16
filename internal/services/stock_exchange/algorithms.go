@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-var orderResponse = make(chan OrderResponse, 2)
-
 // UpdateLTP ...Updates ltp, high and low price for a stock
 func UpdateLTP(ltp int, stock string) {
 	currentStock := model.Stocks{}
@@ -68,7 +66,7 @@ func SendResponse(stock string, status string, message string, orderId string, p
 	resp.AveragePrice = price
 	resp.OrderExecutionTime = time.Now()
 	resp.Quantity = quantity
-	orderResponse <- resp
+	orderUpdated <- resp
 }
 
 // CancelAtExpiry ...Cancels all book orders at expiry
