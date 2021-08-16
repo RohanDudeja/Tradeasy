@@ -38,23 +38,23 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 		Currency:       "INR"}
 	jsonReq, err := json.Marshal(razorRequest)
 	if err != nil {
-		return addRes, errors.New("Invalid Request")
+		return addRes, err
 	}
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", "https://api.razorpay.com/v1/payment_links", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		return addRes, errors.New("failed to initiate the payment link ")
+		return addRes, errors.New("failed to initiate Razorpay payment link ")
 	}
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.SetBasicAuth(RzpKey, RzpSecret)
 	response, err := client.Do(req)
 	if err != nil {
-		return addRes, errors.New("invalid key or secret")
+		return addRes, errors.New("error in getting response form Razorpay")
 	}
 	bodyBytes, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(bodyBytes, &razorpayRes)
 	if err != nil {
-		return addRes, errors.New("failed to read the response")
+		return addRes, err
 	}
 	pay := model.Payments{
 		UserId:         Userid,
@@ -88,7 +88,7 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes Wit
 	}
 	if err = database.GetDB().Table("trading_account").
 		Where("user_id = ?", Userid).UpdateColumn("balance", tradingAcc.Balance).Error; err != nil {
-		return withdrawRes, errors.New("unable to update the balance")
+		return withdrawRes, errors.New("error in updating the balance in trading account")
 	}
 	pay := model.Payments{
 		UserId:      Userid,
@@ -99,7 +99,6 @@ func WithdrawAmount(withdrawReq WithdrawRequest, Userid string) (withdrawRes Wit
 	if err = database.GetDB().Create(&pay).Error; err != nil {
 		return withdrawRes, errors.New("payment  failed")
 	}
-	withdrawResponse.Userid = pay.UserId
 	withdrawResponse.Amount = pay.Amount
 	withdrawResponse.Type = Withdraw
 	withdrawResponse.CurrentBalance = tradingAcc.Balance
@@ -114,14 +113,15 @@ func Callback(request CallbackParamRequest) (callbackRes CallbackResponse, err e
 		tradingAcc       model.TradingAccount
 	)
 	if err = database.GetDB().Table("payments").Where("razorpay_link_id=?", request.RazorpayPaymentLinkID).First(&payments).Error; err != nil {
-		return callbackRes, errors.New("invalid payment link")
+		return callbackRes, errors.New("error in fetching payment link")
 	}
 	if err = database.GetDB().Table("trading_account").Where("user_id=?", payments.UserId).First(&tradingAcc).Error; err != nil {
-		return callbackRes, errors.New("trading account not found")
+		return callbackRes, errors.New("trading account not found for updating balance")
 	}
 	finalBalance := tradingAcc.Balance + payments.Amount
-	if err = database.GetDB().Table("trading_account").Where("user_id=?", payments.UserId).Update("balance", finalBalance).Error; err != nil {
-		return callbackRes, errors.New("update balance failed")
+	if err = database.GetDB().Table("trading_account").Where("user_id=?", payments.UserId).
+		Update("balance", finalBalance).Error; err != nil {
+		return callbackRes, errors.New("error in updating balance")
 	}
 	if err = database.GetDB().Table("payments").
 		Where("user_id = ? AND razorpay_link_id=?", payments.UserId, request.RazorpayPaymentLinkID).
