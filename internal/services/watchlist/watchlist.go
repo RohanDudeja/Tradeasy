@@ -113,7 +113,7 @@ func DeleteStockEntry(req DeleteStockRequest, watchlistId int) (res DeleteStockR
 }
 func SortWatchlist(SortReq SortRequest, watchlistId int) (SortRes SortResponse, err error) {
 	var wl []model.UserWatchlist
-	err = database.GetDB().Raw("SELECT * FROM user_watchlist WHERE user_id = ? AND watchlist_id = ? ORDER BY stock_name ASC", SortReq.UserId, watchlistId).Scan(&wl).Error
+	err = database.GetDB().Raw("SELECT * FROM user_watchlist WHERE user_id = ? AND watchlist_id = ? AND deleted_at is null ORDER BY stock_name ASC", SortReq.UserId, watchlistId).Scan(&wl).Error
 	if err != nil {
 		return SortRes, errors.New("watchlist not sorted")
 	}
