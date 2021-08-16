@@ -80,15 +80,17 @@ func DeleteStockEntry(c *gin.Context) {
 
 func SortWatchlist(c *gin.Context) {
 	var req watchlist.SortRequest
+	watchlistId := c.Params.ByName("watchlist_id")
 	err := c.BindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 		return
 	}
-	res, err := watchlist.SortWatchlist(req)
+	i, _ := strconv.ParseInt(watchlistId, 10, 64)
+	res, err := watchlist.SortWatchlist(req, int(i))
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
