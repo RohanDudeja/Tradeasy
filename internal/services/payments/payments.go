@@ -132,3 +132,14 @@ func Callback(request CallbackParamRequest) (callbackRes CallbackResponse, err e
 	callbackResponse.Status = "success"
 	return callbackResponse, nil
 }
+func GetBalance(Userid string) (response GetBalanceResponse, err error) {
+	var (
+		tradingAcc         model.TradingAccount
+		getBalanceResponse GetBalanceResponse
+	)
+	if err = database.GetDB().Table("trading_account").Where("user_id = ?", Userid).First(&tradingAcc).Error; err != nil {
+		return response, errors.New("trading account not found")
+	}
+	getBalanceResponse.Balance = tradingAcc.Balance
+	return getBalanceResponse, err
+}
