@@ -20,7 +20,7 @@ func SignUp(req SignUpRequest) (res SignUpResponse, err error) {
 	if err == nil {
 		return res, errors.New("email id already registered")
 	}
-	err = database.GetDB().Table("users").Where("password = ?", res.Password).First(&user).Error
+	err = database.GetDB().Table("users").Where("password = ?", req.Password).First(&user).Error
 	if err == nil {
 		return res, errors.New("password already taken")
 	}
