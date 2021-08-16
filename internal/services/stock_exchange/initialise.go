@@ -119,15 +119,17 @@ func InitialiseStock(ticker string) {
 
 // InitialiseAllStocks ...initialise all data points in the database for every stock
 func InitialiseAllStocks() {
-	tickers, err := GetTickers(StocksNeeded)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	for _, ticker := range tickers {
-		InitialiseStock(ticker)
-		time.Sleep(12 * time.Second)
-	}
+	go func() {
+		tickers, err := GetTickers(StocksNeeded)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+		for _, ticker := range tickers {
+			InitialiseStock(ticker)
+			time.Sleep(12 * time.Second)
+		}
+	}()
 }
 
 func InitialiseRandomizer() {
