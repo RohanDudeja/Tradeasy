@@ -14,7 +14,7 @@ func BuyOrder(c *gin.Context) {
 	err:=c.BindJSON(&bReq)
 	if err!=nil{
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -24,7 +24,7 @@ func BuyOrder(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -38,7 +38,7 @@ func SellOrder(c *gin.Context) {
 	err:=c.BindJSON(&sReq)
 	if err!=nil{
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -49,7 +49,7 @@ func SellOrder(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error": err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -64,7 +64,7 @@ func CancelOrder(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {

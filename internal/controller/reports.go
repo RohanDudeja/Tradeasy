@@ -13,7 +13,7 @@ func DailyPendingOrders(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":   err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -26,7 +26,7 @@ func Portfolio(c *gin.Context) {
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -34,7 +34,7 @@ func Portfolio(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":   err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -47,7 +47,7 @@ func OrdersHistory(c *gin.Context) {
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error": err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -55,7 +55,7 @@ func OrdersHistory(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -68,7 +68,7 @@ func ProfitLossHistory(c *gin.Context) {
 	if err := c.BindQuery(&reportsParamRequest); err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -76,7 +76,7 @@ func ProfitLossHistory(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error": err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {

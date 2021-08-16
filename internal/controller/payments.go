@@ -13,7 +13,7 @@ func AddAmount(c *gin.Context) {
 	if err := c.BindJSON(&addReq); err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -21,7 +21,7 @@ func AddAmount(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error": err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -34,7 +34,7 @@ func WithdrawAmount(c *gin.Context) {
 	if err := c.BindJSON(&withdrawReq); err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -42,7 +42,7 @@ func WithdrawAmount(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error": err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -55,7 +55,7 @@ func Callback(c *gin.Context) {
 	if err := c.BindQuery(&callbackParamRequest); err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error": err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -63,7 +63,7 @@ func Callback(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {

@@ -12,7 +12,7 @@ func SignUp(c *gin.Context) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 		return
@@ -35,7 +35,7 @@ func UserDetails(c *gin.Context) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 		return
@@ -57,7 +57,7 @@ func SignIn(c *gin.Context) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 		return
@@ -78,7 +78,7 @@ func ForgetPassword(c *gin.Context) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 		return
@@ -100,7 +100,7 @@ func VerificationForPasswordChange(c *gin.Context) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":  "json decoding : " + err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 		return
