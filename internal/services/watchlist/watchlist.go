@@ -54,6 +54,7 @@ func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, 
 		return res, errors.New("user not found")
 	}
 
+	userWatchlist = model.UserWatchlist{}
 	err = database.GetDB().Table("user_watchlist").
 		Where("user_id = ? AND stock_name = ? AND watchlist_id = ?", req.UserId, req.StockName, watchlistId).
 		First(&userWatchlist).Error
@@ -61,6 +62,7 @@ func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, 
 		return res, errors.New("stock name already exists")
 	}
 
+	userWatchlist = model.UserWatchlist{}
 	err = database.GetDB().Table("user_watchlist").
 		Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, "").
 		First(&userWatchlist).Error

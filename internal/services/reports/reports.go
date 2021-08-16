@@ -3,7 +3,7 @@ package reports
 import (
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/provider/database"
-	"errors"
+	"log"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func DailyPendingOrders(Userid string) (response []DailyPendingOrderResponse, er
 		dailyPendingOrderResponse []DailyPendingOrderResponse
 	)
 	if err = database.GetDB().Table("pending_orders").Where("user_id = ?", Userid).Find(&pendingOrders).Error; err != nil {
-		return nil, errors.New("no pending orders found")
+		return nil, nil
 	}
 	for _, pendingOrder := range pendingOrders {
 		var pendingOrderResponse DailyPendingOrderResponse
@@ -45,7 +45,7 @@ func Portfolio(Userid string, request ReportsParamRequest) (response []Portfolio
 
 	if err := database.GetDB().Table("holdings").
 		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&holdings).Error; err != nil {
-		return nil, errors.New("no holdings found")
+		return nil, nil
 	}
 	for _, holding := range holdings {
 		var portfolioResponse PortfolioResponse
@@ -66,16 +66,18 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 	)
 	fromTime := time.Unix(int64(request.From), 0)
 	toTime := time.Unix(int64(request.To), 0)
-	if err = database.GetDB().Table("order_history").
-		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistories).Error; err != nil {
-		return nil, errors.New("no order history found")
-	}
 	if err = database.GetDB().Table("holdings").
 		Where("user_id = ? AND created_at BETWEEN ? AND ? ", Userid, fromTime, toTime).
 		Group("order_id").Unscoped().Find(&holdings).Error; err != nil {
-		return nil, errors.New("no order history found")
+		return nil, nil
 
 	}
+
+	if err = database.GetDB().Table("order_history").
+		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistories).Error; err != nil {
+		return nil, nil
+	}
+
 	for _, orderHistory := range orderHistories {
 
 		var orderHistoryResponse OrderHistoryResponse
@@ -86,6 +88,7 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 		orderHistoryResponse.BuySellType = Sell
 		orderHistoryResponses = append(orderHistoryResponses, orderHistoryResponse)
 	}
+
 	for _, holding := range holdings {
 		var orderHistoryResponse OrderHistoryResponse
 		orderHistoryResponse.Userid = holding.UserId
@@ -97,14 +100,14 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 		if err = database.GetDB().Table("holdings").Select("sum(quantity) as total_quantity").
 			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).
 			Scan(&holdingsQuantity).Error; err != nil {
-			return nil, errors.New("error in fetching quantity")
+			log.Println("no holdings")
 		}
 
 		var orderHistoryQuantity HoldingsQuantity
 		if err = database.GetDB().Table("order_history").Select("sum(quantity) as total_quantity").
 			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).
 			Scan(&orderHistoryQuantity).Error; err != nil {
-			return nil, errors.New("error in fetching quantity")
+			log.Println("no order history")
 		}
 		orderHistoryResponse.StockName = holding.StockName
 		orderHistoryResponse.Quantity = holdingsQuantity.TotalQuantity + orderHistoryQuantity.TotalQuantity
@@ -124,7 +127,7 @@ func ProfitLossHistory(Userid string, request ReportsParamRequest) (response []P
 	if err = database.GetDB().Table("order_history").
 		Where("user_id = ?  AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).
 		Find(&profitLossHistories).Error; err != nil {
-		return nil, errors.New("no order history found for profit loss report")
+		return nil, nil
 	}
 	for _, profitLossHistory := range profitLossHistories {
 		var profitLossResponse ProfitLossHistoryResponse

@@ -57,6 +57,8 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 		p.OrderPrice = bReq.LimitPrice
 	} else if bReq.BookType == Limit {
 		p.LimitPrice = bReq.LimitPrice
+	} else {
+		return bRes, errors.New("wrong order type")
 	}
 
 	exeOrder := stock_exchange.OrderRequest{
@@ -111,17 +113,6 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) {
 	var stocks model.StocksFeed
 
-	var r HoldingsQuantity
-	if err = database.GetDB().Table("holdings").Select("stock_name, sum(quantity) as total_quantity").
-		Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").
-		Scan(&r).Error; err != nil {
-
-		log.Println("Error in Fetching Total Quantities from Holdings", err)
-		return sRes, errors.New("error in Fetching Total Quantities from Holdings")
-	} else if r.TotalQuantity < sReq.Quantity {
-		return sRes, errors.New("sell Order quantity is higher than holdings quantity")
-	}
-
 	if sReq.BookType == Market {
 		if err = database.GetDB().Table("stocks_feed").Where("stock_name=?", sReq.StockName).Last(&stocks).Error; err != nil {
 			log.Println("Error in Fetching Stocks feed", err)
@@ -145,6 +136,19 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		p.OrderPrice = sReq.LimitPrice
 	} else if sReq.BookType == Limit {
 		p.LimitPrice = sReq.LimitPrice
+	} else {
+		return sRes, errors.New("wrong order type")
+	}
+
+	var r HoldingsQuantity
+	if err = database.GetDB().Table("holdings").Select("stock_name, sum(quantity) as total_quantity").
+		Where("user_id=? AND stock_name=?", sReq.UserId, sReq.StockName).Group("stock_name").
+		Scan(&r).Error; err != nil {
+
+		log.Println("Error in Fetching Total Quantities from Holdings", err)
+		return sRes, errors.New("no stocks available to sell")
+	} else if r.TotalQuantity < sReq.Quantity {
+		return sRes, errors.New("sell Order quantity is higher than holdings quantity")
 	}
 
 	exeOrder := stock_exchange.OrderRequest{
