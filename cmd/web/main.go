@@ -2,6 +2,7 @@ package main
 
 import (
 	"Tradeasy/config"
+	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/provider/redis"
 	"Tradeasy/internal/router"
 	"Tradeasy/internal/services/order"
@@ -9,8 +10,10 @@ import (
 )
 
 func main() {
+	//initialise config
+	config.BuildConfig()
 	//initialise db
-	err_ := config.InitialiseDB()
+	err_ := database.InitialiseDB()
 	if err_ != nil {
 		log.Fatalf("Gorm: failed to open DB: %v\n", err_)
 	}

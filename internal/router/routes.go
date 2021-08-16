@@ -67,5 +67,21 @@ func SetUpRouter() *gin.Engine {
 		users.POST("/forgot", controller.ForgetPassword)
 		users.PATCH("/verify", controller.VerificationForPasswordChange)
 	}
+	payments := r.Group("/payments")
+	payments.Use(middleware.UserBasicAuth())
+	{
+		payments.POST(":user_id/add_amount", controller.AddAmount)
+		payments.POST(":user_id/withdraw_amount", controller.WithdrawAmount)
+		payments.GET(":payment_status", controller.Callback)
+	}
+
+	reports := r.Group("/reports")
+	reports.Use(middleware.UserBasicAuth())
+	{
+		reports.GET("pending_orders/:user_id", controller.DailyPendingOrders)
+		reports.GET("holdings/:user_id", controller.Portfolio)
+		reports.GET("order_history/:user_id", controller.OrdersHistory)
+		reports.GET("profit_loss_history/:user_id", controller.ProfitLossHistory)
+	}
 	return r
 }

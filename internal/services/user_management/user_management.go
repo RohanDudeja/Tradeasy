@@ -1,8 +1,8 @@
 package user_management
 
 import (
-	"Tradeasy/config"
 	"Tradeasy/internal/model"
+	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/provider/redis"
 	"Tradeasy/internal/utils"
 	"errors"
@@ -16,18 +16,18 @@ func SignUp(req SignUpRequest) (res SignUpResponse, err error) {
 	email := req.EmailId
 
 	var user model.Users
-	err = config.DB.Table("users").Where("email_id = ?", req.EmailId).First(&user).Error
+	err = database.GetDB().Table("users").Where("email_id = ?", req.EmailId).First(&user).Error
 	if err == nil {
 		return res, errors.New("email id already registered")
 	}
-	err = config.DB.Table("users").Where("password = ?", res.Password).First(&user).Error
+	err = database.GetDB().Table("users").Where("password = ?", res.Password).First(&user).Error
 	if err == nil {
 		return res, errors.New("password already taken")
 	}
 	user.UserId = strings.Split(email, "@")[0]
 	user.EmailId = req.EmailId
 	user.Password = req.Password
-	err = config.DB.Table("users").Create(&user).Error
+	err = database.GetDB().Table("users").Create(&user).Error
 	if err != nil {
 		return res, errors.New("signUp failed")
 	}
@@ -42,11 +42,11 @@ func UserDetails(req UserDetailsRequest, userid string) (res UserDetailsResponse
 	var user model.Users
 	var tradingAcc model.TradingAccount
 
-	err = config.DB.Table("users").Where("user_id = ? ", userid).First(&user).Error
+	err = database.GetDB().Table("users").Where("user_id = ? ", userid).First(&user).Error
 	if err != nil {
 		return res, errors.New("user not found")
 	}
-	err = config.DB.Table("trading_account").Where("user_id = ? OR pan_card_no = ? OR bank_acc_no = ?", userid, req.PanCardNo, req.BankAccNo).First(&tradingAcc).Error
+	err = database.GetDB().Table("trading_account").Where("user_id = ? OR pan_card_no = ? OR bank_acc_no = ?", userid, req.PanCardNo, req.BankAccNo).First(&tradingAcc).Error
 	if err == nil {
 		return res, errors.New("user details already registered")
 	}
@@ -56,7 +56,7 @@ func UserDetails(req UserDetailsRequest, userid string) (res UserDetailsResponse
 	tradingAcc.TradingAccId = "TRA" + userid
 	tradingAcc.Balance = 0
 
-	err = config.DB.Table("trading_account").Create(&tradingAcc).Error
+	err = database.GetDB().Table("trading_account").Create(&tradingAcc).Error
 	if err != nil {
 		return res, errors.New("user details failed to enter")
 	}
@@ -68,11 +68,11 @@ func UserDetails(req UserDetailsRequest, userid string) (res UserDetailsResponse
 func UserSignIn(req SignInRequest) (res SignInResponse, err error) {
 
 	var user model.Users
-	err = config.DB.Table("users").Where("user_id = ?", req.UserId).First(&user).Error
+	err = database.GetDB().Table("users").Where("user_id = ?", req.UserId).First(&user).Error
 	if err != nil {
 		return res, errors.New("user not found")
 	}
-	err = config.DB.Table("users").Where("user_id = ? AND password = ?", req.UserId, req.Password).First(&user).Error
+	err = database.GetDB().Table("users").Where("user_id = ? AND password = ?", req.UserId, req.Password).First(&user).Error
 	if err != nil {
 		return res, errors.New("incorrect password")
 	}
@@ -83,7 +83,7 @@ func UserSignIn(req SignInRequest) (res SignInResponse, err error) {
 func ForgetPassword(req ForgetPasswordRequest) (res ForgetPasswordResponse, err error) {
 
 	var user model.Users
-	err = config.DB.Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).First(&user).Error
+	err = database.GetDB().Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).First(&user).Error
 	if err != nil {
 		return res, errors.New("user not found")
 	}
@@ -107,7 +107,7 @@ func VerificationForPasswordChange(req VerifyRequest) (res VerifyResponse, err e
 	if req.Otp != originalOtp {
 		return res, errors.New("verification failed")
 	}
-	config.DB.Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).Update("password", res.NewPassword)
+	database.GetDB().Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).Update("password", res.NewPassword)
 	res.UserId = req.UserId
 	res.NewPassword = req.NewPassword
 	res.Message = "Password changed successfully"

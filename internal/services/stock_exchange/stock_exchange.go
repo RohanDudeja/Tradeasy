@@ -1,8 +1,8 @@
 package stock_exchange
 
 import (
-	"Tradeasy/config"
 	model "Tradeasy/internal/model/stock_exchange"
+	"Tradeasy/internal/provider/database"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
@@ -59,7 +59,7 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 	if buyOrderBody.OrderType == Market {
 		newEntry.OrderPrice = ltp
 	}
-	err = config.DB.Create(&newEntry).Error
+	err = database.GetDB().Create(&newEntry).Error
 	if err != nil {
 		log.Println(err.Error())
 		resp.Status = Failed
@@ -107,7 +107,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 	if sellOrderBody.OrderType == Market {
 		newEntry.OrderPrice = ltp
 	}
-	err = config.DB.Create(&newEntry).Error
+	err = database.GetDB().Create(&newEntry).Error
 	if err != nil {
 		log.Println(err.Error())
 		resp.Status = Failed
@@ -120,7 +120,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
 // DeleteBuyOrder ...Update Delete Buy Order actions on the StockExchange database
 func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = config.DB.Exec("DELETE FROM buy_order_book WHERE order_id = ?", orderId).Error
+	err = database.GetDB().Exec("DELETE FROM buy_order_book WHERE order_id = ?", orderId).Error
 	if err != nil {
 		deleteRes.Message = "Failed"
 		deleteRes.Success = false
@@ -133,7 +133,7 @@ func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
 
 // DeleteSellOrder ...Update Delete Sell Order actions on the StockExchange database
 func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = config.DB.Exec("DELETE FROM sell_order_book WHERE order_id = ?", orderId).Error
+	err = database.GetDB().Exec("DELETE FROM sell_order_book WHERE order_id = ?", orderId).Error
 	if err != nil {
 		deleteRes.Success = false
 		deleteRes.Message = "Failed"
@@ -148,13 +148,13 @@ func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
 func ViewMarketDepth(stock string) (vdRes ViewDepthResponse, err error) {
 
 	var buyBook []model.BuyOrderBook
-	err = config.DB.Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
+	err = database.GetDB().Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
 	vdRes.Message = "Internal Error"
 	if err != nil {
 		return vdRes, err
 	}
 	var sellBook []model.SellOrderBook
-	err = config.DB.Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
+	err = database.GetDB().Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
 	if err != nil {
 		return vdRes, err
 	}
@@ -186,7 +186,7 @@ func GetOrderUpdates(conn *websocket.Conn) {
 func GetStockUpdates(conn *websocket.Conn, timeInterval time.Duration) {
 	for range time.Tick(timeInterval) {
 		var stocks []StockDetails
-		if err := config.DB.Table("stocks").Find(&stocks).Error; err != nil {
+		if err := database.GetDB().Table("stocks").Find(&stocks).Error; err != nil {
 			log.Println("Error while pulling stocks from stock exchange:", err)
 			continue
 		}
