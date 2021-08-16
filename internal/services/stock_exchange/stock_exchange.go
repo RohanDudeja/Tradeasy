@@ -13,21 +13,29 @@ import (
 var orderUpdated = make(chan OrderResponse)
 
 const (
-	Pending   = "PENDING"
-	Completed = "COMPLETED"
-	Partial   = "PARTIAL"
-	Cancelled = "CANCELLED"
-	Failed    = "FAILED"
-	Market    = "Market"
-	Limit     = "Limit"
+	Pending    = "PENDING"
+	Completed  = "COMPLETED"
+	Partial    = "PARTIAL"
+	Cancelled  = "CANCELLED"
+	Failed     = "FAILED"
+	Market     = "Market"
+	Limit      = "Limit"
+	ExpiryTime = 22 // 22:00 IST expiry time
+	StartTime  = 9  // trades begin at 09:00 IST
 )
 
 // BuyOrder ...Update Buy Order actions on the StockExchange database
 func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 
-	resp.Status = Pending
 	resp.OrderID = buyOrderBody.OrderID
 	resp.StockName = buyOrderBody.StockName
+	currentTime := time.Now().Hour()
+	if currentTime >= ExpiryTime || currentTime < StartTime {
+		resp.Status = Cancelled
+		resp.Message = "Cannot place orders at this time. Market closed."
+		return resp, nil
+	}
+	resp.Status = Pending
 	resp.Message = "Order Received"
 	newEntry := model.BuyOrderBook{
 		OrderID:           buyOrderBody.OrderID,
@@ -73,9 +81,15 @@ func BuyOrder(buyOrderBody OrderRequest) (resp OrderResponse, err error) {
 // SellOrder ...Update Sell Order actions on the StockExchange database
 func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
-	resp.Status = Pending
 	resp.OrderID = sellOrderBody.OrderID
 	resp.StockName = sellOrderBody.StockName
+	currentTime := time.Now().Hour()
+	if currentTime >= ExpiryTime || currentTime < StartTime {
+		resp.Status = Cancelled
+		resp.Message = "Cannot place orders at this time. Market closed."
+		return resp, nil
+	}
+	resp.Status = Pending
 	resp.Message = "Order Received"
 	newEntry := model.SellOrderBook{
 		OrderID:           sellOrderBody.OrderID,
@@ -120,7 +134,7 @@ func SellOrder(sellOrderBody OrderRequest) (resp OrderResponse, err error) {
 
 // DeleteBuyOrder ...Update Delete Buy Order actions on the StockExchange database
 func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = database.GetDB().Exec("DELETE FROM buy_order_book WHERE order_id = ?", orderId).Error
+	err = database.GetDB().Table("buy_order_book").Where("order_id= ?", orderId).Delete(model.BuyOrderBook{}).Error
 	if err != nil {
 		deleteRes.Message = "Failed"
 		deleteRes.Success = false
@@ -133,7 +147,7 @@ func DeleteBuyOrder(orderId string) (deleteRes DeleteResponse, err error) {
 
 // DeleteSellOrder ...Update Delete Sell Order actions on the StockExchange database
 func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
-	err = database.GetDB().Exec("DELETE FROM sell_order_book WHERE order_id = ?", orderId).Error
+	err = database.GetDB().Table("sell_order_book").Where("order_id= ?", orderId).Delete(model.SellOrderBook{}).Error
 	if err != nil {
 		deleteRes.Success = false
 		deleteRes.Message = "Failed"
@@ -148,13 +162,13 @@ func DeleteSellOrder(orderId string) (deleteRes DeleteResponse, err error) {
 func ViewMarketDepth(stock string) (vdRes ViewDepthResponse, err error) {
 
 	var buyBook []model.BuyOrderBook
-	err = database.GetDB().Raw("SELECT * FROM buy_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
+	err = database.GetDB().Raw("SELECT * FROM buy_order_book WHERE deleted_at IS NULL AND stock_ticker_symbol = ?  ORDER BY order_price DESC,created_at ASC "+" LIMIT 5", stock).Scan(&buyBook).Error
 	vdRes.Message = "Internal Error"
 	if err != nil {
 		return vdRes, err
 	}
 	var sellBook []model.SellOrderBook
-	err = database.GetDB().Raw("SELECT * FROM sell_order_book WHERE stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
+	err = database.GetDB().Raw("SELECT * FROM sell_order_book WHERE deleted_at IS NULL AND stock_ticker_symbol = ?  ORDER BY order_price ASC,created_at ASC"+" LIMIT 5", stock).Scan(&sellBook).Error
 	if err != nil {
 		return vdRes, err
 	}

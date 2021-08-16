@@ -107,9 +107,18 @@ func VerificationForPasswordChange(req VerifyRequest) (res VerifyResponse, err e
 	if req.Otp != originalOtp {
 		return res, errors.New("verification failed")
 	}
-	database.GetDB().Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).Update("password", res.NewPassword)
+	database.GetDB().Table("users").Where("user_id = ? AND email_id = ?", req.UserId, req.EmailId).Update("password", req.NewPassword)
 	res.UserId = req.UserId
 	res.NewPassword = req.NewPassword
 	res.Message = "Password changed successfully"
 	return res, nil
+}
+
+func CheckUserDetails(userid string) error {
+	var details model.TradingAccount
+	err := database.GetDB().Table("trading_account").Where("user_id = ? ", userid).First(&details).Error
+	if err != nil {
+		return errors.New("add your details first")
+	}
+	return nil
 }

@@ -1,20 +1,29 @@
 package order
 
 import (
+	"Tradeasy/config"
 	_ "Tradeasy/config"
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/provider/database"
 	"Tradeasy/internal/services/stock_exchange"
+	"encoding/base64"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
+	"net/http"
 )
 
 func OrderConnection() {
 
 	//setting up order connection
 	connUrl := "ws://localhost:8080" + "/socket" + "/orders"
-	conn, _, err := websocket.DefaultDialer.Dial(connUrl, nil)
+
+	userName := config.GetConfig().StockExchange.Authentication.UserName
+	password := config.GetConfig().StockExchange.Authentication.Password
+
+	h := http.Header{"Authorization": {"Basic " + base64.StdEncoding.EncodeToString([]byte(userName+":"+password))}}
+
+	conn, _, err := websocket.DefaultDialer.Dial(connUrl, h)
 
 	if err != nil {
 		log.Fatal("Error connecting to Websocket Server:", err)
@@ -54,7 +63,12 @@ func StockConnection() {
 
 	//setting up stock connection
 	socketUrl := "ws://localhost:8080" + "/socket" + "/stocks"
-	stockConn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
+	userName := config.GetConfig().StockExchange.Authentication.UserName
+	password := config.GetConfig().StockExchange.Authentication.Password
+
+	h := http.Header{"Authorization": {"Basic " + base64.StdEncoding.EncodeToString([]byte(userName+":"+password))}}
+
+	stockConn, _, err := websocket.DefaultDialer.Dial(socketUrl, h)
 
 	if err != nil {
 		log.Fatal("Error connecting to Websocket Server:", err)
