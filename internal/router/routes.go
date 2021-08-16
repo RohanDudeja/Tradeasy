@@ -69,11 +69,13 @@ func SetUpRouter() *gin.Engine {
 		users.POST("/:user_id/details", controller.UserDetails)
 	}
 	payments := r.Group("/payments")
-	payments.GET(":payment_status", controller.Callback)
+	payments.GET("payment_status", controller.Callback)
 	payments.Use(middleware.UserVerificationAuth())
 	{
 		payments.POST(":user_id/add_amount", controller.AddAmount)
 		payments.POST(":user_id/withdraw_amount", controller.WithdrawAmount)
+		payments.GET(":user_id/get_balance", controller.GetBalance)
+
 	}
 
 	reports := r.Group("/reports")
