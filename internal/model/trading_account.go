@@ -5,7 +5,7 @@ import (
 )
 
 type TradingAccount struct {
-	UserId       string    `json:"user_id,omitempty" gorm:"column:user_id;foreign_key:Userid"`
+	UserId       string    `json:"user_id,omitempty" gorm:"column:user_id"`
 	Id           int       `gorm:"column:id;primary_key" json:"id,omitempty"`
 	PanCardNo    string    `gorm:"column:pan_card_no" json:"pan_card_no,omitempty"`
 	BankAccNo    string    `gorm:"column:bank_acc_no" json:"bank_acc_no,omitempty"`

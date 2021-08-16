@@ -2,54 +2,63 @@ package controller
 
 import (
 	"Tradeasy/internal/services/reports"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
 func DailyPendingOrders(c *gin.Context) {
-	id := c.Params.ByName("id")
-	penOrderRes, err := reports.DailyPendingOrders(id)
+	id := c.Params.ByName("user_id")
+	response, err := reports.DailyPendingOrders(id)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, penOrderRes)
+		c.JSON(http.StatusOK, response)
 	}
 }
 func Portfolio(c *gin.Context) {
-	id := c.Params.ByName("id")
-	from := c.Params.ByName("from")
-	to := c.Params.ByName("to")
-	PortfolioRes, err := reports.Portfolio(id, from, to)
+	var reportsParamRequest reports.ReportsParamRequest
+	id := c.Params.ByName("user_id")
+	if err := c.BindQuery(&reportsParamRequest); err != nil {
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
+	}
+	response, err := reports.Portfolio(id, reportsParamRequest)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, PortfolioRes)
+		c.JSON(http.StatusOK, response)
 	}
 }
 func OrdersHistory(c *gin.Context) {
-	id := c.Params.ByName("id")
-	from := c.Params.ByName("from")
-	to := c.Params.ByName("to")
-	ordHisRes, err := reports.OrdersHistory(id, from, to)
+	var reportsParamRequest reports.ReportsParamRequest
+	id := c.Params.ByName("user_id")
+	if err := c.BindQuery(&reportsParamRequest); err != nil {
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
+	}
+	response, err := reports.OrdersHistory(id, reportsParamRequest)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, ordHisRes)
+		c.JSON(http.StatusOK, response)
 	}
 }
 func ProfitLossHistory(c *gin.Context) {
-	id := c.Params.ByName("id")
-	from := c.Params.ByName("from")
-	to := c.Params.ByName("to")
-	proLosRes, err := reports.ProfitLossHistory(id, from, to)
+	var reportsParamRequest reports.ReportsParamRequest
+	id := c.Params.ByName("user_id")
+	if err := c.BindQuery(&reportsParamRequest); err != nil {
+		log.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
+	}
+	response, err := reports.ProfitLossHistory(id, reportsParamRequest)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {
-		c.JSON(http.StatusOK, proLosRes)
+		c.JSON(http.StatusOK, response)
 	}
 }

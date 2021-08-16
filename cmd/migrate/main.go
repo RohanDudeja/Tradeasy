@@ -16,6 +16,8 @@ var (
 )
 
 func main() {
+	//initialise config
+	config.BuildConfig()
 	flags.Usage = usage
 	flags.Parse(os.Args[1:])
 	args := flags.Args()
