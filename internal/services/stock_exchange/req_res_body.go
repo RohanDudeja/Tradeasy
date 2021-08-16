@@ -12,6 +12,7 @@ type OrderRequest struct {
 	OrderType       string    `json:"order_type"`
 	LimitPrice      int       `json:"limit_price"`
 	Quantity        int       `json:"quantity"`
+	IsDummy         bool      `json:"is_dummy"`
 }
 
 type OrderResponse struct {
