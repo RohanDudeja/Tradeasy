@@ -70,7 +70,7 @@ func SetUpRouter() *gin.Engine {
 	}
 	payments := r.Group("/payments")
 	payments.GET("payment_status", controller.Callback)
-	//payments.Use(middleware.UserVerificationAuth())
+	payments.Use(middleware.UserVerificationAuth())
 	{
 		payments.POST(":user_id/add_amount", controller.AddAmount)
 		payments.POST(":user_id/withdraw_amount", controller.WithdrawAmount)
