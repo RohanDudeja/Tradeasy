@@ -18,7 +18,7 @@ func DailyPendingOrders(Userid string) (response []DailyPendingOrderResponse, er
 		dailyPendingOrderResponse []DailyPendingOrderResponse
 	)
 	if err = database.GetDB().Table("pending_orders").Where("user_id = ?", Userid).Find(&pendingOrders).Error; err != nil {
-		return nil, errors.New("no pending orders found")
+		return nil, errors.New("error in fetching pending orders")
 	}
 	for _, pendingOrder := range pendingOrders {
 		var pendingOrderResponse DailyPendingOrderResponse
@@ -43,8 +43,9 @@ func Portfolio(Userid string, request ReportsParamRequest) (response []Portfolio
 	fromTime := time.Unix(int64(request.From), 0)
 	toTime := time.Unix(int64(request.To), 0)
 
-	if err := database.GetDB().Table("holdings").Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&holdings).Error; err != nil {
-		return nil, errors.New("no holdings found")
+	if err := database.GetDB().Table("holdings").
+		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&holdings).Error; err != nil {
+		return nil, errors.New("error in fetching holdings")
 	}
 	for _, holding := range holdings {
 		var portfolioResponse PortfolioResponse
@@ -67,12 +68,12 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 	toTime := time.Unix(int64(request.To), 0)
 	if err = database.GetDB().Table("order_history").
 		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistories).Error; err != nil {
-		return nil, errors.New("no orders found")
+		return nil, errors.New("error in fetching order history")
 	}
 	if err = database.GetDB().Table("holdings").
 		Where("user_id = ? AND created_at BETWEEN ? AND ? ", Userid, fromTime, toTime).
 		Group("order_id").Unscoped().Find(&holdings).Error; err != nil {
-		return nil, errors.New("no orders found")
+		return nil, errors.New("error in fetching order history")
 
 	}
 	for _, orderHistory := range orderHistories {
@@ -96,14 +97,14 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 		if err = database.GetDB().Table("holdings").Select("sum(quantity) as total_quantity").
 			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).
 			Scan(&holdingsQuantity).Error; err != nil {
-			return nil, errors.New("problem fetching quantity")
+			return nil, errors.New("error in fetching quantity")
 		}
 
 		var orderHistoryQuantity HoldingsQuantity
 		if err = database.GetDB().Table("order_history").Select("sum(quantity) as total_quantity").
 			Where("user_id=? AND order_id=?", holding.UserId, holding.OrderId).
 			Scan(&orderHistoryQuantity).Error; err != nil {
-			return nil, errors.New("problem fetching quantity")
+			return nil, errors.New("error in fetching quantity")
 		}
 		orderHistoryResponse.StockName = holding.StockName
 		orderHistoryResponse.Quantity = holdingsQuantity.TotalQuantity + orderHistoryQuantity.TotalQuantity
@@ -123,7 +124,7 @@ func ProfitLossHistory(Userid string, request ReportsParamRequest) (response []P
 	if err = database.GetDB().Table("order_history").
 		Where("user_id = ?  AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).
 		Find(&profitLossHistories).Error; err != nil {
-		return nil, errors.New("no orders found")
+		return nil, errors.New("error in fetching profit loss history")
 	}
 	for _, profitLossHistory := range profitLossHistories {
 		var profitLossResponse ProfitLossHistoryResponse
@@ -137,7 +138,8 @@ func ProfitLossHistory(Userid string, request ReportsParamRequest) (response []P
 		if len(profitLossResponses) == 0 {
 			profitLossResponse.CumulatedProfit = profitLossHistory.Quantity * (profitLossHistory.SellPrice - profitLossHistory.BuyPrice)
 		} else {
-			profitLossResponse.CumulatedProfit = profitLossHistory.Quantity*(profitLossHistory.SellPrice-profitLossHistory.BuyPrice) + profitLossResponses[len(profitLossResponses)-1].CumulatedProfit
+			profitLossResponse.CumulatedProfit = profitLossHistory.Quantity*(profitLossHistory.SellPrice-profitLossHistory.BuyPrice) +
+				profitLossResponses[len(profitLossResponses)-1].CumulatedProfit
 		}
 		profitLossResponses = append(profitLossResponses, profitLossResponse)
 	}
