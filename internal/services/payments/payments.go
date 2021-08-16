@@ -58,7 +58,7 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 	}
 	pay := model.Payments{
 		UserId:         Userid,
-		Amount:         addAmount / 100,
+		Amount:         addAmount,
 		RazorpayLink:   razorpayRes.ShortURL,
 		RazorpayLinkId: razorpayRes.ID,
 		Status:         Pending,
