@@ -18,7 +18,7 @@ func DailyPendingOrders(Userid string) (response []DailyPendingOrderResponse, er
 		dailyPendingOrderResponse []DailyPendingOrderResponse
 	)
 	if err = database.GetDB().Table("pending_orders").Where("user_id = ?", Userid).Find(&pendingOrders).Error; err != nil {
-		return nil, errors.New("error in fetching pending orders")
+		return nil, errors.New("no pending orders found")
 	}
 	for _, pendingOrder := range pendingOrders {
 		var pendingOrderResponse DailyPendingOrderResponse
@@ -45,7 +45,7 @@ func Portfolio(Userid string, request ReportsParamRequest) (response []Portfolio
 
 	if err := database.GetDB().Table("holdings").
 		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&holdings).Error; err != nil {
-		return nil, errors.New("error in fetching holdings")
+		return nil, errors.New("no holdings found")
 	}
 	for _, holding := range holdings {
 		var portfolioResponse PortfolioResponse
@@ -68,12 +68,12 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 	toTime := time.Unix(int64(request.To), 0)
 	if err = database.GetDB().Table("order_history").
 		Where("user_id = ? AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).Find(&orderHistories).Error; err != nil {
-		return nil, errors.New("error in fetching order history")
+		return nil, errors.New("no order history found")
 	}
 	if err = database.GetDB().Table("holdings").
 		Where("user_id = ? AND created_at BETWEEN ? AND ? ", Userid, fromTime, toTime).
 		Group("order_id").Unscoped().Find(&holdings).Error; err != nil {
-		return nil, errors.New("error in fetching order history")
+		return nil, errors.New("no order history found")
 
 	}
 	for _, orderHistory := range orderHistories {
@@ -124,7 +124,7 @@ func ProfitLossHistory(Userid string, request ReportsParamRequest) (response []P
 	if err = database.GetDB().Table("order_history").
 		Where("user_id = ?  AND updated_at BETWEEN ? AND ?", Userid, fromTime, toTime).
 		Find(&profitLossHistories).Error; err != nil {
-		return nil, errors.New("error in fetching profit loss history")
+		return nil, errors.New("no order history found for profit loss report")
 	}
 	for _, profitLossHistory := range profitLossHistories {
 		var profitLossResponse ProfitLossHistoryResponse
