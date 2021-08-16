@@ -117,7 +117,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 		Scan(&r).Error; err != nil {
 
 		log.Println("Error in Fetching Total Quantities from Holdings", err)
-		return sRes, errors.New("error in Fetching Total Quantities from Holdings")
+		return sRes, err
 	} else if r.TotalQuantity < sReq.Quantity {
 		return sRes, errors.New("sell Order quantity is higher than holdings quantity")
 	}
