@@ -4,7 +4,6 @@ import (
 	"Tradeasy/internal/model"
 	"Tradeasy/internal/provider/database"
 	"errors"
-	"log"
 )
 
 func CreateWatchlist(req CreateRequest) (res CreateResponse, err error) {
@@ -66,7 +65,7 @@ func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, 
 	err = database.GetDB().Table("user_watchlist").
 		Where("user_id = ? AND watchlist_id = ? AND stock_name = ?", req.UserId, watchlistId, "").
 		First(&userWatchlist).Error
-	if err != nil && userWatchlist.StockName != "" {
+	if err != nil {
 		var newUserWatchlist model.UserWatchlist
 		newUserWatchlist.Userid = req.UserId
 		newUserWatchlist.WatchlistId = watchlistId
@@ -77,14 +76,11 @@ func AddStockEntry(req AddStockRequest, watchlistId int) (res AddStockResponse, 
 		}
 	} else if err == nil {
 		userWatchlist.StockName = req.StockName
-		err = database.GetDB().Table("user_watchlist").
-			Update(&userWatchlist).Error
+		err = database.GetDB().Table("user_watchlist").Model(userWatchlist).
+			Updates(&userWatchlist).Error
 		if err != nil {
 			return res, errors.New("stock not added")
 		}
-	} else {
-		log.Println(err)
-		return res, err
 	}
 	res.Message = "Stock added"
 	return res, nil
@@ -117,7 +113,7 @@ func DeleteStockEntry(req DeleteStockRequest, watchlistId int) (res DeleteStockR
 }
 func SortWatchlist(SortReq SortRequest, watchlistId int) (SortRes SortResponse, err error) {
 	var wl []model.UserWatchlist
-	err = database.GetDB().Raw("SELECT * FROM user_watchlist WHERE user_id = ? AND watchlist_id = ? ORDER BY stock_name ASC", SortReq.UserId, watchlistId).Scan(&wl).Error
+	err = database.GetDB().Raw("SELECT * FROM user_watchlist WHERE user_id = ? AND watchlist_id = ? AND deleted_at is null ORDER BY stock_name ASC", SortReq.UserId, watchlistId).Scan(&wl).Error
 	if err != nil {
 		return SortRes, errors.New("watchlist not sorted")
 	}

@@ -206,6 +206,8 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 			break
 		} else if elem.OrderQuantity < buyOrderBody.Quantity {
 			ltp = elem.OrderPrice
+			UpdateLTP(ltp, buyOrderBody.StockName)
+			UpdateMarketOrderPrices(buyOrderBody.StockName)
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Partial, "Order Executed Partially", buyOrderBody.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			buyOrderBody.Quantity -= elem.OrderQuantity
@@ -221,10 +223,11 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 			if err != nil {
 				log.Println(err.Error())
 			}
-			UpdateLTP(ltp, buyOrderBody.StockName)
-			UpdateMarketOrderPrices(buyOrderBody.StockName)
+
 		} else {
 			ltp = elem.OrderPrice
+			UpdateLTP(ltp, buyOrderBody.StockName)
+			UpdateMarketOrderPrices(buyOrderBody.StockName)
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", buyOrderBody.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 			buyOrderBody.Quantity -= elem.OrderQuantity
@@ -244,8 +247,7 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 			if err != nil {
 				log.Println(err.Error())
 			}
-			UpdateLTP(ltp, buyOrderBody.StockName)
-			UpdateMarketOrderPrices(buyOrderBody.StockName)
+
 		}
 	}
 }
@@ -278,7 +280,6 @@ func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 				break
 			} else if elem.OrderQuantity < sellOrderBody.Quantity {
 				ltp = elem.OrderPrice
-
 				SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed Partially", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
 				SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Partial, "Order Executed Partially", sellOrderBody.OrderID, elem.OrderPrice, elem.OrderQuantity)
 				sellOrderBody.Quantity -= elem.OrderQuantity
@@ -351,6 +352,8 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 			break
 		} else if elem.OrderQuantity < sellOrderBody.Quantity {
 			ltp = elem.OrderPrice
+			UpdateLTP(ltp, sellOrderBody.StockName)
+			UpdateMarketOrderPrices(sellOrderBody.StockName)
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed Partially", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Partial, "Order Executed Partially", sellOrderBody.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			sellOrderBody.Quantity -= elem.OrderQuantity
@@ -366,10 +369,11 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 			if err != nil {
 				log.Println(err.Error())
 			}
-			UpdateLTP(ltp, sellOrderBody.StockName)
-			UpdateMarketOrderPrices(sellOrderBody.StockName)
+
 		} else {
 			ltp = elem.OrderPrice
+			UpdateLTP(ltp, sellOrderBody.StockName)
+			UpdateMarketOrderPrices(sellOrderBody.StockName)
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed", sellOrderBody.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 			sellOrderBody.Quantity -= elem.OrderQuantity
@@ -389,8 +393,7 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 			if err != nil {
 				log.Println(err.Error())
 			}
-			UpdateLTP(ltp, sellOrderBody.StockName)
-			UpdateMarketOrderPrices(sellOrderBody.StockName)
+
 		}
 	}
 }
@@ -459,13 +462,13 @@ func RandomizerAlgo() {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		orderType := []string{Limit, Market}
+		orderType := []string{Limit}
 		for _, stock := range allStocks {
 
 			//placing buy order
 			orderID := uuid.New().String()
 			rand.Seed(time.Now().UnixNano())
-			idx := rand.Intn(2)
+			idx := rand.Intn(1)
 			order := orderType[idx]
 			min := stock.LTP - int(float64(stock.LTP)*PercentChange)
 			max := stock.LTP + int(float64(stock.LTP)*PercentChange)
@@ -487,7 +490,7 @@ func RandomizerAlgo() {
 			//placing sell order
 			orderID = uuid.New().String()
 			rand.Seed(time.Now().UnixNano())
-			idx = rand.Intn(2)
+			idx = rand.Intn(1)
 			order = orderType[idx]
 			min = stock.LTP - int(float64(stock.LTP)*PercentChange)
 			max = stock.LTP + int(float64(stock.LTP)*PercentChange)

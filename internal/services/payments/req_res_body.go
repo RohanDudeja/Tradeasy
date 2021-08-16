@@ -62,3 +62,7 @@ type CallbackResponse struct {
 	Balance int64  `json:"balance"`
 	Status  string `json:"status"`
 }
+
+type GetBalanceResponse struct {
+	Balance int64 `json:"balance"`
+}

@@ -31,6 +31,7 @@ func DailyPendingOrders(Userid string) (response []DailyPendingOrderResponse, er
 		pendingOrderResponse.Quantity = pendingOrder.Quantity
 		pendingOrderResponse.OrderPrice = pendingOrder.OrderPrice
 		pendingOrderResponse.Status = pendingOrder.Status
+		pendingOrderResponse.CreatedAt = pendingOrder.CreatedAt
 		dailyPendingOrderResponse = append(dailyPendingOrderResponse, pendingOrderResponse)
 	}
 	return dailyPendingOrderResponse, nil
@@ -54,6 +55,7 @@ func Portfolio(Userid string, request ReportsParamRequest) (response []Portfolio
 		portfolioResponse.StockName = holding.StockName
 		portfolioResponse.Quantity = holding.Quantity
 		portfolioResponse.BuyPrice = holding.BuyPrice
+		portfolioResponse.CreatedAt = holding.CreatedAt
 		portfolioResponses = append(portfolioResponses, portfolioResponse)
 	}
 	return portfolioResponses, nil
@@ -86,6 +88,7 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 		orderHistoryResponse.StockName = orderHistory.StockName
 		orderHistoryResponse.Quantity = orderHistory.Quantity
 		orderHistoryResponse.BuySellType = Sell
+		orderHistoryResponse.CreatedAt = orderHistory.CreatedAt
 		orderHistoryResponses = append(orderHistoryResponses, orderHistoryResponse)
 	}
 
@@ -112,6 +115,7 @@ func OrdersHistory(Userid string, request ReportsParamRequest) (response []Order
 		orderHistoryResponse.StockName = holding.StockName
 		orderHistoryResponse.Quantity = holdingsQuantity.TotalQuantity + orderHistoryQuantity.TotalQuantity
 		orderHistoryResponse.BuySellType = Buy
+		orderHistoryResponse.CreatedAt = holding.CreatedAt
 		orderHistoryResponses = append(orderHistoryResponses, orderHistoryResponse)
 	}
 	return orderHistoryResponses, nil
@@ -144,6 +148,7 @@ func ProfitLossHistory(Userid string, request ReportsParamRequest) (response []P
 			profitLossResponse.CumulatedProfit = profitLossHistory.Quantity*(profitLossHistory.SellPrice-profitLossHistory.BuyPrice) +
 				profitLossResponses[len(profitLossResponses)-1].CumulatedProfit
 		}
+		profitLossResponse.CreatedAt = profitLossHistory.CreatedAt
 		profitLossResponses = append(profitLossResponses, profitLossResponse)
 	}
 	return profitLossResponses, nil

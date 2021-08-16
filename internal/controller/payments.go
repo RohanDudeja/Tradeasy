@@ -21,7 +21,7 @@ func AddAmount(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -42,7 +42,7 @@ func WithdrawAmount(c *gin.Context) {
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusInternalServerError,
 		})
 	} else {
@@ -55,7 +55,7 @@ func Callback(c *gin.Context) {
 	if err := c.BindQuery(&callbackParamRequest); err != nil {
 		log.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error":  err.Error(),
 			"status": http.StatusBadRequest,
 		})
 	}
@@ -68,5 +68,19 @@ func Callback(c *gin.Context) {
 		})
 	} else {
 		c.JSON(http.StatusOK, callBackResponse)
+	}
+}
+
+func GetBalance(c *gin.Context) {
+	userId := c.Params.ByName("user_id")
+	response, err := payments.GetBalance(userId)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  err.Error(),
+			"status": http.StatusInternalServerError,
+		})
+	} else {
+		c.JSON(http.StatusOK, response)
 	}
 }
