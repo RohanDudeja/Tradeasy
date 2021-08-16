@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Response struct {
@@ -125,6 +126,7 @@ func InitialiseAllStocks() {
 	}
 	for _, ticker := range tickers {
 		InitialiseStock(ticker)
+		time.Sleep(12 * time.Second)
 	}
 }
 

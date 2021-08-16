@@ -100,13 +100,12 @@ func CancelAtExpiry() {
 			SendResponse(false, order.StockTickerSymbol, Cancelled, "Expiry Time Reached", order.OrderID, order.OrderPrice, order.OrderQuantity)
 		}
 	}
-	//reset all prices of a stock at midnight
-	if time.Now().Hour() >= 0 && time.Now().Hour() < 9 {
-		err = database.GetDB().Exec("UPDATE stocks SET open_price = ltp, high_price = ltp, low_price = ltp, previous_day_close = ltp, percentage_change = ? ", 0).Error
-		if err != nil {
-			log.Println(err.Error())
-		}
+	//reset all prices of a stock
+	err = database.GetDB().Exec("UPDATE stocks SET open_price = ltp, high_price = ltp, low_price = ltp, previous_day_close = ltp, percentage_change = ? ", 0).Error
+	if err != nil {
+		log.Println(err.Error())
 	}
+
 }
 
 func BuyLimitOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
@@ -117,6 +116,10 @@ func BuyLimitOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 			if elem.OrderQuantity > buyOrderBody.Quantity {
 				ltp = elem.OrderPrice
 				err := database.GetDB().Exec("UPDATE sell_order_book SET order_quantity = ? , updated_at = ? WHERE deleted_at IS NULL id = ? ", elem.OrderQuantity-buyOrderBody.Quantity, time.Now(), elem.ID).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
+				err = database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE order_id = ?", Completed, buyOrderBody.OrderID).Error
 				if err != nil {
 					log.Println(err.Error())
 				}
@@ -135,7 +138,11 @@ func BuyLimitOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 				SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Partial, "Order Executed Partially", buyOrderBody.OrderID, elem.OrderPrice, elem.OrderQuantity)
 				SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
 				buyOrderBody.Quantity -= elem.OrderQuantity
-				err := database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
+				err := database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
+				err = database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
 				if err != nil {
 					log.Println(err.Error())
 				}
@@ -150,7 +157,15 @@ func BuyLimitOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 				SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", buyOrderBody.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 				SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 				buyOrderBody.Quantity -= elem.OrderQuantity
-				err := database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
+				err := database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
+				err = database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
+				err = database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE order_id = ?", Completed, buyOrderBody.OrderID).Error
 				if err != nil {
 					log.Println(err.Error())
 				}
@@ -175,6 +190,10 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 			if err != nil {
 				log.Println(err.Error())
 			}
+			err = database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE order_id = ?", Completed, buyOrderBody.OrderID).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
 			err = database.GetDB().Table("buy_order_book").Where("order_id= ?", buyOrderBody.OrderID).Delete(model.BuyOrderBook{}).Error
 			if err != nil {
 				log.Println(err.Error())
@@ -190,7 +209,11 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Partial, "Order Executed Partially", buyOrderBody.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			buyOrderBody.Quantity -= elem.OrderQuantity
-			err := database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
+			err := database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -205,7 +228,15 @@ func BuyMarketOrder(buyOrderBody OrderRequest, sellBook []model.SellOrderBook) {
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", buyOrderBody.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 			SendResponse(buyOrderBody.IsDummy, buyOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, buyOrderBody.Quantity)
 			buyOrderBody.Quantity -= elem.OrderQuantity
-			err := database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
+			err := database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = database.GetDB().Table("sell_order_book").Where("id= ?", elem.ID).Delete(model.SellOrderBook{}).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE order_id = ?", Completed, buyOrderBody.OrderID).Error
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -231,6 +262,10 @@ func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 				if err != nil {
 					log.Println(err.Error())
 				}
+				err = database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE order_id = ?", Completed, sellOrderBody.OrderID).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
 				err = database.GetDB().Table("sell_order_book").Where("order_id= ?", sellOrderBody.OrderID).Delete(model.SellOrderBook{}).Error
 				if err != nil {
 					log.Println(err.Error())
@@ -247,7 +282,11 @@ func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 				SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed Partially", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
 				SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Partial, "Order Executed Partially", sellOrderBody.OrderID, elem.OrderPrice, elem.OrderQuantity)
 				sellOrderBody.Quantity -= elem.OrderQuantity
-				err := database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
+				err := database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
+				err = database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
 				if err != nil {
 					log.Println(err.Error())
 				}
@@ -262,7 +301,15 @@ func SellLimitOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 				SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed", sellOrderBody.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 				SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 				sellOrderBody.Quantity -= elem.OrderQuantity
-				err := database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
+				err := database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
+				err = database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
+				if err != nil {
+					log.Println(err.Error())
+				}
+				err = database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE order_id = ?", Completed, sellOrderBody.OrderID).Error
 				if err != nil {
 					log.Println(err.Error())
 				}
@@ -288,6 +335,10 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 			if err != nil {
 				log.Println(err.Error())
 			}
+			err = database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE order_id = ?", Completed, sellOrderBody.OrderID).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
 			err = database.GetDB().Table("sell_order_book").Where("order_id= ?", sellOrderBody.OrderID).Delete(model.SellOrderBook{}).Error
 			if err != nil {
 				log.Println(err.Error())
@@ -303,7 +354,11 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed Partially", elem.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Partial, "Order Executed Partially", sellOrderBody.OrderID, elem.OrderPrice, elem.OrderQuantity)
 			sellOrderBody.Quantity -= elem.OrderQuantity
-			err := database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
+			err := database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -318,7 +373,15 @@ func SellMarketOrder(sellOrderBody OrderRequest, buyBook []model.BuyOrderBook) {
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed", sellOrderBody.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 			SendResponse(sellOrderBody.IsDummy, sellOrderBody.StockName, Completed, "Order Executed", elem.OrderID, elem.OrderPrice, sellOrderBody.Quantity)
 			sellOrderBody.Quantity -= elem.OrderQuantity
-			err := database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
+			err := database.GetDB().Exec("UPDATE buy_order_book SET order_status = ? WHERE id = ?", Completed, elem.ID).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = database.GetDB().Table("buy_order_book").Where("id= ?", elem.ID).Delete(model.BuyOrderBook{}).Error
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = database.GetDB().Exec("UPDATE sell_order_book SET order_status = ? WHERE order_id = ?", Completed, sellOrderBody.OrderID).Error
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -389,7 +452,7 @@ func RandomizerAlgo() {
 		if currentHour >= ExpiryTime || currentHour < StartTime {
 			CancelAtExpiry()
 			time.Sleep(1 * time.Minute)
-			continue
+			break
 		}
 		var allStocks []model.Stocks
 		err := database.GetDB().Table("stocks").Find(&allStocks).Error
