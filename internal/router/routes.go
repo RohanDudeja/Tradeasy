@@ -51,7 +51,7 @@ func SetUpRouter() *gin.Engine {
 		watchlist.POST("", controller.CreateWatchlist)
 		watchlist.POST("/:watchlist_id/add", controller.AddStockEntry)
 		watchlist.DELETE("/:watchlist_id", controller.DeleteStockEntry)
-		watchlist.PATCH("/sort", controller.SortWatchlist)
+		watchlist.PATCH("/:watchlist_id/sort", controller.SortWatchlist)
 	}
 
 	//userSign no auth needed
