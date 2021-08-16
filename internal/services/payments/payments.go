@@ -38,7 +38,7 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 		Currency:       "INR"}
 	jsonReq, err := json.Marshal(razorRequest)
 	if err != nil {
-		return addRes, errors.New("error while marshalling Razorpay request")
+		return addRes, err
 	}
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", "https://api.razorpay.com/v1/payment_links", bytes.NewBuffer(jsonReq))
@@ -54,7 +54,7 @@ func AddAmount(addReq AddRequest, Userid string) (addRes AddResponse, err error)
 	bodyBytes, _ := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(bodyBytes, &razorpayRes)
 	if err != nil {
-		return addRes, errors.New("error while marshalling Razorpay request")
+		return addRes, err
 	}
 	pay := model.Payments{
 		UserId:         Userid,

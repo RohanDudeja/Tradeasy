@@ -70,7 +70,7 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	request, err := json.Marshal(exeOrder)
 	if err != nil {
 		log.Println("Error in Marshalling the Executive buy order", err)
-		return bRes, errors.New("error while marshalling executive buy order")
+		return bRes, err
 	}
 	req, err := http.NewRequest("POST", BuyOrderURL, bytes.NewBuffer(request))
 	if err != nil {
@@ -90,12 +90,12 @@ func BuyOrder(bReq BuyRequest) (bRes stock_exchange.OrderResponse, err error) {
 	err = json.Unmarshal(body, &bRes)
 	if err != nil {
 		log.Println("Error in Unmarshalling the Executive buy order response", err)
-		return bRes, errors.New("error while unmarshalling the executive buy order response")
+		return bRes, err
 	}
 
 	if bRes.Status == Pending {
 		account.Balance = account.Balance - int64(bReq.Quantity*bReq.LimitPrice)
-		account.UpdatedAt=time.Now()
+		account.UpdatedAt = time.Now()
 		if err = database.GetDB().Table("trading_account").Where("user_id=?", bReq.UserId).Updates(&account).Error; err != nil {
 			log.Println("Error in Updating Balance in Trading Account", err)
 			return bRes, errors.New("error in Updating Balance in Trading Account")
@@ -158,7 +158,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	request, err := json.Marshal(exeOrder)
 	if err != nil {
 		log.Println("Error in Marshalling the Executive sell order", err)
-		return sRes, errors.New("error while marshalling executive sell order")
+		return sRes, err
 	}
 	req, err := http.NewRequest("POST", SellOrderURL, bytes.NewBuffer(request))
 	if err != nil {
@@ -178,7 +178,7 @@ func SellOrder(sReq SellRequest) (sRes stock_exchange.OrderResponse, err error) 
 	err = json.Unmarshal(body, &sRes)
 	if err != nil {
 		log.Println("Error in Unmarshalling the Executive sell order response", err)
-		return sRes, errors.New("error while unmarshalling the executive sell order response")
+		return sRes, err
 	}
 
 	if sRes.Status == Pending {
@@ -223,7 +223,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	err = json.Unmarshal(body, &dRes)
 	if err != nil {
 		log.Println("Error in Unmarshalling the Executive cancel order", err)
-		return cRes, errors.New("error while unmarshalling executive cancel order")
+		return cRes, err
 	}
 
 	cRes.UserId = p.UserId
@@ -231,7 +231,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 	cRes.StockName = p.StockName
 	if dRes.Success == true {
 		p.Status = Cancelled
-		p.UpdatedAt=time.Now()
+		p.UpdatedAt = time.Now()
 		cRes.Status = Cancelled
 		cRes.Message = dRes.Message
 		if p.OrderType == Buy {
@@ -245,7 +245,7 @@ func CancelOrder(id string) (cRes CancelResponse, err error) {
 			} else if p.BookType == Limit {
 				account.Balance = account.Balance + int64(p.Quantity*p.LimitPrice)
 			}
-			account.UpdatedAt=time.Now()
+			account.UpdatedAt = time.Now()
 			if err = database.GetDB().Table("trading_account").Where("user_id=?", p.UserId).Updates(&account).Error; err != nil {
 				log.Println("Error in updating balance in trading account", err)
 				return cRes, errors.New("error in updating the balance for trading account")
