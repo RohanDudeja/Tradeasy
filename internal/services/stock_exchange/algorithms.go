@@ -462,13 +462,13 @@ func RandomizerAlgo() {
 		if err != nil {
 			log.Println(err.Error())
 		}
-		orderType := []string{Limit, Market}
+		orderType := []string{Limit}
 		for _, stock := range allStocks {
 
 			//placing buy order
 			orderID := uuid.New().String()
 			rand.Seed(time.Now().UnixNano())
-			idx := rand.Intn(2)
+			idx := rand.Intn(1)
 			order := orderType[idx]
 			min := stock.LTP - int(float64(stock.LTP)*PercentChange)
 			max := stock.LTP + int(float64(stock.LTP)*PercentChange)
@@ -490,7 +490,7 @@ func RandomizerAlgo() {
 			//placing sell order
 			orderID = uuid.New().String()
 			rand.Seed(time.Now().UnixNano())
-			idx = rand.Intn(2)
+			idx = rand.Intn(1)
 			order = orderType[idx]
 			min = stock.LTP - int(float64(stock.LTP)*PercentChange)
 			max = stock.LTP + int(float64(stock.LTP)*PercentChange)
