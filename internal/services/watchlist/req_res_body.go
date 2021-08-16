@@ -29,7 +29,7 @@ type DeleteStockResponse struct {
 	Message string `json:"message"`
 }
 type SortRequest struct {
-	WatchlistId int `json:"watchlist_id"`
+	UserId int `json:"user_id"`
 }
 
 type SortResponse struct {
